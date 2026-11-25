@@ -41,3 +41,11 @@ def test_empty_table_has_zero_rows_and_no_keys(con: duckdb.DuckDBPyConnection) -
     assert rows == 0
     assert columns[0].is_key_candidate is False
     assert columns[0].sample_values == []
+
+
+def test_batched_statistics_equal_a_single_batch(con: duckdb.DuckDBPyConnection) -> None:
+    con.execute(
+        "CREATE TABLE w AS SELECT range AS a, range % 3 AS b, 'x' || range AS c, "
+        "NULL::VARCHAR AS d, range * 1.5 AS e FROM range(20)"
+    )
+    assert profile_columns(con, "w", 2, batch_size=2) == profile_columns(con, "w", 2, batch_size=50)

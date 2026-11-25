@@ -53,3 +53,10 @@ def test_large_columns_are_sampled_deterministically(con: duckdb.DuckDBPyConnect
 def test_long_text_columns_are_not_compared(con: duckdb.DuckDBPyConnection) -> None:
     con.execute("CREATE TABLE notes AS SELECT repeat('x', 50) AS body")
     assert refs_for(con, "notes", max_len=40) == []
+
+
+def test_column_cap_keeps_the_most_key_like_columns(con: duckdb.DuckDBPyConnection) -> None:
+    setup(con)
+    profiles = {t: profile_columns(con, t, sample_values=1)[1] for t in ("cust", "orders")}
+    kept = overlap_columns(profiles, max_value_length=40, max_columns=2)
+    assert [r.qualified for r in kept] == ["cust.id", "orders.order_no"]

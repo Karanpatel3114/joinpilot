@@ -64,6 +64,9 @@ class ProfilingSettings(BaseModel):
     overlap_sample_size: int = 10_000
     overlap_max_value_length: int = 40
     overlap_min_ratio: float = 0.1
+    overlap_max_columns: int = 300
+    overlap_max_results: int = 5_000
+    stats_batch_columns: int = 50
     normalization_min_gain: float = 0.1
 
 

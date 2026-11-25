@@ -55,10 +55,14 @@ class PairCounts:
 
 
 def overlap_columns(
-    tables: dict[str, list[ColumnProfile]], max_value_length: int
+    tables: dict[str, list[ColumnProfile]], max_value_length: int, max_columns: int = 300
 ) -> list[ColumnRef]:
-    """Columns worth comparing: integer or short text columns with at least one value."""
-    return [
+    """Columns worth comparing: integer or short text columns with at least one value.
+
+    When there are more than `max_columns`, the ones with the most distinct values
+    (the most key-like) are kept, so the pair count cannot grow without bound.
+    """
+    refs = [
         ColumnRef(table, column)
         for table, columns in tables.items()
         for column in columns
@@ -66,6 +70,10 @@ def overlap_columns(
         and column.distinct_count > 0
         and (column.max_length or 0) <= max_value_length
     ]
+    if len(refs) <= max_columns:
+        return refs
+    kept = sorted(refs, key=lambda r: (-r.profile.distinct_count, r.qualified))[:max_columns]
+    return sorted(kept, key=lambda r: refs.index(r))
 
 
 def pair_counts(

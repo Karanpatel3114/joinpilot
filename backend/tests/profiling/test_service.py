@@ -82,3 +82,12 @@ def test_uniqueness_uses_exact_non_null_counts() -> None:
     [key] = [k for k in profile.keys if k.columns == ["id"]]
     assert (key.non_null_count, key.uniqueness) == (1_500_000, 1.0)
     assert profile.tables[0].columns[0].non_null_count == 1_500_000
+
+
+def test_overlap_results_are_capped_keeping_the_strongest(
+    warehouse: tuple[duckdb.DuckDBPyConnection, dict[str, str]],
+) -> None:
+    capped = profile_project(*warehouse, ProfilingSettings(overlap_max_results=3))
+    assert len(capped.overlaps) == 3
+    assert all(o.inclusion_ratio == 1.0 for o in capped.overlaps)
+    assert [o.evidence_id for o in capped.overlaps] == ["ov_001", "ov_002", "ov_003"]

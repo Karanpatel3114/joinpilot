@@ -69,7 +69,9 @@ def profile_project(
     keys: list[KeyEvidence] = []
     columns_by_table: dict[str, list[ColumnProfile]] = {}
     for table_id, name in sorted(tables.items(), key=lambda kv: kv[1]):
-        row_count, columns = profile_columns(con, name, settings.sample_values)
+        row_count, columns = profile_columns(
+            con, name, settings.sample_values, settings.stats_batch_columns
+        )
         table_keys = candidate_keys(con, name, row_count, columns, settings.max_pair_columns)
         table_profiles.append(
             TableProfile(
@@ -83,7 +85,9 @@ def profile_project(
         keys += key_evidence(name, columns, row_count, table_keys)
         columns_by_table[name] = columns
 
-    refs = overlap_columns(columns_by_table, settings.overlap_max_value_length)
+    refs = overlap_columns(
+        columns_by_table, settings.overlap_max_value_length, settings.overlap_max_columns
+    )
     overlaps = []
     for pair in pair_counts(con, refs, settings.overlap_sample_size):
         normalization, ratio = choose_normalization(pair, settings.normalization_min_gain)
@@ -102,6 +106,9 @@ def profile_project(
                 sampled=pair.sampled,
             )
         )
+    if len(overlaps) > settings.overlap_max_results:
+        overlaps.sort(key=lambda o: (-o.inclusion_ratio, o.from_, o.to))
+        overlaps = overlaps[: settings.overlap_max_results]
     keys.sort(key=lambda k: (k.table, k.columns))
     overlaps.sort(key=lambda o: (o.from_, o.to))
     for i, key in enumerate(keys, start=1):
