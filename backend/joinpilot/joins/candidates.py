@@ -6,6 +6,7 @@ may invent a join that is not in this list.
 
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import dataclass, field
 from itertools import permutations
 
@@ -33,17 +34,18 @@ class ProfileIndex:
     composite_keys: dict[str, list[list[str]]] = field(default_factory=dict)
 
     @classmethod
-    def build(cls, profile: ProjectProfile) -> ProfileIndex:
+    def build(cls, profile: ProjectProfile, settings: JoinSettings) -> ProfileIndex:
         """Index tables, columns, overlaps and key evidence of a profile."""
         index = cls()
         for table in profile.tables:
-            prefix = table_prefix([c.name for c in table.columns])
+            names = [c.name for c in table.columns]
+            prefix = table_prefix(names, settings.prefix_min_share, settings.prefix_max_length)
             index.row_counts[table.name] = table.row_count
             index.composite_keys[table.name] = [k for k in table.candidate_keys if len(k) > 1]
             for column in table.columns:
                 qualified = f"{table.name}.{column.name}"
                 index.columns[qualified] = column
-                index.stems[qualified] = stem(column.name, prefix)
+                index.stems[qualified] = stem(column.name, prefix, table.name)
         index.overlaps = {(o.from_, o.to): o for o in profile.overlaps}
         index.keys = {(k.table, tuple(k.columns)): k for k in profile.keys}
         return index
@@ -66,13 +68,19 @@ def candidate_pairs(index: ProfileIndex, settings: JoinSettings) -> list[tuple[s
         for pair, o in index.overlaps.items()
         if o.inclusion_ratio >= settings.candidate_min_inclusion
     }
-    for a, b in permutations(key_like_columns(index), 2):
-        if a.split(".")[0] != b.split(".")[0] and index.stems[a] == index.stems[b]:
-            pairs.add((a, b))
+    by_stem: dict[str, list[str]] = defaultdict(list)
+    for column in key_like_columns(index):
+        by_stem[index.stems[column]].append(column)
+    for group in by_stem.values():
+        for a, b in permutations(group, 2):
+            if a.split(".")[0] != b.split(".")[0]:
+                pairs.add((a, b))
     return sorted(pairs)
 
 
-def build_candidate(index: ProfileIndex, source: str, target: str) -> JoinCandidate:
+def build_candidate(
+    index: ProfileIndex, source: str, target: str, settings: JoinSettings
+) -> JoinCandidate:
     """Collect the evidence features of one directed pair."""
     forward = index.overlaps.get((source, target))
     reverse = index.overlaps.get((target, source))
@@ -88,12 +96,13 @@ def build_candidate(index: ProfileIndex, source: str, target: str) -> JoinCandid
         target_uniqueness=target_key.uniqueness if target_key else 0.0,
         source_uniqueness=source_key.uniqueness if source_key else 0.0,
         target_distinct=index.columns[target].distinct_count,
-        name_similarity=name_similarity(index.stems[source], index.stems[target]),
+        name_similarity=name_similarity(
+            index.stems[source], index.stems[target], settings.name_fuzzy_weight
+        ),
         evidence_ids=evidence,
     )
 
 
-def generate_candidates(profile: ProjectProfile, settings: JoinSettings) -> list[JoinCandidate]:
+def generate_candidates(index: ProfileIndex, settings: JoinSettings) -> list[JoinCandidate]:
     """All candidate joins of a project, unscored, in a stable order."""
-    index = ProfileIndex.build(profile)
-    return [build_candidate(index, a, b) for a, b in candidate_pairs(index, settings)]
+    return [build_candidate(index, a, b, settings) for a, b in candidate_pairs(index, settings)]

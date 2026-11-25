@@ -6,7 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-Cardinality = Literal["N:1", "1:1", "N:M"]
+Cardinality = Literal["N:1", "1:1", "1:N", "N:M"]
 
 
 class JoinFilter(BaseModel):

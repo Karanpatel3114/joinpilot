@@ -39,9 +39,10 @@ def test_decoys_are_rejected_with_a_reason(sap_profile: ProjectProfile) -> None:
     currency = ranked[("VBAK.WAERK", "BSID.WAERS")]
     assert not currency.accepted
     assert currency.cardinality == "N:M"
-    assert "not unique" in (currency.rejection_reason or "")
+    assert "neither side is unique" in (currency.rejection_reason or "")
     reverse = ranked[("KNA1.KUNNR", "VBAK.KUNNR")]
     assert not reverse.accepted
+    assert reverse.cardinality == "1:N"
 
 
 def test_edge_ids_follow_the_ranking(sap_profile: ProjectProfile) -> None:
@@ -70,6 +71,8 @@ def test_cardinality_and_score_rules() -> None:
     many = unique.model_copy(update={"target_uniqueness": 0.5, "cardinality": "N:M"})
     assert cardinality(many, 0.999) == "N:M"
     assert raw_score(many, JoinSettings()) == 0.425
+    reverse = unique.model_copy(update={"target_uniqueness": 0.5, "source_uniqueness": 1.0})
+    assert cardinality(reverse, 0.999) == "1:N"
 
 
 def test_pk_to_pk_with_different_names_is_rejected(sap_profile: ProjectProfile) -> None:

@@ -6,6 +6,7 @@ from difflib import SequenceMatcher
 from itertools import permutations
 
 from eval.join_metrics import PredictedEdge
+from joinpilot.config import JoinSettings
 from joinpilot.joins.names import stem, table_prefix
 from joinpilot.profiling.models import ProjectProfile, is_key_like_type
 
@@ -20,12 +21,16 @@ def name_only(profile: ProjectProfile) -> list[PredictedEdge]:
     target is the column that comes first in its table (usually the primary key).
     When both or neither come first, both directions are predicted.
     """
+    s = JoinSettings()
     columns = []
     for table in profile.tables:
-        prefix = table_prefix([c.name for c in table.columns])
+        prefix = table_prefix(
+            [c.name for c in table.columns], s.prefix_min_share, s.prefix_max_length
+        )
         for position, column in enumerate(table.columns):
             if is_key_like_type(column.type):
-                columns.append((table.name, column.name, stem(column.name, prefix), position == 0))
+                name = stem(column.name, prefix, table.name)
+                columns.append((table.name, column.name, name, position == 0))
     edges = []
     for (ta, ca, sa, first_a), (tb, cb, sb, first_b) in permutations(columns, 2):
         if ta == tb or SequenceMatcher(None, sa, sb).ratio() < NAME_FUZZY_MIN:
