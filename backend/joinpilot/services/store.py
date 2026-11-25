@@ -7,6 +7,9 @@ same methods.
 from __future__ import annotations
 
 import json
+import os
+import tempfile
+import threading
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -16,6 +19,31 @@ from pydantic import BaseModel, Field
 from joinpilot.errors import NotFoundError
 
 RECORD_FILE = "project.json"
+
+_LOCKS: dict[str, threading.RLock] = {}
+_LOCKS_GUARD = threading.Lock()
+
+
+def project_lock(project_id: str) -> threading.RLock:
+    """One lock per project, so reads, changes and writes of its state never interleave.
+
+    This protects one API process. A single process owns each project's DuckDB file
+    for writing (DuckDB allows one writer process), so this is the right scope.
+    """
+    with _LOCKS_GUARD:
+        return _LOCKS.setdefault(project_id, threading.RLock())
+
+
+def write_atomic(path: Path, text: str) -> None:
+    """Write `text` to a unique temporary file, then rename it over `path`."""
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(text)
+        Path(tmp).replace(path)
+    except BaseException:
+        Path(tmp).unlink(missing_ok=True)
+        raise
 
 
 class TableRecord(BaseModel):
@@ -73,9 +101,7 @@ class ProjectStore:
         return sorted(records, key=lambda r: r.created_at, reverse=True)
 
     def save(self, record: ProjectRecord) -> None:
-        """Write the record atomically (write a temp file, then rename)."""
+        """Write the record atomically, so readers never see a half-written file."""
         folder = self.project_dir(record.id)
         folder.mkdir(parents=True, exist_ok=True)
-        tmp = folder / f"{RECORD_FILE}.tmp"
-        tmp.write_text(json.dumps(record.model_dump(mode="json"), indent=2))
-        tmp.replace(folder / RECORD_FILE)
+        write_atomic(folder / RECORD_FILE, json.dumps(record.model_dump(mode="json"), indent=2))

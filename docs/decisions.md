@@ -85,3 +85,9 @@ One entry per design choice that had real alternatives. Newest at the bottom. Fo
 - **Decision:** stack the distinct values of every integer or short text column into one temporary "long" table `(column, table, value)`, sample each source column deterministically (ordered by `hash(value)`) to a configured size, and count matches for all pairs with a single hash join that skips same-table pairs.
 - **Alternatives:** one `IN` query per pair (hundreds of scans); MinHash sketches (approximate, harder to explain as evidence).
 - **Consequences:** exact counts for unsampled columns, about 0.03 s on the ERP sample and 0.12 s on TPC-H SF 0.1. Decimal, float, date and long text columns are never compared, which also rejects several decoys by construction.
+
+## D-016: One process owns the warehouses; a lock per project inside it
+- **Context:** concurrent uploads to one project lost table records, and DuckDB allows only one process to open a database file for writing.
+- **Decision:** a single API process owns every project's DuckDB file. Inside it, each project has a re-entrant lock held for every read-change-write of the project's state (record, warehouse tables, cached profile), and JSON files are written atomically through unique temporary files. Background jobs (M5) must run in, or hand their warehouse work to, that same process.
+- **Alternatives:** file locks across processes (more moving parts); one DuckDB writer service (an extra service for a portfolio-scale app).
+- **Consequences:** no lost writes within a process; uvicorn runs with one worker, which is plenty for this workload.

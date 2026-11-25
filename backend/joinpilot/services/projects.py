@@ -22,7 +22,13 @@ from joinpilot.profiling.loader import (
 )
 from joinpilot.profiling.models import ProjectProfile
 from joinpilot.profiling.service import profile_project
-from joinpilot.services.store import ProjectRecord, ProjectStore, TableRecord
+from joinpilot.services.store import (
+    ProjectRecord,
+    ProjectStore,
+    TableRecord,
+    project_lock,
+    write_atomic,
+)
 from joinpilot.synth.dataset import build_dataset
 from joinpilot.synth.naming import Naming
 
@@ -66,32 +72,34 @@ class ProjectService:
 
     def add_upload(self, project_id: str, filename: str, stream: BinaryIO) -> list[TableRecord]:
         """Save one uploaded file (within the size limit), load it, and drop the copy."""
-        record = self.store.get(project_id)
         suffix = Path(filename).suffix.lower()
         if suffix not in SUPPORTED_SUFFIXES:
             raise InvalidInputError("Only CSV and Parquet files are supported.", {"file": filename})
-        table = existing_name(record, table_name_from_filename(filename))
-        self._check_capacity(record, [table])
+        self.store.get(project_id)
         folder = self.store.project_dir(project_id) / "uploads"
         folder.mkdir(parents=True, exist_ok=True)
         path = folder / f"{uuid.uuid4()}{suffix}"
         try:
             self._copy_limited(stream, path)
-            with self._connect(project_id) as con:
-                loaded = load_file(
-                    con,
-                    path,
-                    table,
-                    display_name=filename,
-                    max_columns=self.settings.max_columns_per_table,
-                )
+            with project_lock(project_id):
+                record = self.store.get(project_id)
+                table = existing_name(record, table_name_from_filename(filename))
+                self._check_capacity(record, [table])
+                with self._connect(project_id) as con:
+                    loaded = load_file(
+                        con,
+                        path,
+                        table,
+                        display_name=filename,
+                        max_columns=self.settings.max_columns_per_table,
+                    )
+                return self._register(record, [loaded])
         finally:
             path.unlink(missing_ok=True)
-        return self._register(record, [loaded])
 
     def add_sample(self, project_id: str, sample: str) -> list[TableRecord]:
         """Generate a synthetic ERP dataset (no gold) and load its tables."""
-        record = self.store.get(project_id)
+        self.store.get(project_id)
         match = SAMPLE_PATTERN.match(sample)
         size = match["size"].upper() if match else ""
         if not match or size not in self.settings.sample_sizes:
@@ -103,26 +111,29 @@ class ProjectService:
         tables = build_dataset(
             int(match["seed"]), size, naming, self.settings.synth
         ).output_tables()
-        names = {name: existing_name(record, name) for name in tables}
-        self._check_capacity(record, list(names.values()))
-        with self._connect(project_id) as con:
-            loaded = [load_arrow(con, names[name], data) for name, data in tables.items()]
-        return self._register(record, loaded)
+        with project_lock(project_id):
+            record = self.store.get(project_id)
+            names = {name: existing_name(record, name) for name in tables}
+            self._check_capacity(record, list(names.values()))
+            with self._connect(project_id) as con:
+                loaded = [load_arrow(con, names[name], data) for name, data in tables.items()]
+            return self._register(record, loaded)
 
     def profile(self, project_id: str) -> ProjectProfile:
         """Return the cached profile, computing it after any table change."""
-        record = self.store.get(project_id)
-        cache = self.store.project_dir(project_id) / PROFILE_FILE
-        if cache.exists():
-            return ProjectProfile.model_validate_json(cache.read_text())
-        tables = {t.table_id: t.name for t in record.tables}
-        with self._connect(project_id) as con:
-            profile = profile_project(con, tables, self.settings.profiling)
-        cache.write_text(profile.model_dump_json(by_alias=True))
-        return profile
+        with project_lock(project_id):
+            record = self.store.get(project_id)
+            cache = self.store.project_dir(project_id) / PROFILE_FILE
+            if cache.exists():
+                return ProjectProfile.model_validate_json(cache.read_text())
+            tables = {t.table_id: t.name for t in record.tables}
+            with self._connect(project_id) as con:
+                profile = profile_project(con, tables, self.settings.profiling)
+            write_atomic(cache, profile.model_dump_json(by_alias=True))
+            return profile
 
     def _register(self, record: ProjectRecord, loaded: list[LoadedTable]) -> list[TableRecord]:
-        """Add or replace table records and invalidate the cached profile."""
+        """Add or replace table records and drop the cached profile; caller holds the lock."""
         existing = {t.name.casefold(): t for t in record.tables}
         added = []
         for table in loaded:
