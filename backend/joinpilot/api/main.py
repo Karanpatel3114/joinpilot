@@ -18,27 +18,37 @@ from joinpilot.api.runs import router as runs_router
 from joinpilot.api.schemas import HealthResponse
 from joinpilot.config import Settings, get_settings
 from joinpilot.db.session import ensure_migrated
-from joinpilot.jobs.queue import make_job_queue
+from joinpilot.jobs.queue import ThreadJobQueue, make_job_queue
 from joinpilot.jobs.worker import make_worker
+from joinpilot.services.runs import RunService
+
+logger = logging.getLogger(__name__)
 
 
 def make_lifespan(settings: Settings) -> Any:
-    """Start the in-process arq worker with the app when jobs go through Redis (D-022)."""
+    """On startup: migrate, re-queue runs a restart interrupted (thread mode), and start the
+    in-process arq worker when jobs go through Redis (D-022). On shutdown: stop them."""
 
     @asynccontextmanager
-    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-        if settings.jobs_mode != "arq":
-            yield
-            return
-        worker = make_worker(settings)
-        task = asyncio.create_task(worker.async_run())
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        await asyncio.to_thread(ensure_migrated, settings.db_url)
+        jobs = app.state.jobs
+        if settings.jobs_mode == "thread":
+            recovered = await asyncio.to_thread(RunService(settings, jobs).recover)
+            if recovered:
+                logger.info("re-queued %d interrupted runs", recovered)
+        worker = make_worker(settings) if settings.jobs_mode == "arq" else None
+        task = asyncio.create_task(worker.async_run()) if worker else None
         try:
             yield
         finally:
-            await worker.close()
-            task.cancel()
-            with suppress(asyncio.CancelledError):
-                await task
+            if worker and task:
+                await worker.close()
+                task.cancel()
+                with suppress(asyncio.CancelledError):
+                    await task
+            if isinstance(jobs, ThreadJobQueue):
+                await asyncio.to_thread(jobs.close)
 
     return lifespan
 
@@ -56,7 +66,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_headers=["*"],
     )
     install_error_handlers(app)
-    ensure_migrated(settings.db_url)
     app.include_router(projects_router)
     app.include_router(runs_router)
     app.state.jobs = make_job_queue(settings)

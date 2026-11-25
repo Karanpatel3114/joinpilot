@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 class Decision(BaseModel):
     """Approve or reject one proposed join, with an optional reason."""
 
-    edge_id: str
+    edge_id: str = Field(max_length=16)
     action: Literal["approve", "reject"]
     reason: str | None = Field(default=None, max_length=500)
 

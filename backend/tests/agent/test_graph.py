@@ -27,7 +27,7 @@ def test_graph_pauses_for_approval_after_ranking(ctx: AgentContext) -> None:
     state = graph.invoke(START, config("t1"))
     assert set(state["timings_ms"]) == {"profile", "parse_requirement", "rank_joins"}
     assert sum(p["recommended"] for p in state["proposals"]) == 5
-    assert state["status"] == "awaiting_approval"
+    assert state["status"] == "ranking"
     [pending] = state["__interrupt__"]
     assert len(pending.value["edge_ids"]) == len(state["proposals"])
     assert graph.get_state(config("t1")).next == ("await_approval",)

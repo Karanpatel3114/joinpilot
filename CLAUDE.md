@@ -63,7 +63,7 @@ Fill these in as each tool is set up in M0, and keep them accurate afterwards.
 - Web setup: `cd web && npm install`
 - Web checks: `cd web && npm run lint && npm run typecheck && npm test -- --run`
 - Services: `docker compose -f infra/docker-compose.yml up -d --wait` (Postgres + pgvector, Redis); stop with `down`
-- Run locally: start the services, set `DATABASE_URL` and `REDIS_URL` in `.env`, then `uv run uvicorn joinpilot.api.main:app --reload` and `cd web && npm run dev` (without Docker, leave both empty: SQLite and in-process jobs)
+- Run locally: start the services, set `DATABASE_URL`, `REDIS_URL` and `JOBS_MODE=arq` in `.env`, then `uv run uvicorn joinpilot.api.main:app --reload` and `cd web && npm run dev` (without Docker, leave both empty: SQLite and in-process jobs)
 - Migrations: applied on API startup; by hand `uv run alembic upgrade head`
 - Generate data: `uv run python -m joinpilot.synth.generate --seed 1 --size S --naming sap --out data/generated/erp_s1_sap`
 - Regenerate gold (M1 only): `uv run python -m joinpilot.synth.splits --gold data/gold` and `uv run python -m joinpilot.synth.tpch --sf 0.1 --gold data/gold`

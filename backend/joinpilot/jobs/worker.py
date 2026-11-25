@@ -14,17 +14,33 @@ from arq.connections import RedisSettings
 from arq.worker import Worker
 
 from joinpilot.config import Settings, get_settings
-from joinpilot.jobs.queue import run_job
+from joinpilot.jobs.queue import InlineJobQueue, JobName, run_job
+
+
+async def _run(ctx: dict[str, Any], name: JobName, run_id: str) -> None:
+    """Run a job in a thread; if arq times it out, mark the run failed.
+
+    A thread cannot be stopped, but the failed status is terminal, so anything it
+    does afterwards can no longer change the run's status.
+    """
+    try:
+        await asyncio.to_thread(run_job, ctx["settings"], name, run_id)
+    except asyncio.CancelledError:
+        from joinpilot.services.runs import RunService
+
+        service = RunService(ctx["settings"], InlineJobQueue(ctx["settings"]))
+        service._fail(run_id, "The run took longer than the job time limit.")
+        raise
 
 
 async def start_run(ctx: dict[str, Any], run_id: str) -> None:
-    """Job: run the graph until the approval pause."""
-    await asyncio.to_thread(run_job, ctx["settings"], "start_run", run_id)
+    """Job: move a new run forward to the approval pause."""
+    await _run(ctx, "start_run", run_id)
 
 
 async def resume_run(ctx: dict[str, Any], run_id: str) -> None:
-    """Job: resume a run after approval."""
-    await asyncio.to_thread(run_job, ctx["settings"], "resume_run", run_id)
+    """Job: move a run forward after approval (or after a restart)."""
+    await _run(ctx, "resume_run", run_id)
 
 
 def make_worker(settings: Settings) -> Worker:
@@ -36,7 +52,7 @@ def make_worker(settings: Settings) -> Worker:
         handle_signals=False,
         max_jobs=settings.jobs_max_concurrent,
         job_timeout=settings.jobs_timeout_seconds,
-        keep_result=3600,
+        keep_result=settings.jobs_keep_result_seconds,
     )
 
 

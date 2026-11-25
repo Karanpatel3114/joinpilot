@@ -6,6 +6,7 @@ All three call the same `run_job`, so behavior does not depend on the queue.
 from __future__ import annotations
 
 import asyncio
+import logging
 from concurrent.futures import ThreadPoolExecutor
 from typing import Literal, Protocol
 
@@ -14,6 +15,7 @@ from arq.connections import RedisSettings
 
 from joinpilot.config import Settings
 
+logger = logging.getLogger(__name__)
 JobName = Literal["start_run", "resume_run"]
 
 
@@ -26,14 +28,21 @@ class JobQueue(Protocol):
 
 
 def run_job(settings: Settings, name: JobName, run_id: str) -> None:
-    """Execute one job: start a run up to the approval pause, or resume it after approval."""
+    """Execute one job: move the run forward from its saved state (start or resume).
+
+    Errors are logged here as well, because a thread pool would otherwise drop them.
+    """
     from joinpilot.services.runs import RunService
 
-    service = RunService(settings, InlineJobQueue(settings))
-    if name == "start_run":
-        service.execute(run_id)
-    else:
-        service.resume(run_id)
+    try:
+        service = RunService(settings, InlineJobQueue(settings))
+        if name == "start_run":
+            service.execute(run_id)
+        else:
+            service.resume(run_id)
+    except Exception:
+        logger.exception("job %s for run %s failed", name, run_id)
+        raise
 
 
 class InlineJobQueue:
@@ -50,13 +59,19 @@ class InlineJobQueue:
 class ThreadJobQueue:
     """Runs jobs in a small thread pool inside the API process (no Redis needed)."""
 
-    def __init__(self, settings: Settings, workers: int = 2) -> None:
+    def __init__(self, settings: Settings) -> None:
         self.settings = settings
-        self.pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="joinpilot-job")
+        self.pool = ThreadPoolExecutor(
+            max_workers=settings.jobs_max_concurrent, thread_name_prefix="joinpilot-job"
+        )
 
     def submit(self, name: JobName, run_id: str) -> None:
         """Hand the job to a background thread."""
         self.pool.submit(run_job, self.settings, name, run_id)
+
+    def close(self) -> None:
+        """Wait for running jobs and stop the pool (on app shutdown)."""
+        self.pool.shutdown(wait=True, cancel_futures=False)
 
 
 class ArqJobQueue:
@@ -73,7 +88,9 @@ class ArqJobQueue:
         async def enqueue() -> None:
             pool = await create_pool(RedisSettings.from_dsn(self.redis_url))
             try:
-                await pool.enqueue_job(name, run_id, _job_id=f"{name}:{run_id}")
+                job = await pool.enqueue_job(name, run_id, _job_id=f"{name}:{run_id}")
+                if job is None:
+                    logger.info("job %s for run %s is already queued", name, run_id)
             finally:
                 await pool.aclose()
 

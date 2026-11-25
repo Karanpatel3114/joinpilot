@@ -95,10 +95,12 @@ class AgentNodes:
         outcome = rank_joins(
             parsed, candidates_of(state), self.ctx.llm, settings.agent, settings.joins.unique_min
         )
+        warnings = list(outcome.warnings)
+        if not outcome.proposals:
+            warnings.append("No join candidates were found, so there is nothing to approve.")
         return {
             "proposals": [p.model_dump(by_alias=True) for p in outcome.proposals],
-            "warnings": outcome.warnings,
-            "status": "awaiting_approval",
+            "warnings": warnings,
         }
 
     def await_approval(self, state: RunState) -> dict[str, Any]:
@@ -144,7 +146,11 @@ def build_graph(
     graph.add_edge("profile", "parse_requirement")
     graph.add_edge("parse_requirement", "rank_joins")
     graph.add_node("finish", timed("finish", nodes.finish))
-    graph.add_edge("rank_joins", "await_approval")
+    graph.add_conditional_edges(
+        "rank_joins",
+        lambda state: "await_approval" if state.get("proposals") else "finish",
+        ["await_approval", "finish"],
+    )
     graph.add_edge("await_approval", "finish")
     graph.add_edge("finish", END)
     return graph.compile(checkpointer=checkpointer)

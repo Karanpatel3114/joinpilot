@@ -135,6 +135,9 @@ class Settings(BaseSettings):
     jobs_mode: Literal["inline", "thread", "arq"] = "thread"
     jobs_max_concurrent: int = 2
     jobs_timeout_seconds: int = 600
+    jobs_keep_result_seconds: int = 3600
+    db_pool_size: int = 5
+    db_max_overflow: int = 5
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
 
     # Limits

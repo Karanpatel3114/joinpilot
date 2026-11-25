@@ -13,6 +13,8 @@ from alembic.config import Config
 from sqlalchemy import Engine, create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 
+from joinpilot.config import get_settings
+
 MIGRATIONS_DIR = Path(__file__).parent / "migrations"
 
 
@@ -29,7 +31,13 @@ def get_engine(url: str) -> Engine:
         engine = create_engine(url, connect_args={"check_same_thread": False})
         event.listen(engine, "connect", _enable_sqlite_foreign_keys)
         return engine
-    return create_engine(url, pool_pre_ping=True, pool_size=5, max_overflow=5)
+    settings = get_settings()
+    return create_engine(
+        url,
+        pool_pre_ping=True,
+        pool_size=settings.db_pool_size,
+        max_overflow=settings.db_max_overflow,
+    )
 
 
 @contextmanager
