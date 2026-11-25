@@ -7,6 +7,8 @@ JSON mode (for example Gemma) get the schema in the prompt instead.
 
 from __future__ import annotations
 
+import importlib
+import importlib.util
 import json
 import time
 
@@ -18,6 +20,14 @@ from pydantic import BaseModel
 from joinpilot.config import LLMSettings
 from joinpilot.errors import LLMUnavailableError
 from joinpilot.llm.provider import LLMResult, Prompt, Usage
+
+# The SDK talks HTTP through httpx or its fork httpx2; network failures from either
+# (timeouts, refused connections) are retryable.
+TRANSPORT_ERRORS: tuple[type[Exception], ...] = tuple(
+    importlib.import_module(name).TransportError
+    for name in ("httpx", "httpx2")
+    if importlib.util.find_spec(name) is not None
+)
 
 JSON_INSTRUCTION = (
     "Reply with one JSON object only, no prose and no code fences, matching this JSON schema:\n"
@@ -62,6 +72,10 @@ class GeminiProvider:
         except genai_errors.APIError as error:
             raise LLMUnavailableError(
                 "The language model is unavailable.", {"status": error.code}
+            ) from error
+        except TRANSPORT_ERRORS as error:
+            raise LLMUnavailableError(
+                "The language model could not be reached.", {"status": 408}
             ) from error
         latency = (time.perf_counter() - started) * 1000
         text = (response.text or "").strip().removeprefix("```json").removesuffix("```").strip()

@@ -18,7 +18,8 @@ from joinpilot.errors import LLMUnavailableError
 from joinpilot.llm.provider import LLMProvider, LLMResult, Prompt, Usage
 
 logger = logging.getLogger(__name__)
-RETRYABLE_STATUS = {None, 408, 429, 500, 502, 503, 504}
+# Rate limits, timeouts and server errors are worth retrying; a missing key is not.
+RETRYABLE_STATUS = {408, 429, 500, 502, 503, 504}
 
 
 class UsageLog:

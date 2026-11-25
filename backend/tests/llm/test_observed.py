@@ -85,3 +85,10 @@ def test_cost_uses_configured_list_prices_and_defaults_to_zero() -> None:
     assert estimate_cost(usage, LLMSettings()) == 0.0
     priced = LLMSettings(prices_per_million={"m": (0.10, 0.40)})
     assert estimate_cost(usage, priced) == 0.3
+
+
+def test_errors_without_a_retryable_status_fail_fast() -> None:
+    wrapper, sleeps = observed(flaky([LLMUnavailableError("no key")]))
+    with pytest.raises(LLMUnavailableError):
+        wrapper.generate(PROMPT, Answer)
+    assert sleeps == []

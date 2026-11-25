@@ -76,3 +76,12 @@ def test_api_errors_become_llm_unavailable_with_the_status(
 def test_a_missing_key_is_refused() -> None:
     with pytest.raises(LLMUnavailableError):
         gemini.GeminiProvider(LLMSettings(), api_key="")
+
+
+def test_network_timeouts_are_reported_as_retryable(monkeypatch: pytest.MonkeyPatch) -> None:
+    import httpx
+
+    gem, _ = provider(monkeypatch, httpx.ConnectTimeout("slow"))
+    with pytest.raises(LLMUnavailableError) as raised:
+        gem.generate(PROMPT, Answer)
+    assert raised.value.details["status"] == 408
