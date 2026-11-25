@@ -16,6 +16,7 @@ from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
+from joinpilot.agent.requirement import parse_requirement
 from joinpilot.agent.state import RunState
 from joinpilot.config import Settings
 from joinpilot.joins.models import JoinCandidate
@@ -71,8 +72,11 @@ class AgentNodes:
         }
 
     def parse_requirement(self, state: RunState) -> dict[str, Any]:
-        """Turn the requirement into entities, measures and filters (filled in by M4.4)."""
-        return {"parsed_requirement": None}
+        """Turn the requirement into entities, measures, dimensions, filters and tables."""
+        parsed, warnings = parse_requirement(
+            state["requirement"], self.ctx.load_profile(), self.ctx.llm
+        )
+        return {"parsed_requirement": parsed.model_dump(), "warnings": warnings}
 
     def rank_joins(self, state: RunState) -> dict[str, Any]:
         """Rank and explain candidates (filled in by M4.5); for now, the accepted ones."""
