@@ -53,6 +53,7 @@ def string_set(table: pa.Table, column: str) -> set[str]:
 
 
 def replace_column(table: pa.Table, name: str, values: list[str | None]) -> pa.Table:
+    """Return `table` with one string column replaced."""
     return table.set_column(table.column_names.index(name), name, pa.array(values, pa.string()))
 
 

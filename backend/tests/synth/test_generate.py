@@ -4,7 +4,8 @@ from pathlib import Path
 import pyarrow.parquet as pq
 
 from joinpilot.config import SynthSettings
-from joinpilot.synth.generate import build_dataset, main, make_dataset_id, write_dataset
+from joinpilot.synth.dataset import build_dataset, make_dataset_id
+from joinpilot.synth.generate import main, write_dataset
 
 
 def test_dataset_id_encodes_size_seed_and_naming() -> None:

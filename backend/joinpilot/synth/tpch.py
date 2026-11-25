@@ -40,6 +40,7 @@ TPCH_COMPOSITE_KEYS: list[tuple[list[str], list[str]]] = [
 
 
 def dataset_id(scale_factor: float) -> str:
+    """Name a TPC-H dataset like `tpch_sf0.1`."""
     return f"tpch_sf{scale_factor:g}"
 
 
@@ -92,6 +93,7 @@ def tpch_gold(scale_factor: float) -> dict[str, Any]:
 
 
 def main(argv: list[str] | None = None) -> None:
+    """Command line entry point; see the module docstring."""
     parser = argparse.ArgumentParser(description="Generate TPC-H tables and their gold graph.")
     parser.add_argument("--sf", type=float, default=0.1)
     parser.add_argument("--out", type=Path)

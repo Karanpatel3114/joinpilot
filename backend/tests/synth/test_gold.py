@@ -5,8 +5,9 @@ from pathlib import Path
 import pytest
 
 from joinpilot.config import SynthSettings
-from joinpilot.synth.generate import ErpDataset, build_dataset
-from joinpilot.synth.gold import Facts, aging_bucket, gold_joins, gold_kpis, write_gold
+from joinpilot.synth.dataset import ErpDataset, build_dataset
+from joinpilot.synth.facts import Facts, aging_bucket
+from joinpilot.synth.gold import gold_joins, gold_kpis, write_gold
 
 SETTINGS = SynthSettings()
 

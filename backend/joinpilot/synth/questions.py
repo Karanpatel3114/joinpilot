@@ -10,7 +10,7 @@ from collections import Counter, defaultdict
 from decimal import Decimal
 from typing import Any
 
-from joinpilot.synth.gold import Facts
+from joinpilot.synth.facts import Facts
 from joinpilot.synth.rng import stream
 
 COUNTRY_NAMES = {
@@ -27,6 +27,7 @@ MONTHS = [
 
 
 def num(value: Decimal) -> float:
+    """Round an amount for a JSON answer."""
     return float(round(value, 2))
 
 

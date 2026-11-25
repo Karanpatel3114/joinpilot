@@ -10,7 +10,8 @@ import duckdb
 import pytest
 
 from joinpilot.config import SynthSettings
-from joinpilot.synth.generate import build_dataset, write_dataset
+from joinpilot.synth.dataset import build_dataset
+from joinpilot.synth.generate import write_dataset
 from joinpilot.synth.gold import write_gold
 
 SETTINGS = SynthSettings()

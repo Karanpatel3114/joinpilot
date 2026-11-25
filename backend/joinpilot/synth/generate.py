@@ -1,4 +1,4 @@
-"""Assemble a full synthetic ERP dataset and write it to Parquet, plus optional gold.
+"""Write a synthetic ERP dataset to Parquet, plus optional gold.
 
 Usage:
     uv run python -m joinpilot.synth.generate --seed 1 --size S --naming sap \
@@ -8,79 +8,18 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import hashlib
-import io
 import json
 import logging
-from dataclasses import dataclass
 from pathlib import Path
 
-import pyarrow as pa
-import pyarrow.csv as pacsv
 import pyarrow.parquet as pq
 
 from joinpilot.config import SynthSettings, get_settings
-from joinpilot.synth.issues import PlantedIssues, plant_issues
-from joinpilot.synth.masters import make_customers, make_products
-from joinpilot.synth.naming import NAMING_MODES, Naming, rename
-from joinpilot.synth.orders import make_orders
-from joinpilot.synth.receivables import make_open_items
+from joinpilot.synth.dataset import GENERATOR_VERSION, ErpDataset, build_dataset, fingerprint
+from joinpilot.synth.gold import write_gold
+from joinpilot.synth.naming import NAMING_MODES
 
 logger = logging.getLogger(__name__)
-GENERATOR_VERSION = "1"
-
-
-@dataclass(frozen=True)
-class ErpDataset:
-    """One generated dataset, kept with canonical (friendly) names internally."""
-
-    dataset_id: str
-    seed: int
-    size: str
-    naming: Naming
-    canonical: dict[str, pa.Table]
-    planted: PlantedIssues
-
-    def output_tables(self) -> dict[str, pa.Table]:
-        """Return the tables renamed for this dataset's naming mode."""
-        return dict(rename(name, table, self.naming) for name, table in self.canonical.items())
-
-
-def make_dataset_id(seed: int, size: str, naming: Naming) -> str:
-    return f"erp_{size.lower()}{seed}_{naming}"
-
-
-def build_dataset(seed: int, size: str, naming: Naming, settings: SynthSettings) -> ErpDataset:
-    """Generate every table for one seed and size, with issues planted."""
-    spec = settings.sizes[size]
-    customers = make_customers(seed, spec.customers)
-    master = make_products(seed, spec.products)
-    orders = make_orders(seed, spec.orders, customers, master, settings)
-    open_items = make_open_items(seed, spec.open_items, customers, settings)
-    customers, items, open_items, planted = plant_issues(
-        seed, customers, master.products, orders.items, open_items, settings.issues
-    )
-    canonical = {
-        "customers": customers,
-        "products": master.products,
-        "product_texts": master.texts,
-        "order_headers": orders.headers,
-        "order_items": items,
-        "open_items": open_items,
-    }
-    return ErpDataset(make_dataset_id(seed, size, naming), seed, size, naming, canonical, planted)
-
-
-def fingerprint(tables: dict[str, pa.Table]) -> str:
-    """Hash table names, schemas and rows (as CSV text) into one stable fingerprint."""
-    digest = hashlib.sha256()
-    for name in sorted(tables):
-        buffer = io.BytesIO()
-        pacsv.write_csv(tables[name], buffer)
-        digest.update(name.encode())
-        digest.update(str(tables[name].schema).encode())
-        digest.update(buffer.getvalue())
-    return f"sha256:{digest.hexdigest()}"
 
 
 def write_dataset(dataset: ErpDataset, out_dir: Path) -> dict[str, object]:
@@ -100,16 +39,15 @@ def write_dataset(dataset: ErpDataset, out_dir: Path) -> dict[str, object]:
         },
         "fingerprint": fingerprint(tables),
     }
-    (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+    (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     return manifest
 
 
 def main(argv: list[str] | None = None) -> None:
-    from joinpilot.synth.gold import write_gold
-
+    """Command line entry point; see the module docstring."""
     parser = argparse.ArgumentParser(description="Generate a synthetic ERP dataset.")
     parser.add_argument("--seed", type=int, required=True)
-    parser.add_argument("--size", choices=["S", "M", "L"], default="S")
+    parser.add_argument("--size", choices=sorted(SynthSettings().sizes), default="S")
     parser.add_argument("--naming", choices=NAMING_MODES, default="sap")
     parser.add_argument("--out", type=Path, help="output folder for Parquet files")
     parser.add_argument("--gold", type=Path, help="gold root folder (writes <gold>/<dataset_id>/)")

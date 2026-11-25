@@ -23,6 +23,8 @@ EU_COUNTRIES = {"DE", "FR"}
 
 @dataclass(frozen=True)
 class Orders:
+    """Order headers and their items."""
+
     headers: pa.Table
     items: pa.Table
 

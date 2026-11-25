@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 from joinpilot.config import get_settings
-from joinpilot.synth.generate import build_dataset
+from joinpilot.synth.dataset import build_dataset, make_dataset_id
 from joinpilot.synth.gold import write_gold
 from joinpilot.synth.naming import Naming
 
@@ -22,13 +22,15 @@ logger = logging.getLogger(__name__)
 
 
 class DatasetSpec(NamedTuple):
+    """One dataset in a split: seed, size and naming mode."""
+
     seed: int
     size: str
     naming: Naming
 
     @property
     def dataset_id(self) -> str:
-        return f"erp_{self.size.lower()}{self.seed}_{self.naming}"
+        return make_dataset_id(self.seed, self.size, self.naming)
 
 
 DEV: list[DatasetSpec] = [
@@ -47,6 +49,7 @@ SPLITS: dict[str, list[DatasetSpec]] = {"dev": DEV, "test": TEST}
 
 
 def main(argv: list[str] | None = None) -> None:
+    """Command line entry point; see the module docstring."""
     parser = argparse.ArgumentParser(description="Write gold files for every split dataset.")
     parser.add_argument("--gold", type=Path, required=True)
     parser.add_argument("--split", choices=["dev", "test", "all"], default="all")
