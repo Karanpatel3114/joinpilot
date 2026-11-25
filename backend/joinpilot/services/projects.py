@@ -53,7 +53,7 @@ class ProjectService:
 
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
-        self.store = ProjectStore(settings.projects_dir)
+        self.store = ProjectStore(settings.projects_dir, settings.db_url)
 
     def create(self, name: str) -> ProjectRecord:
         """Create an empty project."""

@@ -40,6 +40,12 @@ def session_scope(url: str) -> Iterator[Session]:
         yield session
 
 
+@lru_cache(maxsize=8)
+def ensure_migrated(url: str) -> None:
+    """Migrate a database once per process; later calls for the same URL do nothing."""
+    migrate(url)
+
+
 def migrate(url: str) -> None:
     """Bring the database schema up to the latest Alembic revision."""
     config = Config()

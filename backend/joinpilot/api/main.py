@@ -12,6 +12,7 @@ from joinpilot.api.errors import install_error_handlers
 from joinpilot.api.projects import router as projects_router
 from joinpilot.api.schemas import HealthResponse
 from joinpilot.config import Settings, get_settings
+from joinpilot.db.session import ensure_migrated
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -27,6 +28,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_headers=["*"],
     )
     install_error_handlers(app)
+    ensure_migrated(settings.db_url)
     app.include_router(projects_router)
 
     @app.get("/health", response_model=HealthResponse)
