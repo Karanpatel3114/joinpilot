@@ -16,7 +16,15 @@ def check_schema(url: str) -> None:
     migrate(url)
     engine = get_engine(url)
     with engine.connect() as connection:
-        context = MigrationContext.configure(connection, opts={"compare_type": True})
+        context = MigrationContext.configure(
+            connection,
+            opts={
+                "compare_type": True,
+                "include_name": lambda name, type_, _: (
+                    type_ != "table" or name in Base.metadata.tables
+                ),
+            },
+        )
         assert compare_metadata(context, Base.metadata) == []
     tables = set(inspect(engine).get_table_names())
     assert {"projects", "project_tables", "runs", "proposals", "llm_calls"} <= tables

@@ -12,6 +12,11 @@ from joinpilot.db.models import Base
 target_metadata = Base.metadata
 
 
+def owned_by_us(name: str | None, type_: str, parent_names: object) -> bool:
+    """Ignore tables Alembic does not own, such as LangGraph's checkpoint tables."""
+    return type_ != "table" or name in target_metadata.tables
+
+
 def run(connection: Connection) -> None:
     """Run the migrations on one connection (batch mode for SQLite's limited ALTER)."""
     context.configure(
@@ -19,6 +24,7 @@ def run(connection: Connection) -> None:
         target_metadata=target_metadata,
         render_as_batch=connection.dialect.name == "sqlite",
         compare_type=True,
+        include_name=owned_by_us,
     )
     with context.begin_transaction():
         context.run_migrations()
