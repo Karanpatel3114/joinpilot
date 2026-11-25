@@ -1,16 +1,18 @@
 # Evaluation: dev split
 
-- Date: 2026-11-25T22:35:55+00:00
-- Commit: `85cc117`
+- Date: 2026-11-25T22:49:13+00:00
+- Commit: `ccdeaf3`
 - Datasets: `erp_s1_sap`, `erp_s2_sap`, `erp_s3_sap`, `erp_s1_friendly`
+- Settings: recorded in metrics.json
 
 ## Join discovery
 
-| System | Precision | Recall | F1 | Normalization acc. | Fan-out recall | Decoy rejection |
-|---|---|---|---|---|---|---|
-| name_only | 0.370 | 1.000 | 0.540 | 0.800 | 0.000 | 0.800 |
-| overlap_only | 0.274 | 0.850 | 0.415 | 1.000 | 0.000 | 0.600 |
-| joinpilot_deterministic | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| System | Precision | Recall | F1 | Undirected F1 | Normalization recall | Fan-out recall | Fan-out precision | Decoy rejection |
+|---|---|---|---|---|---|---|---|---|
+| name_only | 0.370 | 1.000 | 0.540 | 0.690 | 0.000 | 0.000 | n/a | 0.800 |
+| overlap_only | 0.274 | 0.850 | 0.415 | 0.515 | 1.000 | 0.000 | n/a | 0.600 |
+| inclusion_dependency | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | n/a | 1.000 |
+| joinpilot_deterministic | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
 
 ### Errors by system
 
@@ -35,4 +37,5 @@
   - erp_s1_sap: VBAP.MATNR -> MARA.MATNR
   - erp_s2_sap: VBAP.MATNR -> MARA.MATNR
   - erp_s1_friendly: order_items.product_id -> products.product_id
+- **inclusion_dependency**: 0 false positives, 0 false negatives
 - **joinpilot_deterministic**: 0 false positives, 0 false negatives

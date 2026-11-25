@@ -58,15 +58,19 @@ cd web && npm install && npm run dev           # console on http://localhost:517
 
 Every number below comes from a file in [`eval/results/`](eval/results/), which records the split, dataset fingerprints, commit and date. Gold answers are written by the data generator and read only by `eval/`.
 
-**Join discovery, dev split** (4 synthetic ERP datasets, 20 true joins, 2026-11-25, commit `85cc117`, [results](eval/results/2026-11-25-85cc117-dev/metrics.md)):
+**Join discovery, dev split** (4 synthetic ERP datasets, 2026-11-25, commit `ccdeaf3`, [results](eval/results/2026-11-25-ccdeaf3-dev/metrics.md)):
 
-| System | Precision | Recall | F1 | Normalization accuracy | Fan-out recall | Decoy rejection |
+| System | Precision | Recall | F1 | Normalization recall | Fan-out recall | Decoy rejection |
 |---|---|---|---|---|---|---|
-| Name-only baseline | 0.370 | 1.000 | 0.540 | 0.800 | 0.000 | 0.800 |
+| Name-only baseline | 0.370 | 1.000 | 0.540 | 0.000 | 0.000 | 0.800 |
 | Overlap-only baseline | 0.274 | 0.850 | 0.415 | 1.000 | 0.000 | 0.600 |
-| JoinPilot, deterministic (no LLM) | **1.000** | **1.000** | **1.000** | **1.000** | **1.000** | **1.000** |
+| Inclusion-dependency baseline (90% overlap into a unique column) | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 1.000 |
+| JoinPilot, deterministic (no LLM) | 1.000 | 1.000 | 1.000 | 1.000 | **1.000** | 1.000 |
 
-The deterministic scorer was tuned on this split, so these are not generalization numbers. The held-out test split (new seeds, size M, both naming modes and TPC-H) is run once, at the end. LLM-based systems are added in M4.
+How to read this honestly:
+- The 20 true joins are one 5-join schema seen 4 times (3 seeds and 2 naming styles), so normalization and fan-out each rest on a single planted case.
+- On dev, the textbook inclusion-dependency rule finds the same joins; uniqueness does most of the work. What JoinPilot adds here is flagging the fan-out trap (product texts in two languages) with the right filter, and an explanation for every decision.
+- The deterministic scorer was tuned on this split. The held-out test split (new seeds, size M, both naming styles and TPC-H) is run once, at the end, and is where the methods are expected to differ. LLM-based systems are added in M4.
 
 ## Data
 
