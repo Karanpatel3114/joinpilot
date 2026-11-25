@@ -5,7 +5,10 @@ description = "Turn raw ERP tables and a plain-English requirement into a tested
 requires-python = ">=3.12,<3.13"
 license = "MIT"
 authors = [{ name = "Karan Patel" }]
-dependencies = []
+dependencies = [
+    "pydantic>=2.14.4",
+    "pydantic-settings>=2.16.3",
+]
 
 [build-system]
 requires = ["hatchling"]
