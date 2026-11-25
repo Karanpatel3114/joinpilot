@@ -14,12 +14,12 @@ Done when: an empty but runnable API and console exist, and CI runs on every pus
 M0.1 is the repository's first commit, made directly on `main`. Create `m0-bootstrap` from `main` after it.
 
 - [x] M0.1 `chore: add project spec, plan and Claude Code configuration`
-- [ ] M0.2 `build: initialize uv project with Python 3.12, ruff, mypy and pytest`
-- [ ] M0.3 `chore: add env example, settings module and domain errors`
-- [ ] M0.4 `feat(api): add FastAPI app with health endpoint and test`
-- [ ] M0.5 `build(web): scaffold Vite React TypeScript Tailwind console with lint, typecheck and Vitest`
-- [ ] M0.6 `ci: add GitHub Actions workflow for backend and web checks`
-- [ ] M0.7 `docs: add README skeleton and MIT license`
+- [x] M0.2 `build: initialize uv project with Python 3.12, ruff, mypy and pytest`
+- [x] M0.3 `chore: add env example, settings module and domain errors`
+- [x] M0.4 `feat(api): add FastAPI app with health endpoint and test`
+- [x] M0.5 `build(web): scaffold Vite React TypeScript Tailwind console with lint, typecheck and Vitest`
+- [x] M0.6 `ci: add GitHub Actions workflow for backend and web checks`
+- [x] M0.7 `docs: add README skeleton and MIT license`
 
 ## M1: Synthetic ERP data (branch `m1-erp-data`)
 Done when: the generator produces deterministic datasets in both naming modes, with gold answers and passing tests.
