@@ -237,7 +237,12 @@ def check_nodes(query: exp.Query) -> None:
             )
         if isinstance(node, exp.Table) and not isinstance(node.this, exp.Identifier):
             raise UnsafeSQLError("Table functions are not allowed.", {"node": node.this.key})
-        if isinstance(node, exp.Func) and function_name(node) not in ALLOWED_FUNCTIONS:
+        is_operator = isinstance(node, (exp.Connector, exp.Binary, exp.Unary))
+        if (
+            isinstance(node, exp.Func)
+            and not is_operator
+            and function_name(node) not in ALLOWED_FUNCTIONS
+        ):
             raise UnsafeSQLError(
                 "The query uses a function that is not allowed.", {"function": function_name(node)}
             )

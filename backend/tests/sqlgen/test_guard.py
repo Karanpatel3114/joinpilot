@@ -33,6 +33,7 @@ ALLOWED = [
     "THEN '90+' ELSE 'other' END AS bucket, sum(DMBTR) FROM BSID GROUP BY 1",
     "SELECT * FROM model.v_bsid",
     "SELECT kna1.kunnr FROM kna1",
+    "SELECT KUNNR FROM KNA1 WHERE KUNNR > '1' AND NOT (NAME1 = 'x' OR NAME1 IS NULL)",
 ]
 
 

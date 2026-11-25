@@ -6,6 +6,7 @@ from joinpilot.config import (
     REPO_ROOT,
     AgentSettings,
     JoinSettings,
+    KPISettings,
     LLMSettings,
     ProfilingSettings,
     Settings,
@@ -38,10 +39,11 @@ def test_env_example_documents_every_setting() -> None:
         for line in text.splitlines()
         if "=" in line and line.lstrip("# ").split("=", 1)[0].isupper()
     }
-    nested = {"synth", "profiling", "joins", "llm", "agent"}
+    nested = {"synth", "profiling", "joins", "llm", "agent", "kpi"}
     expected = {name.upper() for name in Settings.model_fields if name not in nested}
     expected |= {f"PROFILING__{name.upper()}" for name in ProfilingSettings.model_fields}
     expected |= {f"JOINS__{name.upper()}" for name in JoinSettings.model_fields}
     expected |= {f"LLM__{name.upper()}" for name in LLMSettings.model_fields}
     expected |= {f"AGENT__{name.upper()}" for name in AgentSettings.model_fields}
+    expected |= {f"KPI__{name.upper()}" for name in KPISettings.model_fields}
     assert expected <= keys, sorted(expected - keys)

@@ -116,6 +116,15 @@ class AgentSettings(BaseModel):
     explanation_tolerance_points: float = 0.6
 
 
+class KPISettings(BaseModel):
+    """Business rules for derived columns and metrics."""
+
+    # As-of date for aging; empty means today. The sample data is as of 2026-06-30.
+    reference_date: date | None = None
+    # Upper bounds (days past due) of the aging buckets; the last bucket is open-ended
+    aging_bucket_edges: list[int] = Field(default_factory=lambda: [30, 60, 90])
+
+
 class Settings(BaseSettings):
     """Typed settings loaded from the environment (prefix-free) and `.env`."""
 
@@ -156,6 +165,9 @@ class Settings(BaseSettings):
 
     # Join candidates
     joins: JoinSettings = Field(default_factory=JoinSettings)
+
+    # KPIs
+    kpi: KPISettings = Field(default_factory=KPISettings)
 
     # Agent
     agent: AgentSettings = Field(default_factory=AgentSettings)
