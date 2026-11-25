@@ -127,6 +127,8 @@ class Settings(BaseSettings):
     app_env: Literal["dev", "test", "prod"] = "dev"
     log_level: str = "INFO"
     data_dir: Path = REPO_ROOT / "data"
+    # Postgres in Docker and production; empty means a SQLite file in DATA_DIR
+    database_url: str = ""
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
 
     # Limits
@@ -163,6 +165,11 @@ class Settings(BaseSettings):
     def llm_cache_dir(self) -> Path:
         """Folder for cached model answers (saves free-tier quota on reruns)."""
         return self.data_dir / "llm_cache"
+
+    @property
+    def db_url(self) -> str:
+        """The configured database, or a local SQLite file when none is set."""
+        return self.database_url or f"sqlite:///{(self.data_dir / 'joinpilot.db').resolve()}"
 
     @property
     def projects_dir(self) -> Path:
