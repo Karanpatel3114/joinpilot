@@ -75,6 +75,16 @@ class JoinSettings(BaseModel):
 
     candidate_min_inclusion: float = 0.5
     unique_min: float = 0.999
+    weight_inclusion: float = 0.35
+    weight_name: float = 0.35
+    weight_coverage: float = 0.15
+    weight_key_strength: float = 0.15
+    key_strength_full_at: int = 50
+    n_to_m_factor: float = 0.5
+    accept_threshold: float = 0.7
+    discriminator_max_distinct: int = 10
+    discriminator_fill: float = 0.9
+    preferred_filter_values: list[str] = Field(default_factory=lambda: ["E", "EN", "en"])
 
 
 class Settings(BaseSettings):

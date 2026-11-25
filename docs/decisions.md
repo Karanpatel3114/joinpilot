@@ -91,3 +91,9 @@ One entry per design choice that had real alternatives. Newest at the bottom. Fo
 - **Decision:** a single API process owns every project's DuckDB file. Inside it, each project has a re-entrant lock held for every read-change-write of the project's state (record, warehouse tables, cached profile), and JSON files are written atomically through unique temporary files. Background jobs (M5) must run in, or hand their warehouse work to, that same process.
 - **Alternatives:** file locks across processes (more moving parts); one DuckDB writer service (an extra service for a portfolio-scale app).
 - **Consequences:** no lost writes within a process; uvicorn runs with one worker, which is plenty for this workload.
+
+## D-017: Transparent weighted score with hard rules, not a trained model
+- **Context:** candidates need a ranking and an accept/reject decision that a reviewer can audit and an interviewer can follow.
+- **Decision:** score = 0.35 × inclusion + 0.35 × name similarity + 0.15 × coverage + 0.15 × key strength, damped by half for N:M pairs. A candidate is proposed only if its target is unique, it scores at least 0.7, it beats the reverse direction, it is the best target for its source column, and (for 1:1 pairs) the names match. Every rejection records its reason. Fan-out risk is flagged when the source table's two-column key pairs the join column with a small column that every key fills (such as a language), and a filter value is suggested. Weights were set on the dev split only; the TPC-H test split was not run.
+- **Alternatives:** a learned classifier (needs labelled schemas we do not have, and is harder to explain); LLM-only proposals (measured as an ablation in M4).
+- **Consequences:** fully explainable decisions. Fuzzy name matches are capped at half credit so code columns such as WAERK and WAERS do not look like keys.
