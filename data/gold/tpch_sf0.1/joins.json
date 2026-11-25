@@ -1,0 +1,108 @@
+{
+  "dataset_id": "tpch_sf0.1",
+  "edges": [
+    {
+      "from": "nation.n_regionkey",
+      "to": "region.r_regionkey",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "supplier.s_nationkey",
+      "to": "nation.n_nationkey",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "customer.c_nationkey",
+      "to": "nation.n_nationkey",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "partsupp.ps_partkey",
+      "to": "part.p_partkey",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "partsupp.ps_suppkey",
+      "to": "supplier.s_suppkey",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "orders.o_custkey",
+      "to": "customer.c_custkey",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "lineitem.l_orderkey",
+      "to": "orders.o_orderkey",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "lineitem.l_partkey",
+      "to": "part.p_partkey",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "lineitem.l_suppkey",
+      "to": "supplier.s_suppkey",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 0,
+      "null_rows": 0
+    }
+  ],
+  "composite_edges": [
+    {
+      "from": [
+        "lineitem.l_partkey",
+        "lineitem.l_suppkey"
+      ],
+      "to": [
+        "partsupp.ps_partkey",
+        "partsupp.ps_suppkey"
+      ]
+    }
+  ],
+  "decoys": []
+}

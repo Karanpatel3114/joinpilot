@@ -31,7 +31,7 @@ Done when: the generator produces deterministic datasets in both naming modes, w
 - [x] M1.5 `feat(synth): plant data-quality issues with configurable rates`
 - [x] M1.6 `feat(synth): write gold join graph, KPI values and question answers`
 - [x] M1.7 `test(synth): add determinism and gold consistency tests`
-- [ ] M1.8 `feat(data): add TPC-H loader with its gold foreign-key graph`
+- [x] M1.8 `feat(data): add TPC-H loader with its gold foreign-key graph`
 - [ ] M1.9 `docs(data): document tables, planted issues and licenses`
 
 ## M2: Profiling (branch `m2-profiling`)
