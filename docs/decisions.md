@@ -73,3 +73,9 @@ One entry per design choice that had real alternatives. Newest at the bottom. Fo
 - **Decision:** the planted-issue rates, sizes, dates and currency mix are in `SynthSettings`, because experiments vary them. Shape constants stay as named module constants, because changing any of them changes every dataset and must go together with regenerated gold and a new pinned fingerprint.
 - **Alternatives:** everything in config (makes it easy to change the data without noticing that gold is now stale).
 - **Consequences:** the data's realism lives in a few readable constants; the fingerprint test guards them.
+
+## D-014: Type CSV columns ourselves, keeping zero-padded ids as text
+- **Context:** DuckDB's CSV sniffer, like most tools, reads `0000100023` as the number 100023, which destroys exactly the leading-zero evidence that join discovery depends on.
+- **Decision:** read CSV files as all-text, then cast each column: integers only when no value has a leading zero, decimals, ISO dates, and text otherwise. Parquet keeps its own types.
+- **Alternatives:** trust the sniffer (silently corrupts ERP keys); keep everything as text (loses numeric statistics).
+- **Consequences:** uploads keep ERP keys intact; the rule is explicit and tested.
