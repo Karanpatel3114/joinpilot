@@ -1,0 +1,287 @@
+{
+  "dataset_id": "erp_m102_friendly",
+  "edges": [
+    {
+      "from": "order_headers.customer_id",
+      "to": "customers.customer_id",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "order_items.order_id",
+      "to": "order_headers.order_id",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "order_items.product_id",
+      "to": "products.product_id",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 3001,
+      "null_rows": 0
+    },
+    {
+      "from": "product_texts.product_id",
+      "to": "products.product_id",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": true,
+      "filter": {
+        "column": "product_texts.language",
+        "value": "E"
+      },
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "open_items.customer_id",
+      "to": "customers.customer_id",
+      "cardinality": "N:1",
+      "normalization": "lpad_zeros:10",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 400,
+      "null_rows": 240
+    }
+  ],
+  "decoys": [
+    {
+      "a": "order_headers.net_value",
+      "b": "order_items.net_value",
+      "reason": "same name, different meaning"
+    },
+    {
+      "a": "order_headers.order_date",
+      "b": "customers.created_on",
+      "reason": "dates, not keys"
+    },
+    {
+      "a": "customers.created_on",
+      "b": "products.created_on",
+      "reason": "dates, not keys"
+    },
+    {
+      "a": "order_items.item_no",
+      "b": "open_items.line_no",
+      "reason": "small integers overlap by chance"
+    },
+    {
+      "a": "order_headers.currency",
+      "b": "open_items.currency",
+      "reason": "currency codes, not keys"
+    }
+  ],
+  "duplicate_customers": [
+    [
+      "0000133662",
+      "0000482681"
+    ],
+    [
+      "0000146197",
+      "0000887776"
+    ],
+    [
+      "0000147446",
+      "0000360408"
+    ],
+    [
+      "0000171054",
+      "0000450142"
+    ],
+    [
+      "0000181733",
+      "0000943061"
+    ],
+    [
+      "0000195865",
+      "0000242868"
+    ],
+    [
+      "0000233088",
+      "0000952068"
+    ],
+    [
+      "0000233123",
+      "0000764732"
+    ],
+    [
+      "0000235438",
+      "0000183965"
+    ],
+    [
+      "0000240759",
+      "0000347113"
+    ],
+    [
+      "0000252093",
+      "0000881447"
+    ],
+    [
+      "0000291699",
+      "0000511296"
+    ],
+    [
+      "0000300197",
+      "0000330924"
+    ],
+    [
+      "0000320878",
+      "0000853130"
+    ],
+    [
+      "0000342910",
+      "0000709152"
+    ],
+    [
+      "0000343734",
+      "0000763503"
+    ],
+    [
+      "0000402803",
+      "0000700399"
+    ],
+    [
+      "0000442211",
+      "0000204429"
+    ],
+    [
+      "0000468978",
+      "0000546052"
+    ],
+    [
+      "0000471884",
+      "0000881966"
+    ],
+    [
+      "0000479351",
+      "0000506211"
+    ],
+    [
+      "0000490590",
+      "0000629106"
+    ],
+    [
+      "0000497430",
+      "0000454340"
+    ],
+    [
+      "0000514116",
+      "0000414286"
+    ],
+    [
+      "0000593439",
+      "0000283331"
+    ],
+    [
+      "0000638517",
+      "0000217492"
+    ],
+    [
+      "0000641411",
+      "0000560483"
+    ],
+    [
+      "0000656011",
+      "0000568636"
+    ],
+    [
+      "0000656763",
+      "0000958515"
+    ],
+    [
+      "0000673887",
+      "0000815957"
+    ],
+    [
+      "0000697411",
+      "0000156102"
+    ],
+    [
+      "0000706803",
+      "0000487540"
+    ],
+    [
+      "0000768635",
+      "0000690889"
+    ],
+    [
+      "0000781387",
+      "0000496503"
+    ],
+    [
+      "0000783259",
+      "0000360408"
+    ],
+    [
+      "0000784131",
+      "0000545770"
+    ],
+    [
+      "0000815498",
+      "0000683576"
+    ],
+    [
+      "0000836478",
+      "0000883113"
+    ],
+    [
+      "0000844669",
+      "0000687329"
+    ],
+    [
+      "0000848082",
+      "0000361577"
+    ],
+    [
+      "0000861322",
+      "0000265614"
+    ],
+    [
+      "0000868018",
+      "0000530933"
+    ],
+    [
+      "0000880808",
+      "0000298293"
+    ],
+    [
+      "0000912522",
+      "0000661755"
+    ],
+    [
+      "0000918744",
+      "0000521922"
+    ],
+    [
+      "0000918903",
+      "0000595212"
+    ],
+    [
+      "0000938398",
+      "0000774558"
+    ],
+    [
+      "0000959025",
+      "0000285443"
+    ],
+    [
+      "0000960092",
+      "0000538142"
+    ],
+    [
+      "0000978465",
+      "0000522600"
+    ]
+  ]
+}

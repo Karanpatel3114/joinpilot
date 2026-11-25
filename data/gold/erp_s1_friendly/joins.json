@@ -1,0 +1,107 @@
+{
+  "dataset_id": "erp_s1_friendly",
+  "edges": [
+    {
+      "from": "order_headers.customer_id",
+      "to": "customers.customer_id",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "order_items.order_id",
+      "to": "order_headers.order_id",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "order_items.product_id",
+      "to": "products.product_id",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 301,
+      "null_rows": 0
+    },
+    {
+      "from": "product_texts.product_id",
+      "to": "products.product_id",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": true,
+      "filter": {
+        "column": "product_texts.language",
+        "value": "E"
+      },
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "open_items.customer_id",
+      "to": "customers.customer_id",
+      "cardinality": "N:1",
+      "normalization": "lpad_zeros:10",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 40,
+      "null_rows": 24
+    }
+  ],
+  "decoys": [
+    {
+      "a": "order_headers.net_value",
+      "b": "order_items.net_value",
+      "reason": "same name, different meaning"
+    },
+    {
+      "a": "order_headers.order_date",
+      "b": "customers.created_on",
+      "reason": "dates, not keys"
+    },
+    {
+      "a": "customers.created_on",
+      "b": "products.created_on",
+      "reason": "dates, not keys"
+    },
+    {
+      "a": "order_items.item_no",
+      "b": "open_items.line_no",
+      "reason": "small integers overlap by chance"
+    },
+    {
+      "a": "order_headers.currency",
+      "b": "open_items.currency",
+      "reason": "currency codes, not keys"
+    }
+  ],
+  "duplicate_customers": [
+    [
+      "0000122670",
+      "0000152185"
+    ],
+    [
+      "0000530666",
+      "0000641278"
+    ],
+    [
+      "0000770900",
+      "0000169326"
+    ],
+    [
+      "0000844334",
+      "0000549410"
+    ],
+    [
+      "0000857677",
+      "0000462997"
+    ]
+  ]
+}
