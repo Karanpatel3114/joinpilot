@@ -31,6 +31,15 @@ TRANSPORT_ERRORS: tuple[type[Exception], ...] = tuple(
 )
 
 
+def strip_fences(text: str) -> str:
+    """Remove a Markdown code fence (with or without a language tag) around JSON."""
+    text = text.strip()
+    if text.startswith("```"):
+        text = text.split("\n", 1)[1] if "\n" in text else ""
+        text = text.removesuffix("```")
+    return text.strip()
+
+
 class GeminiProvider:
     """One model on the Gemini API."""
 
@@ -75,7 +84,7 @@ class GeminiProvider:
                 "The language model could not be reached.", {"status": 408}
             ) from error
         latency = (time.perf_counter() - started) * 1000
-        text = (response.text or "").strip().removeprefix("```json").removesuffix("```").strip()
+        text = strip_fences(response.text or "")
         value = schema.model_validate_json(text)
         meta = response.usage_metadata
         usage = Usage(
@@ -83,7 +92,10 @@ class GeminiProvider:
             model=self.model,
             purpose=prompt.purpose,
             input_tokens=(meta.prompt_token_count or 0) if meta else 0,
-            output_tokens=(meta.candidates_token_count or 0) if meta else 0,
+            # Thinking models bill their thought tokens as output.
+            output_tokens=(
+                (meta.candidates_token_count or 0) + (meta.thoughts_token_count or 0) if meta else 0
+            ),
             latency_ms=round(latency, 1),
         )
         return LLMResult(value=value, usage=usage)

@@ -92,3 +92,38 @@ def test_errors_without_a_retryable_status_fail_fast() -> None:
     with pytest.raises(LLMUnavailableError):
         wrapper.generate(PROMPT, Answer)
     assert sleeps == []
+
+
+def test_failed_calls_are_logged_and_corrupt_cache_entries_are_misses(tmp_path: Path) -> None:
+    log = UsageLog()
+    wrapper = ObservedProvider(FakeProvider(), LLMSettings(), log=log)
+    with pytest.raises(LLMUnavailableError):
+        wrapper.generate(PROMPT, Answer)
+    assert log.totals()["failed_calls"] == 1
+    cache = ResponseCache(tmp_path)
+    key = cache.key("fake-1", 0.0, PROMPT, Answer)
+    cache.put(key, "{broken")
+    inner = flaky([])
+    result = ObservedProvider(inner, LLMSettings(), cache=cache).generate(PROMPT, Answer)
+    assert result.value.value == 1 and len(inner.calls) == 1
+
+
+def test_cache_key_changes_with_temperature() -> None:
+    cache = ResponseCache(Path("unused"))
+    assert cache.key("m", 0.0, PROMPT, Answer) != cache.key("m", 0.7, PROMPT, Answer)
+
+
+def test_a_validation_retry_does_not_use_up_network_retries() -> None:
+    failures: list[object] = [{"value": "x"}, LLMUnavailableError("busy", {"status": 429})]
+    wrapper, sleeps = observed(flaky(failures), max_retries=1)
+    result = wrapper.generate(PROMPT, Answer)
+    assert result.usage.attempts == 3 and sleeps == [2.0]
+
+
+def test_a_broken_tracer_never_breaks_the_call() -> None:
+    class Broken:
+        def generation(self, *args: object) -> None:
+            raise RuntimeError("tracing backend down")
+
+    wrapper = ObservedProvider(flaky([]), LLMSettings(), tracer=Broken())
+    assert wrapper.generate(PROMPT, Answer).value.value == 1

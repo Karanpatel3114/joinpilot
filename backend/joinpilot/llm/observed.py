@@ -6,6 +6,8 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
+import tempfile
 import time
 from collections.abc import Callable
 from dataclasses import replace
@@ -45,9 +47,10 @@ class UsageLog:
         )
 
     def totals(self) -> dict[str, float | int]:
-        """Summed tokens, latency, cost and call count."""
+        """Summed tokens, latency, cost, and call counts (failed calls included)."""
         return {
             "calls": len(self.records),
+            "failed_calls": sum(u.error is not None for u in self.records),
             "input_tokens": sum(u.input_tokens for u in self.records),
             "output_tokens": sum(u.output_tokens for u in self.records),
             "latency_ms": round(sum(u.latency_ms for u in self.records), 1),
@@ -61,10 +64,17 @@ class ResponseCache:
     def __init__(self, folder: Path) -> None:
         self.folder = folder
 
-    def key(self, model: str, prompt: Prompt, schema: type[BaseModel]) -> str:
+    def key(self, model: str, temperature: float, prompt: Prompt, schema: type[BaseModel]) -> str:
         """A stable hash of everything that could change the answer."""
         material = json.dumps(
-            [model, prompt.purpose, prompt.system, prompt.user, schema.model_json_schema()],
+            [
+                model,
+                temperature,
+                prompt.purpose,
+                prompt.system,
+                prompt.user,
+                schema.model_json_schema(),
+            ],
             sort_keys=True,
         )
         return hashlib.sha256(material.encode()).hexdigest()
@@ -75,9 +85,12 @@ class ResponseCache:
         return path.read_text(encoding="utf-8") if path.exists() else None
 
     def put(self, key: str, value_json: str) -> None:
-        """Store a validated JSON answer."""
+        """Store a validated JSON answer atomically (temporary file, then rename)."""
         self.folder.mkdir(parents=True, exist_ok=True)
-        (self.folder / f"{key}.json").write_text(value_json, encoding="utf-8")
+        fd, tmp = tempfile.mkstemp(dir=self.folder, suffix=".tmp")
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(value_json)
+        Path(tmp).replace(self.folder / f"{key}.json")
 
 
 def estimate_cost(usage: Usage, settings: LLMSettings) -> float:
@@ -111,27 +124,40 @@ class ObservedProvider:
 
     def generate[T: BaseModel](self, prompt: Prompt, schema: type[T]) -> LLMResult[T]:
         """Return a validated answer, from the cache or the model."""
-        key = self.cache.key(self.model, prompt, schema) if self.cache else ""
+        temperature = self.settings.temperature
+        key = self.cache.key(self.model, temperature, prompt, schema) if self.cache else ""
         cached = self.cache.get(key) if self.cache else None
         if cached is not None:
-            usage = Usage(provider=self.name, model=self.model, purpose=prompt.purpose, cached=True)
-            self.log.add(usage)
-            return LLMResult(value=schema.model_validate_json(cached), usage=usage)
+            try:
+                value = schema.model_validate_json(cached)
+            except ValidationError:
+                logger.warning("ignoring an unreadable cached answer for %s", prompt.purpose)
+            else:
+                usage = Usage(self.name, self.model, prompt.purpose, cached=True)
+                self.log.add(usage)
+                return LLMResult(value=value, usage=usage)
         try:
             result = self._call_with_retries(prompt, schema)
         except LLMUnavailableError as error:
-            failed = Usage(provider=self.name, model=self.model, purpose=prompt.purpose)
-            self.tracer.generation(failed, prompt, None, error.message)
+            failed = Usage(self.name, self.model, prompt.purpose, error=error.message)
+            self.log.add(failed)
+            self._trace(failed, prompt, None, error.message)
             raise
-        self.tracer.generation(result.usage, prompt, result.value.model_dump_json(), None)
+        self._trace(result.usage, prompt, result.value.model_dump_json(), None)
         if self.cache:
             self.cache.put(key, result.value.model_dump_json())
         return result
 
+    def _trace(self, usage: Usage, prompt: Prompt, output: str | None, error: str | None) -> None:
+        """Send a trace; a tracing problem must never break the call itself."""
+        try:
+            self.tracer.generation(usage, prompt, output, error)
+        except Exception:
+            logger.warning("tracing failed for %s", prompt.purpose, exc_info=True)
+
     def _call_with_retries[T: BaseModel](self, prompt: Prompt, schema: type[T]) -> LLMResult[T]:
-        attempts, fixed_once, current = 0, False, prompt
+        retries, fixed_once, current = 0, False, prompt
         while True:
-            attempts += 1
             try:
                 result = self.inner.generate(current, schema)
                 break
@@ -148,14 +174,16 @@ class ObservedProvider:
                 )
             except LLMUnavailableError as error:
                 status = error.details.get("status")
-                if status not in RETRYABLE_STATUS or attempts > self.settings.max_retries:
+                if status not in RETRYABLE_STATUS or retries >= self.settings.max_retries:
                     raise
+                retries += 1
                 delay = min(
-                    self.settings.backoff_base_seconds * 2 ** (attempts - 1),
+                    self.settings.backoff_base_seconds * 2 ** (retries - 1),
                     self.settings.backoff_max_seconds,
                 )
                 logger.warning("llm call failed (status %s); retrying in %.1fs", status, delay)
                 self.sleep(delay)
+        attempts = 1 + retries + int(fixed_once)
         usage = replace(result.usage, attempts=attempts)
         usage = replace(usage, cost_usd=estimate_cost(usage, self.settings))
         self.log.add(usage)

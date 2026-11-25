@@ -35,6 +35,7 @@ class Usage:
     cost_usd: float = 0.0
     attempts: int = 1
     cached: bool = False
+    error: str | None = None
 
 
 @dataclass(frozen=True)

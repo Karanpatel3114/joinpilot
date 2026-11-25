@@ -36,7 +36,9 @@ def provider(monkeypatch: pytest.MonkeyPatch, reply: Any, model: str = "gemini-x
 
 
 def reply(text: str) -> Any:
-    usage = SimpleNamespace(prompt_token_count=12, candidates_token_count=4)
+    usage = SimpleNamespace(
+        prompt_token_count=12, candidates_token_count=4, thoughts_token_count=None
+    )
     return SimpleNamespace(text=text, usage_metadata=usage)
 
 
@@ -85,3 +87,14 @@ def test_network_timeouts_are_reported_as_retryable(monkeypatch: pytest.MonkeyPa
     with pytest.raises(LLMUnavailableError) as raised:
         gem.generate(PROMPT, Answer)
     assert raised.value.details["status"] == 408
+
+
+def test_thought_tokens_count_as_output_and_any_fence_is_stripped(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    usage = SimpleNamespace(prompt_token_count=5, candidates_token_count=4, thoughts_token_count=6)
+    gem, _ = provider(
+        monkeypatch, SimpleNamespace(text='```\n{"value": 2}\n```', usage_metadata=usage)
+    )
+    result = gem.generate(PROMPT, Answer)
+    assert result.value.value == 2 and result.usage.output_tokens == 10
