@@ -7,10 +7,11 @@ import time
 from dataclasses import dataclass
 
 import duckdb
+import pyarrow.parquet as pq
 
 from eval.gold import load_manifest
 from joinpilot.config import REPO_ROOT, ProfilingSettings, SynthSettings
-from joinpilot.profiling.loader import load_arrow, load_file
+from joinpilot.profiling.loader import load_arrow
 from joinpilot.profiling.models import ProjectProfile
 from joinpilot.profiling.service import profile_project
 from joinpilot.synth.dataset import build_dataset, fingerprint
@@ -49,16 +50,19 @@ def load_dataset(dataset_id: str, profiling: ProfilingSettings) -> EvalDataset:
     if dataset_id == TPCH_ID:
         if not (TPCH_DIR / "manifest.json").exists():
             generate_tpch(0.1, TPCH_DIR)
-        for table in TPCH_TABLES:
-            load_file(con, TPCH_DIR / f"{table}.parquet", table)
-        names = list(TPCH_TABLES)
-        data_fingerprint = "dbgen-sf0.1"
+        tables = {t: pq.read_table(TPCH_DIR / f"{t}.parquet") for t in TPCH_TABLES}
+        data_fingerprint = fingerprint(tables)
+        for name, data in tables.items():
+            load_arrow(con, name, data)
+        names = list(tables)
     else:
         spec = next(s for split in SPLITS.values() for s in split if s.dataset_id == dataset_id)
         tables = build_dataset(spec.seed, spec.size, spec.naming, SynthSettings()).output_tables()
         data_fingerprint = fingerprint(tables)
         manifest = load_manifest(dataset_id)
-        if manifest and manifest["fingerprint"] != data_fingerprint:
+        if manifest is None:
+            raise GoldMismatchError(f"{dataset_id}: gold has no manifest to check the data against")
+        if manifest["fingerprint"] != data_fingerprint:
             raise GoldMismatchError(f"{dataset_id}: data fingerprint differs from its gold")
         for name, data in tables.items():
             load_arrow(con, name, data)

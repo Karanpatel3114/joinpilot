@@ -11,11 +11,12 @@ import argparse
 import json
 import logging
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
-from eval.baselines import name_only, overlap_only
+from eval.baselines import inclusion_dependency, name_only, overlap_only
 from eval.datasets import EvalDataset, load_dataset, split_ids
-from eval.gold import load_joins
+from eval.gold import GOLD_ROOT, load_joins
 from eval.join_metrics import JoinCounts, PredictedEdge, score_dataset
 from eval.results import new_report, write_results
 from joinpilot.config import get_settings
@@ -29,7 +30,13 @@ System = Callable[[ProjectProfile], list[PredictedEdge]]
 def joinpilot_deterministic(profile: ProjectProfile) -> list[PredictedEdge]:
     """JoinPilot's accepted candidates, with no LLM."""
     return [
-        PredictedEdge(c.from_, c.to, c.normalization, c.fan_out_risk)
+        PredictedEdge(
+            c.from_,
+            c.to,
+            c.normalization,
+            c.fan_out_risk,
+            (c.filter.column, c.filter.value) if c.filter else None,
+        )
         for c in score_candidates(profile, get_settings().joins)
         if c.accepted
     ]
@@ -38,18 +45,19 @@ def joinpilot_deterministic(profile: ProjectProfile) -> list[PredictedEdge]:
 JOIN_SYSTEMS: dict[str, System] = {
     "name_only": name_only,
     "overlap_only": overlap_only,
+    "inclusion_dependency": inclusion_dependency,
     "joinpilot_deterministic": joinpilot_deterministic,
 }
 
 
-def evaluate_joins(datasets: list[EvalDataset]) -> dict[str, Any]:
+def evaluate_joins(datasets: list[EvalDataset], gold_root: Path = GOLD_ROOT) -> dict[str, Any]:
     """Score every system on every dataset; aggregate by summing counts (micro-average)."""
     results: dict[str, Any] = {}
     for system, predict in JOIN_SYSTEMS.items():
         total = JoinCounts()
         per_dataset = {}
         for dataset in datasets:
-            gold = load_joins(dataset.dataset_id)
+            gold = load_joins(dataset.dataset_id, gold_root)
             counts = score_dataset(dataset.dataset_id, predict(dataset.profile), gold)
             per_dataset[dataset.dataset_id] = counts.metrics()
             total.add(counts)
@@ -68,8 +76,13 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--split", choices=["dev", "test"], default="dev")
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
-    profiling = get_settings().profiling
+    settings = get_settings()
+    profiling = settings.profiling
     report = new_report(args.split)
+    report["settings"] = {
+        "profiling": profiling.model_dump(mode="json"),
+        "joins": settings.joins.model_dump(mode="json"),
+    }
     if report["dirty"]:
         logger.warning("the working tree has uncommitted changes; results will say so")
     datasets = [load_dataset(i, profiling) for i in split_ids(args.split)]

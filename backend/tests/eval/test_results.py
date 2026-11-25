@@ -7,10 +7,19 @@ from eval.results import git_commit, markdown, new_report, write_results
 def sample_report() -> dict[str, object]:
     report = new_report("dev")
     report["datasets"] = [{"dataset_id": "erp_s1_sap", "fingerprint": "sha256:x"}]
-    metrics = {"precision": 1.0, "recall": 0.5, "f1": 0.6667, "normalization_accuracy": None,
-               "fan_out_recall": 1.0, "decoy_rejection": 0.75}  # fmt: skip
-    report["joins"] = {"name_only": {"aggregate": metrics, "false_positives": ["a -> b"],
-                                     "false_negatives": []}}  # fmt: skip
+    metrics = {
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1": 0.6667,
+        "undirected_f1": 0.7,
+        "normalization_recall": None,
+        "fan_out_recall": 1.0,
+        "fan_out_precision": 0.5,
+        "decoy_rejection": 0.75,
+    }
+    report["joins"] = {
+        "name_only": {"aggregate": metrics, "false_positives": ["a -> b"], "false_negatives": []}
+    }
     return report
 
 
@@ -29,7 +38,7 @@ def test_results_are_written_to_a_dated_folder_and_latest(tmp_path: Path) -> Non
     assert json.loads((folder / "metrics.json").read_text())["split"] == "dev"
     latest = (tmp_path / "latest-dev.md").read_text()
     assert latest == (folder / "metrics.md").read_text()
-    assert "| name_only | 1.000 | 0.500 | 0.667 | n/a | 1.000 | 0.750 |" in latest
+    assert "| name_only | 1.000 | 0.500 | 0.667 | 0.700 | n/a | 1.000 | 0.500 | 0.750 |" in latest
 
 
 def test_markdown_lists_errors_per_system() -> None:

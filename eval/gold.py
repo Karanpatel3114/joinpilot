@@ -11,29 +11,51 @@ from pydantic import BaseModel, ConfigDict, Field
 from joinpilot.config import REPO_ROOT
 
 GOLD_ROOT = REPO_ROOT / "data" / "gold"
+STRICT = ConfigDict(extra="forbid", populate_by_name=True)
 
 
 class GoldFilter(BaseModel):
     """A filter a true join needs (for example one language)."""
+
+    model_config = STRICT
 
     column: str
     value: str
 
 
 class GoldEdge(BaseModel):
-    """A true join, many side first."""
+    """A true single-column join, many side first."""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = STRICT
 
     from_: str = Field(alias="from")
     to: str
+    cardinality: str
     normalization: str
     fan_out: bool
     filter: GoldFilter | None = None
+    orphan_rows: int = 0
+    null_rows: int = 0
+
+
+class GoldCompositeEdge(BaseModel):
+    """A true join on two or more columns (for example TPC-H lineitem to partsupp)."""
+
+    model_config = STRICT
+
+    from_: list[str] = Field(alias="from")
+    to: list[str]
+
+    @property
+    def label(self) -> tuple[str, str]:
+        """The edge as a pair of `a+b` strings, for reports."""
+        return "+".join(self.from_), "+".join(self.to)
 
 
 class GoldDecoy(BaseModel):
     """A column pair that looks like a join but is not."""
+
+    model_config = STRICT
 
     a: str
     b: str
@@ -43,9 +65,13 @@ class GoldDecoy(BaseModel):
 class GoldJoins(BaseModel):
     """All true joins and decoys of one dataset."""
 
+    model_config = STRICT
+
     dataset_id: str
     edges: list[GoldEdge]
+    composite_edges: list[GoldCompositeEdge] = Field(default_factory=list)
     decoys: list[GoldDecoy] = Field(default_factory=list)
+    duplicate_customers: list[list[str]] = Field(default_factory=list)
 
 
 def gold_dir(dataset_id: str, root: Path = GOLD_ROOT) -> Path:

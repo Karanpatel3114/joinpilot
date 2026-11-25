@@ -32,6 +32,7 @@ def markdown(report: dict[str, Any]) -> str:
         f"- Date: {report['date']}",
         f"- Commit: `{report['commit']}`" + (" (uncommitted changes)" if report["dirty"] else ""),
         "- Datasets: " + ", ".join(f"`{d['dataset_id']}`" for d in report["datasets"]),
+        "- Settings: recorded in metrics.json",
         "",
     ]
     joins = report.get("joins")
@@ -39,9 +40,9 @@ def markdown(report: dict[str, Any]) -> str:
         lines += [
             "## Join discovery",
             "",
-            "| System | Precision | Recall | F1 | Normalization acc. | Fan-out recall "
-            "| Decoy rejection |",
-            "|---|---|---|---|---|---|---|",
+            "| System | Precision | Recall | F1 | Undirected F1 | Normalization recall "
+            "| Fan-out recall | Fan-out precision | Decoy rejection |",
+            "|---|---|---|---|---|---|---|---|---|",
         ]
         for system, result in joins.items():
             m = result["aggregate"]
@@ -49,8 +50,10 @@ def markdown(report: dict[str, Any]) -> str:
                 m["precision"],
                 m["recall"],
                 m["f1"],
-                m["normalization_accuracy"],
+                m["undirected_f1"],
+                m["normalization_recall"],
                 m["fan_out_recall"],
+                m["fan_out_precision"],
                 m["decoy_rejection"],
             ]
             shown = " | ".join("n/a" if c is None else f"{c:.3f}" for c in cells)

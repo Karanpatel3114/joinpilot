@@ -16,9 +16,14 @@ def test_tables_without_a_shared_prefix_keep_full_names() -> None:
 
 @pytest.mark.parametrize(
     ("table", "expected"),
-    [("customers", "customer"), ("categories", "category"), ("addresses", "address"),
-     ("KNA1", "kna1"), ("class", "class")],
-)  # fmt: skip
+    [
+        ("customers", "customer"),
+        ("categories", "category"),
+        ("addresses", "address"),
+        ("KNA1", "kna1"),
+        ("class", "class"),
+    ],
+)
 def test_singular_table_names(table: str, expected: str) -> None:
     assert singular(table) == expected
 
