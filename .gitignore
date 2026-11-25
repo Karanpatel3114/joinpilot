@@ -1,0 +1,30 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+web/dist/
+
+# Secrets and local config
+.env
+.env.local
+web/.env.local
+.claude/settings.local.json
+CLAUDE.local.md
+
+# Data and artifacts
+data/generated/
+*.duckdb
+*.duckdb.wal
+eval/results/tmp/
+
+# OS and editors
+.DS_Store
+.vscode/settings.json
