@@ -44,7 +44,7 @@ Done when: any uploaded table gets column statistics, candidate keys and overlap
 - [x] M2.5 `feat(profiling): normalize key values and record the normalization`
 - [x] M2.6 `feat(profiling): profile a project and assign stable evidence ids`
 - [x] M2.7 `feat(api): add project, upload and profile endpoints`
-- [ ] M2.8 `test(profiling): add property-based tests for statistics and keys`
+- [x] M2.8 `test(profiling): add property-based tests for statistics and keys`
 
 ## M3: Join candidates and baseline evaluation (branch `m3-join-candidates`)
 Done when: deterministic join candidates are scored and evaluated against gold, with baselines.
