@@ -3,18 +3,19 @@ found; it can never add a join or recommend one whose target is not unique (D-00
 
 from __future__ import annotations
 
-from dataclasses import replace
+from dataclasses import dataclass, field, replace
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from joinpilot.agent.requirement import ParsedRequirement
 from joinpilot.agent.validator import check_explanation
 from joinpilot.config import AgentSettings
 from joinpilot.errors import LLMUnavailableError
 from joinpilot.joins.models import Cardinality, JoinCandidate, JoinFilter
+from joinpilot.joins.scoring import LOW_SCORE_REASON
 from joinpilot.llm.prompts import load_prompt, snippet
-from joinpilot.llm.provider import LLMProvider
+from joinpilot.llm.provider import LLMProvider, Prompt
 from joinpilot.profiling.normalize import LPAD_PREFIX
 
 Relevance = Literal["required", "useful", "not_needed"]
@@ -55,6 +56,7 @@ class Proposal(BaseModel):
     explanation_source: Literal["llm", "template"]
     relevance: Relevance
     recommended: bool
+    rescued: bool = False
     status: Literal["proposed", "approved", "rejected"] = "proposed"
     rejection_reason: str | None = None
 
@@ -145,16 +147,33 @@ def shortlist(candidates: list[JoinCandidate], limit: int) -> list[JoinCandidate
     return (accepted + others)[: max(limit, len(accepted))]
 
 
+def can_rescue(c: JoinCandidate, settings: AgentSettings) -> bool:
+    """A rejected candidate the model may still recommend (D-020).
+
+    Only when the scorer's sole objection was a low score: never past a uniqueness,
+    1:1 or best-target rule, and never below `rescue_min_score`.
+    """
+    return (
+        c.rejection_reason == LOW_SCORE_REASON
+        and c.cardinality in JOINABLE
+        and c.score >= settings.rescue_min_score
+    )
+
+
 def to_proposal(c: JoinCandidate, ranked: RankedJoin | None, settings: AgentSettings) -> Proposal:
-    """Combine the deterministic decision with the model's view, within the hard rules."""
-    joinable = c.cardinality in JOINABLE
+    """Combine the deterministic decision with the model's view, within the hard rules.
+
+    `ranked` is None when the model did not give a usable, grounded answer for this
+    edge; then the scorer decides and the template explains.
+    """
     relevance: Relevance
     source: Literal["llm", "template"]
+    rescued = False
     if ranked is None:
         recommended, relevance = c.accepted, ("required" if c.accepted else "not_needed")
         explanation, source = template_explanation(c), "template"
     else:
-        rescued = joinable and c.score >= settings.rescue_min_score
+        rescued = ranked.include and not c.accepted and can_rescue(c, settings)
         recommended = ranked.include and (c.accepted or rescued)
         relevance, explanation, source = ranked.relevance, ranked.explanation, "llm"
     return Proposal(
@@ -171,6 +190,7 @@ def to_proposal(c: JoinCandidate, ranked: RankedJoin | None, settings: AgentSett
         explanation_source=source,
         relevance=relevance,
         recommended=recommended,
+        rescued=rescued,
         rejection_reason=c.rejection_reason,
     )
 
@@ -196,18 +216,88 @@ def grounding_problems(
     return problems
 
 
+@dataclass
+class RankingOutcome:
+    """Proposals plus what happened on the way, for warnings and evaluation."""
+
+    proposals: list[Proposal]
+    warnings: list[str] = field(default_factory=list)
+    model_used: bool = False
+    failed_checks: int = 0
+    omitted: int = 0
+
+    @property
+    def stats(self) -> dict[str, int | bool]:
+        """Counts an evaluation reports next to the metrics."""
+        return {
+            "model_used": self.model_used,
+            "model_explained": sum(p.explanation_source == "llm" for p in self.proposals),
+            "templated": sum(p.explanation_source == "template" for p in self.proposals),
+            "failed_checks": self.failed_checks,
+            "omitted": self.omitted,
+            "rescued": sum(p.rescued for p in self.proposals),
+        }
+
+
+def ask_model(
+    llm: LLMProvider,
+    prompt: Prompt,
+    by_edge: dict[str, JoinCandidate],
+    settings: AgentSettings,
+    unique_min: float,
+    outcome: RankingOutcome,
+) -> dict[str, RankedJoin]:
+    """Get grounded rankings: one try, one corrective retry, then drop what still fails."""
+    draft = llm.generate(prompt, RankingDraft).value
+    outcome.model_used = True
+    seen: set[str] = set()
+    for r in draft.joins:
+        if r.edge_id not in by_edge:
+            outcome.warnings.append(
+                f"The model referred to an unknown join {r.edge_id}; it was ignored."
+            )
+        elif r.edge_id in seen:
+            outcome.warnings.append(
+                f"The model ranked {r.edge_id} twice; the first answer is used."
+            )
+        seen.add(r.edge_id)
+    ranked: dict[str, RankedJoin] = {}
+    for r in draft.joins:
+        if r.edge_id in by_edge:
+            ranked.setdefault(r.edge_id, r)
+    problems = grounding_problems(ranked, by_edge, settings, unique_min)
+    if problems:
+        feedback = "\n".join(f"- {e}: {'; '.join(p)}" for e, p in sorted(problems.items()))
+        retry = replace(
+            prompt, user=f"{prompt.user}\n\n{snippet('fix_evidence', problems=feedback)}"
+        )
+        try:
+            retried = llm.generate(retry, RankingDraft).value
+            ranked |= {r.edge_id: r for r in retried.joins if r.edge_id in problems}
+        except (LLMUnavailableError, ValidationError) as error:
+            outcome.warnings.append(f"The corrective retry failed: {error}")
+        problems = grounding_problems(ranked, by_edge, settings, unique_min)
+    for edge_id, found in sorted(problems.items()):
+        del ranked[edge_id]
+        outcome.failed_checks += 1
+        outcome.warnings.append(
+            f"The explanation for {edge_id} failed the evidence check ({found[0]}); "
+            "the scorer's decision and a template explanation are used."
+        )
+    for edge_id in sorted(set(by_edge) - set(ranked) - set(problems)):
+        outcome.omitted += 1
+        outcome.warnings.append(f"The model did not rank {edge_id}; the scorer's decision is used.")
+    return ranked
+
+
 def rank_joins(
     requirement: ParsedRequirement,
     candidates: list[JoinCandidate],
     llm: LLMProvider,
     settings: AgentSettings,
     unique_min: float = 0.999,
-) -> tuple[list[Proposal], list[str]]:
-    """Ask the model to rank and explain the shortlisted candidates; keep it within bounds.
-
-    Explanations that cite foreign evidence or state numbers the evidence does not
-    contain get one corrective retry; any still failing are replaced by templates.
-    """
+) -> RankingOutcome:
+    """Ask the model to rank and explain the shortlisted candidates; keep it within bounds."""
     short = shortlist(candidates, settings.ranking_max_candidates)
     by_edge = {c.edge_id: c for c in short}
     prompt = load_prompt("rank_joins").render(
@@ -215,37 +305,18 @@ def rank_joins(
         tables=", ".join(requirement.relevant_tables),
         candidates="\n".join(evidence_lines(c) for c in short),
     )
+    outcome = RankingOutcome(proposals=[])
     try:
-        draft = llm.generate(prompt, RankingDraft).value
-        ranked = {r.edge_id: r for r in draft.joins if r.edge_id in by_edge}
-        problems = grounding_problems(ranked, by_edge, settings, unique_min)
-        if problems:
-            feedback = "\n".join(f"- {e}: {'; '.join(p)}" for e, p in sorted(problems.items()))
-            retry = replace(
-                prompt, user=f"{prompt.user}\n\n{snippet('fix_evidence', problems=feedback)}"
+        ranked = ask_model(llm, prompt, by_edge, settings, unique_min, outcome)
+    except (LLMUnavailableError, ValidationError) as error:
+        message = error.message if isinstance(error, LLMUnavailableError) else "invalid output"
+        outcome.warnings.append(f"Deterministic ranking used: {message}")
+        ranked = {}
+    outcome.proposals = [to_proposal(c, ranked.get(c.edge_id), settings) for c in short]
+    for p in outcome.proposals:
+        if p.rescued:
+            outcome.warnings.append(
+                f"The model recommended {p.edge_id}, which scored below the threshold."
             )
-            retried = llm.generate(retry, RankingDraft).value
-            ranked |= {r.edge_id: r for r in retried.joins if r.edge_id in problems}
-            problems = grounding_problems(ranked, by_edge, settings, unique_min)
-    except LLMUnavailableError as error:
-        proposals = [to_proposal(c, None, settings) for c in short]
-        return proposals, [f"Deterministic ranking used: {error.message}"]
-    warnings = [
-        f"The model referred to an unknown join {r.edge_id}; it was ignored."
-        for r in draft.joins
-        if r.edge_id not in by_edge
-    ]
-    for edge_id, found in sorted(problems.items()):
-        ranked[edge_id] = ranked[edge_id].model_copy(
-            update={"explanation": template_explanation(by_edge[edge_id])}
-        )
-        warnings.append(f"The explanation for {edge_id} failed the evidence check ({found[0]}).")
-    proposals = [to_proposal(c, ranked.get(c.edge_id), settings) for c in short]
-    for p in proposals:
-        if p.edge_id in problems:
-            p.explanation_source = "template"
-    for p, c in zip(proposals, short, strict=True):
-        if p.recommended and not c.accepted:
-            warnings.append(f"The model recommended {p.edge_id}, which the scorer had rejected.")
-    proposals.sort(key=lambda p: (not p.recommended, -p.score, p.edge_id))
-    return proposals, warnings
+    outcome.proposals.sort(key=lambda p: (not p.recommended, -p.score, p.edge_id))
+    return outcome

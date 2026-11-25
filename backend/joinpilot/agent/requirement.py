@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 from joinpilot.errors import LLMUnavailableError
 from joinpilot.llm.prompts import load_prompt
@@ -109,8 +109,9 @@ def parse_requirement(
     )
     try:
         draft = llm.generate(prompt, RequirementDraft).value
-    except LLMUnavailableError as error:
-        return fallback_parse(requirement, profile), [f"Keyword parsing used: {error.message}"]
+    except (LLMUnavailableError, ValidationError) as error:
+        message = error.message if isinstance(error, LLMUnavailableError) else "invalid output"
+        return fallback_parse(requirement, profile), [f"Keyword parsing used: {message}"]
     known = {t.name.casefold(): t.name for t in profile.tables}
     tables = [known[t.casefold()] for t in draft.relevant_tables if t.casefold() in known]
     warnings = [

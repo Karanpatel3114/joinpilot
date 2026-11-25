@@ -15,6 +15,8 @@ from joinpilot.joins.models import Cardinality, JoinCandidate, JoinFilter
 from joinpilot.joins.names import singular, stem
 from joinpilot.profiling.models import ProjectProfile
 
+LOW_SCORE_REASON = "evidence score below the acceptance threshold"
+
 
 def cardinality(candidate: JoinCandidate, unique_min: float) -> Cardinality:
     """From the uniqueness of each side: N:1 (target unique), 1:1, 1:N or N:M."""
@@ -87,7 +89,7 @@ def rejection_reason(
         if c.name_similarity < 1.0 or not strong:
             return "both columns are unique keys without matching names and full overlap"
     if c.score < s.accept_threshold:
-        return "evidence score below the acceptance threshold"
+        return LOW_SCORE_REASON
     if reverse and (reverse.score, reverse.from_) > (c.score, c.from_):
         return "the reverse direction is better supported"
     return None

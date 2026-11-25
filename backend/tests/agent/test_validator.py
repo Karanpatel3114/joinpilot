@@ -105,7 +105,8 @@ def answers(first: str, second: str) -> FakeProvider:
 
 def test_failing_explanations_get_one_retry(candidates: list[JoinCandidate]) -> None:
     fake = answers("Trust me (ov_999).", "Still trust me (ov_998).")
-    proposals, warnings = rank_joins(ParsedRequirement(summary="s"), candidates, fake, SETTINGS)
+    outcome = rank_joins(ParsedRequirement(summary="s"), candidates, fake, SETTINGS)
+    proposals, warnings = outcome.proposals, outcome.warnings
     assert len(fake.calls) == 2
     assert "failed the evidence check" in fake.calls[1].user
     assert all(p.explanation_source == "template" for p in proposals)
@@ -131,7 +132,8 @@ def test_explanations_fixed_on_retry_are_kept(candidates: list[JoinCandidate]) -
         return {"joins": joins}
 
     fake = FakeProvider().on("rank_joins", answer)
-    proposals, warnings = rank_joins(ParsedRequirement(summary="s"), candidates, fake, SETTINGS)
+    outcome = rank_joins(ParsedRequirement(summary="s"), candidates, fake, SETTINGS)
+    proposals, warnings = outcome.proposals, outcome.warnings
     recommended = [p for p in proposals if p.recommended]
     assert len(recommended) == 5
     assert all(p.explanation_source == "llm" for p in recommended)

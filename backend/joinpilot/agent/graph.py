@@ -83,12 +83,12 @@ class AgentNodes:
         """Rank and explain the candidates for this requirement."""
         parsed = ParsedRequirement.model_validate(state["parsed_requirement"])
         settings = self.ctx.settings
-        proposals, warnings = rank_joins(
+        outcome = rank_joins(
             parsed, candidates_of(state), self.ctx.llm, settings.agent, settings.joins.unique_min
         )
         return {
-            "proposals": [p.model_dump(by_alias=True) for p in proposals],
-            "warnings": warnings,
+            "proposals": [p.model_dump(by_alias=True) for p in outcome.proposals],
+            "warnings": outcome.warnings,
             "status": "awaiting_approval",
         }
 

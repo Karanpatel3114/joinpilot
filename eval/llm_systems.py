@@ -70,7 +70,9 @@ def joinpilot_full(
     """The agent's recommended joins for the evaluation requirement."""
     parsed, _ = parse_requirement(EVAL_REQUIREMENT, profile, llm)
     candidates = score_candidates(profile, settings.joins)
-    proposals, _ = rank_joins(parsed, candidates, llm, settings.agent, settings.joins.unique_min)
+    proposals = rank_joins(
+        parsed, candidates, llm, settings.agent, settings.joins.unique_min
+    ).proposals
     return [
         PredictedEdge(
             p.from_,
