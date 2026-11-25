@@ -37,19 +37,46 @@ def test_a_grounded_explanation_passes(bsid: JoinCandidate) -> None:
 
 def test_foreign_or_missing_evidence_ids_are_rejected(bsid: JoinCandidate) -> None:
     assert "cites ov_999" in check(bsid, "It matches (ov_999).")[0]
-    assert check(bsid, "It obviously matches.") == ["cites no evidence id"]
+    assert "cites ov_999" in check(bsid, "It matches (OV_999).")[0]
+    assert check(bsid, "It obviously matches.") == [
+        "cites none of its evidence ids in the explanation text"
+    ]
+    ov = bsid.evidence_roles["inclusion"]
+    assert check(bsid, "   ", [ov]) == ["the explanation is empty"]
+    assert "cites none" in check(bsid, "Matches.", [ov])[0]
 
 
 def test_numbers_must_come_from_the_evidence(bsid: JoinCandidate) -> None:
     ov = bsid.evidence_roles["inclusion"]
-    problems = check(bsid, f"Exactly 42.0% of values match ({ov}).")
-    assert problems == ["states 42.0%, which matches no evidence number"]
+    assert check(bsid, f"Exactly 42.0% of values match ({ov}).") == [
+        "states 42.0%, which matches no overlap number"
+    ]
+    assert "matches no" in check(bsid, f"About 42 percent match ({ov}).")[0]
+    assert "matches no" in check(bsid, f"A ratio of 0.42 matches ({ov}).")[0]
+    assert "in words" in check(bsid, f"Forty-two percent match ({ov}).")[0]
+
+
+def test_numbers_are_checked_against_the_attribute_they_describe(
+    candidates: list[JoinCandidate],
+) -> None:
+    currency = next(c for c in candidates if (c.from_, c.to) == ("VBAK.WAERK", "BSID.WAERS"))
+    ov = currency.evidence_roles["inclusion"]
+    assert currency.inclusion_ratio == 1.0
+    assert "no uniqueness number" in check(currency, f"BSID.WAERS is 100.0% unique ({ov}).")[0]
+    assert check(currency, f"100.0% of VBAK.WAERK values appear in BSID.WAERS ({ov}).") == []
 
 
 def test_uniqueness_claims_must_be_true(candidates: list[JoinCandidate]) -> None:
     currency = next(c for c in candidates if (c.from_, c.to) == ("VBAK.WAERK", "BSID.WAERS"))
     ov = currency.evidence_ids[0]
-    assert "claims uniqueness" in check(currency, f"BSID.WAERS is unique ({ov}).")[0]
+    for claim in (
+        "BSID.WAERS is unique",
+        "WAERS is unique",
+        "BSID.WAERS uniquely identifies rows",
+        "The target is a unique key",
+        "BSID.WAERS is the primary key",
+    ):
+        assert "claims BSID.WAERS is unique" in check(currency, f"{claim} ({ov}).")[0], claim
     assert check(currency, f"BSID.WAERS is not unique ({ov}).") == []
 
 
