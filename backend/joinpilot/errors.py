@@ -42,6 +42,13 @@ class ConflictError(JoinPilotError):
     http_status = 409
 
 
+class LLMUnavailableError(JoinPilotError):
+    """The language model could not answer (no key, quota, network or invalid output)."""
+
+    code = "LLM_UNAVAILABLE"
+    http_status = 503
+
+
 class PayloadTooLargeError(JoinPilotError):
     """An upload or request body is larger than the configured limit."""
 

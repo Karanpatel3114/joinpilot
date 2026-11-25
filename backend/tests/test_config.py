@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from joinpilot.config import REPO_ROOT, JoinSettings, ProfilingSettings, Settings
+from joinpilot.config import REPO_ROOT, JoinSettings, LLMSettings, ProfilingSettings, Settings
 
 
 def test_defaults_are_safe_for_local_development() -> None:
@@ -31,8 +31,9 @@ def test_env_example_documents_every_setting() -> None:
         for line in text.splitlines()
         if "=" in line and line.lstrip("# ").split("=", 1)[0].isupper()
     }
-    nested = {"synth", "profiling", "joins"}
+    nested = {"synth", "profiling", "joins", "llm"}
     expected = {name.upper() for name in Settings.model_fields if name not in nested}
     expected |= {f"PROFILING__{name.upper()}" for name in ProfilingSettings.model_fields}
     expected |= {f"JOINS__{name.upper()}" for name in JoinSettings.model_fields}
+    expected |= {f"LLM__{name.upper()}" for name in LLMSettings.model_fields}
     assert expected <= keys, sorted(expected - keys)

@@ -58,7 +58,7 @@ Done when: deterministic join candidates are scored and evaluated against gold, 
 ## M4: Agent with LangGraph (branch `m4-agent`)
 Done when: the agent turns a requirement and candidates into a ranked, explained join graph that cites evidence, and is evaluated against baselines.
 
-- [ ] M4.1 `feat(llm): add provider interface with Gemini and fake providers`
+- [x] M4.1 `feat(llm): add provider interface with Gemini and fake providers`
 - [ ] M4.2 `feat(llm): log tokens, latency and cost with retries and backoff`
 - [ ] M4.3 `feat(agent): add LangGraph state and graph skeleton`
 - [ ] M4.4 `feat(agent): parse requirements into entities, measures and filters`

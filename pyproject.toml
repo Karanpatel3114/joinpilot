@@ -8,6 +8,7 @@ authors = [{ name = "Karan Patel" }]
 dependencies = [
     "duckdb>=2.0.1",
     "fastapi>=0.165.0",
+    "google-genai>=3.6.1",
     "numpy>=2.5.5",
     "pyarrow>=26.0.1",
     "pydantic>=2.14.4",
