@@ -41,7 +41,7 @@ def test_orphan_items_point_to_products_missing_from_the_master(planted: Any) ->
     product_ids = set(products.column("product_id").to_pylist())
     orphans = [p for p in items.column("product_id").to_pylist() if p not in product_ids]
     assert len(orphans) == record.orphan_item_rows == round(0.01 * clean_items.num_rows)
-    assert set(orphans) <= set(record.orphan_product_ids)
+    assert set(orphans) == set(record.orphan_product_ids)
     assert all(len(p) == 18 for p in orphans)
 
 
@@ -56,6 +56,7 @@ def test_open_item_keys_lose_leading_zeros_and_include_orphans_and_nulls(
     assert all(not k.startswith("0") for k in non_null)
     orphans = [k for k in non_null if k not in master]
     assert len(orphans) == record.orphan_open_item_rows == 20
+    assert {k.zfill(10) for k in orphans} == set(record.orphan_customer_numbers)
     assert record.stripped_zero_rows == len(non_null)
 
 
@@ -71,4 +72,5 @@ def test_rates_come_from_config_and_zero_rates_plant_nothing() -> None:
     master = set(customers.column("customer_id").to_pylist())
     assert record.duplicate_customers == []
     assert record.orphan_item_rows == record.orphan_open_item_rows == 0
+    assert record.orphan_product_ids == record.orphan_customer_numbers == []
     assert set(open_items.column("customer_id").to_pylist()) <= master

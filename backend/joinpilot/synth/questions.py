@@ -10,7 +10,7 @@ from collections import Counter, defaultdict
 from decimal import Decimal
 from typing import Any
 
-from joinpilot.synth.facts import Facts
+from joinpilot.synth.facts import Facts, money
 from joinpilot.synth.rng import stream
 
 COUNTRY_NAMES = {
@@ -26,9 +26,9 @@ MONTHS = [
 ]  # fmt: skip
 
 
-def num(value: Decimal) -> float:
-    """Round an amount for a JSON answer."""
-    return float(round(value, 2))
+def num(value: Decimal) -> str:
+    """An exact amount answer, written as a two-decimal string like kpis.json (D-010)."""
+    return money(value)
 
 
 class QuestionSet:
@@ -80,6 +80,7 @@ def gold_questions(seed: int, f: Facts) -> list[dict[str, Any]]:
             f"How many customers are based in {COUNTRY_NAMES[code]}?",
             ["customer_count"],
             [[countries[code]]],
+            tags=("duplicates",),
         )
     groups = Counter(p["product_group"] for p in f.products.values())
     for group in pick(sorted(groups), 2):
@@ -99,8 +100,8 @@ def gold_questions(seed: int, f: Facts) -> list[dict[str, Any]]:
             [[months[month]]],
         )
     for year in (2025, 2026):
-        total = sum((h["net_value"] for h in f.headers if h["order_date"][:4] == str(year)),
-                    Decimal(0))  # fmt: skip
+        in_year = (h["net_value"] for h in f.headers if h["order_date"][:4] == str(year))
+        total = sum(in_year, Decimal(0))
         qs.add(
             "order_value_year",
             f"What is the total net value of all sales orders created in {year}?",
@@ -109,14 +110,21 @@ def gold_questions(seed: int, f: Facts) -> list[dict[str, Any]]:
         )
 
     amounts = [r["amount"] for r in f.open_items]
-    qs.add("open_total", "What is the total amount of all open receivables?",
-           ["open_amount"], [[num(sum(amounts, Decimal(0)))]])  # fmt: skip
+    whole_ledger = ("orphans", "null_keys")  # answers that include orphan and null-key rows
+    qs.add(
+        "open_total",
+        "What is the total amount of all open receivables?",
+        ["open_amount"],
+        [[num(sum(amounts, Decimal(0)))]],
+        tags=whole_ledger,
+    )
     over_90 = sum((r["amount"] for r in f.open_items if f.days_overdue(r) > 90), Decimal(0))
     qs.add(
         "open_over_90",
         f"What is the total open receivables amount more than 90 days overdue {as_of}?",
         ["overdue_amount"],
         [[num(over_90)]],
+        tags=whole_ledger,
     )
     overdue: dict[str, Decimal] = defaultdict(Decimal)
     open_by_customer: dict[str, Decimal] = defaultdict(Decimal)
@@ -203,6 +211,7 @@ def gold_questions(seed: int, f: Facts) -> list[dict[str, Any]]:
         "How many open receivable line items are in EUR?",
         ["item_count"],
         [[sum(1 for r in f.open_items if r["currency"] == "EUR")]],
+        tags=whole_ledger,
     )
     orgs = Counter(h["sales_org"] for h in f.headers)
     qs.add(
@@ -261,12 +270,14 @@ def gold_questions(seed: int, f: Facts) -> list[dict[str, Any]]:
         "What is the largest single open receivable line amount?",
         ["max_amount"],
         [[num(max(amounts))]],
+        tags=whole_ledger,
     )
     qs.add(
         "not_due_count",
         f"How many open receivable line items are not yet due {as_of}?",
         ["item_count"],
         [[sum(1 for r in f.open_items if f.days_overdue(r) <= 0)]],
+        tags=whole_ledger,
     )
     values = sorted(h["net_value"] for h in f.headers)
     for quantile in (0.5, 0.9):
@@ -282,6 +293,7 @@ def gold_questions(seed: int, f: Facts) -> list[dict[str, Any]]:
         "How many customer names appear more than once in the customer master?",
         ["name_count"],
         [[sum(1 for count in name_counts.values() if count > 1)]],
+        tags=("duplicates",),
     )
     qs.add(
         "open_items_without_customer",

@@ -118,7 +118,7 @@ def test_question_answers_match_sql(env: tuple[Any, Path]) -> None:
         WHERE {OVERDUE_DAYS} > 0 GROUP BY 1 ORDER BY v DESC, c.KUNNR LIMIT 5
     """).fetchall()
     gold_rows = question(gold, "top_overdue_customers")["rows"]
-    assert [[cid, float(v)] for cid, v in top_overdue] == gold_rows
+    assert [[cid, f"{v:.2f}"] for cid, v in top_overdue] == gold_rows
 
 
 def test_true_joins_hold_and_fan_out_trap_is_real(env: tuple[Any, Path]) -> None:

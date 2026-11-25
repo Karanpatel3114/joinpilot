@@ -20,9 +20,9 @@ class PlantedIssues:
     """Exactly which issues were planted, for the gold files."""
 
     duplicate_customers: list[tuple[str, str]]  # (duplicate id, original id)
-    orphan_product_ids: list[str]
+    orphan_product_ids: list[str]  # only ids that some row actually uses
     orphan_item_rows: int
-    orphan_customer_numbers: list[str]
+    orphan_customer_numbers: list[str]  # in master format, before zeros are stripped
     orphan_open_item_rows: int
     null_key_open_item_rows: int
     stripped_zero_rows: int
@@ -85,7 +85,8 @@ def plant_orphan_products(
     pool = unused_ids(rng, max(1, len(rows) // 3), product_ids, width=18)
     for i in rows:
         values[i] = pool[int(rng.integers(len(pool)))]
-    return replace_column(items, "product_id", values), pool, len(rows)
+    used = sorted({str(values[i]) for i in rows})
+    return replace_column(items, "product_id", values), used, len(rows)
 
 
 def plant_open_item_key_issues(
@@ -98,6 +99,7 @@ def plant_open_item_key_issues(
     pool = unused_ids(rng, max(1, len(orphan_rows) // 2), customer_ids, width=10)
     for i in orphan_rows:
         values[i] = pool[int(rng.integers(len(pool)))]
+    used = sorted({str(values[i]) for i in orphan_rows})
     null_rows = pick_rows(rng, len(values), rates.null_key_open_items, set(orphan_rows))
     for i in null_rows:
         values[i] = None
@@ -113,7 +115,7 @@ def plant_open_item_key_issues(
         if value is not None:
             values[i] = str(int(value))
     table = replace_column(open_items, "customer_id", values)
-    return table, pool, len(orphan_rows), len(null_rows), len(strip_rows)
+    return table, used, len(orphan_rows), len(null_rows), len(strip_rows)
 
 
 def plant_issues(
