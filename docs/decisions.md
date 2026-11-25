@@ -108,6 +108,7 @@ One entry per design choice that had real alternatives. Newest at the bottom. Fo
 - **Decision:** the default model is the `gemini-flash-lite-latest` alias, set in config. Structured output uses Gemini's JSON-schema mode (Gemma models get the schema in the prompt). Without a key, `UnavailableProvider` raises `LLM_UNAVAILABLE` on every call, and each agent step falls back to its deterministic behavior. Cost estimates use configurable list prices and default to $0, since free-tier calls are not billed.
 - **Alternatives:** a Pro model (paid only); a local Ollama model (too heavy for the free hosting tier and an 8 GB laptop).
 - **Consequences:** the whole product runs, and is tested, with no key; quality improves when a key is present.
+- **Status at the end of M4:** no key was configured yet, so the LLM-only ablation and the full agent have not been run against the model. `uv run python -m eval.run_all --split dev --llm` records those numbers once a key is set; until then the README reports only deterministic systems.
 
 ## D-020: When the model may overrule the scorer
 - **Context:** the model ranks candidates in the context of the requirement, so it may usefully drop a join the requirement does not need, or recommend a near-miss the scorer rejected only for a low score. It must never weaken a hard rule.
