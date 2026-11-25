@@ -56,6 +56,12 @@ class SynthSettings(BaseModel):
     issues: IssueRates = Field(default_factory=IssueRates)
 
 
+class ProfilingSettings(BaseModel):
+    """Tunables for column statistics, candidate keys and overlap scores."""
+
+    sample_values: int = 5
+
+
 class Settings(BaseSettings):
     """Typed settings loaded from the environment (prefix-free) and `.env`."""
 
@@ -74,6 +80,9 @@ class Settings(BaseSettings):
 
     # Synthetic data generator
     synth: SynthSettings = Field(default_factory=SynthSettings)
+
+    # Profiling
+    profiling: ProfilingSettings = Field(default_factory=ProfilingSettings)
 
     @property
     def projects_dir(self) -> Path:

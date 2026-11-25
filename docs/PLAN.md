@@ -38,7 +38,7 @@ Done when: the generator produces deterministic datasets in both naming modes, w
 Done when: any uploaded table gets column statistics, candidate keys and overlap scores through the API.
 
 - [x] M2.1 `feat(profiling): load CSV and Parquet uploads into a per-project DuckDB file`
-- [ ] M2.2 `feat(profiling): compute column statistics`
+- [x] M2.2 `feat(profiling): compute column statistics`
 - [ ] M2.3 `feat(profiling): detect single and two-column candidate keys`
 - [ ] M2.4 `feat(profiling): compute inclusion scores between columns with sampling`
 - [ ] M2.5 `feat(profiling): normalize key values and record the normalization`
