@@ -56,7 +56,17 @@ cd web && npm install && npm run dev           # console on http://localhost:517
 
 ## Evaluation
 
-Results will be published here from `eval/results/`, always next to simple baselines.
+Every number below comes from a file in [`eval/results/`](eval/results/), which records the split, dataset fingerprints, commit and date. Gold answers are written by the data generator and read only by `eval/`.
+
+**Join discovery, dev split** (4 synthetic ERP datasets, 20 true joins, 2026-11-25, commit `85cc117`, [results](eval/results/2026-11-25-85cc117-dev/metrics.md)):
+
+| System | Precision | Recall | F1 | Normalization accuracy | Fan-out recall | Decoy rejection |
+|---|---|---|---|---|---|---|
+| Name-only baseline | 0.370 | 1.000 | 0.541 | 0.800 | 0.000 | 0.800 |
+| Overlap-only baseline | 0.274 | 0.850 | 0.415 | 1.000 | 0.000 | 0.600 |
+| JoinPilot, deterministic (no LLM) | **1.000** | **1.000** | **1.000** | **1.000** | **1.000** | **1.000** |
+
+The deterministic scorer was tuned on this split, so these are not generalization numbers. The held-out test split (new seeds, size M, both naming modes and TPC-H) is run once, at the end. LLM-based systems are added in M4.
 
 ## Data
 

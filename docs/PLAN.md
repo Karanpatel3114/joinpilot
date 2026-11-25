@@ -53,7 +53,7 @@ Done when: deterministic join candidates are scored and evaluated against gold, 
 - [x] M3.2 `feat(joins): score candidates and infer cardinality and fan-out risk`
 - [x] M3.3 `feat(eval): measure join discovery precision, recall and F1 against gold`
 - [x] M3.4 `feat(eval): add name-only and overlap-only baselines and a results writer`
-- [ ] M3.5 `docs(eval): record baseline results and decisions`
+- [x] M3.5 `docs(eval): record baseline results and decisions`
 
 ## M4: Agent with LangGraph (branch `m4-agent`)
 Done when: the agent turns a requirement and candidates into a ranked, explained join graph that cites evidence, and is evaluated against baselines.
