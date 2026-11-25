@@ -70,6 +70,7 @@ def fan_out(candidate: JoinCandidate, index: ProfileIndex, s: JoinSettings) -> N
             composite = index.keys.get((table, tuple(key)))
             if composite:
                 candidate.evidence_ids.append(composite.evidence_id)
+                candidate.evidence_roles["fan_out_key"] = composite.evidence_id
             return
 
 

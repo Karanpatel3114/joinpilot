@@ -8,7 +8,7 @@ def test_graph_runs_every_step_and_records_timings(ctx: AgentContext) -> None:
     state = build_graph(ctx).invoke({"run_id": "r1", "requirement": "Open receivables by customer"})
     assert set(state["timings_ms"]) == {"profile", "parse_requirement", "rank_joins"}
     assert len(state["candidates"]) > 5
-    assert len(state["proposals"]) == 5
+    assert sum(p["recommended"] for p in state["proposals"]) == 5
     assert state["status"] == "awaiting_approval"
 
 

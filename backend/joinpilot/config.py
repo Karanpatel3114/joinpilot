@@ -107,6 +107,14 @@ class LLMSettings(BaseModel):
     prices_per_million: dict[str, tuple[float, float]] = Field(default_factory=dict)
 
 
+class AgentSettings(BaseModel):
+    """Tunables for the agent's ranking and its evidence checks."""
+
+    ranking_max_candidates: int = 25
+    rescue_min_score: float = 0.5
+    explanation_tolerance_points: float = 0.6
+
+
 class Settings(BaseSettings):
     """Typed settings loaded from the environment (prefix-free) and `.env`."""
 
@@ -136,6 +144,9 @@ class Settings(BaseSettings):
 
     # Join candidates
     joins: JoinSettings = Field(default_factory=JoinSettings)
+
+    # Agent
+    agent: AgentSettings = Field(default_factory=AgentSettings)
 
     # Language model
     llm: LLMSettings = Field(default_factory=LLMSettings)

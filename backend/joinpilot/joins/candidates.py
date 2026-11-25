@@ -86,7 +86,16 @@ def build_candidate(
     reverse = index.overlaps.get((target, source))
     target_key = index.uniqueness(target)
     source_key = index.uniqueness(source)
-    evidence = [e.evidence_id for e in (forward, reverse, target_key, source_key) if e]
+    roles = {
+        role: item.evidence_id
+        for role, item in (
+            ("inclusion", forward),
+            ("coverage", reverse),
+            ("target_uniqueness", target_key),
+            ("source_uniqueness", source_key),
+        )
+        if item is not None
+    }
     return JoinCandidate(
         from_=source,
         to=target,
@@ -99,7 +108,8 @@ def build_candidate(
         name_similarity=name_similarity(
             index.stems[source], index.stems[target], settings.name_fuzzy_weight
         ),
-        evidence_ids=evidence,
+        evidence_ids=list(roles.values()),
+        evidence_roles=roles,
     )
 
 

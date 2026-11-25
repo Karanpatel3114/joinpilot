@@ -16,7 +16,8 @@ from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
-from joinpilot.agent.requirement import parse_requirement
+from joinpilot.agent.ranking import rank_joins
+from joinpilot.agent.requirement import ParsedRequirement, parse_requirement
 from joinpilot.agent.state import RunState
 from joinpilot.config import Settings
 from joinpilot.joins.models import JoinCandidate
@@ -79,9 +80,16 @@ class AgentNodes:
         return {"parsed_requirement": parsed.model_dump(), "warnings": warnings}
 
     def rank_joins(self, state: RunState) -> dict[str, Any]:
-        """Rank and explain candidates (filled in by M4.5); for now, the accepted ones."""
-        proposals = [c.model_dump(by_alias=True) for c in candidates_of(state) if c.accepted]
-        return {"proposals": proposals, "status": "awaiting_approval"}
+        """Rank and explain the candidates for this requirement."""
+        parsed = ParsedRequirement.model_validate(state["parsed_requirement"])
+        proposals, warnings = rank_joins(
+            parsed, candidates_of(state), self.ctx.llm, self.ctx.settings.agent
+        )
+        return {
+            "proposals": [p.model_dump(by_alias=True) for p in proposals],
+            "warnings": warnings,
+            "status": "awaiting_approval",
+        }
 
 
 def build_graph(
