@@ -19,9 +19,9 @@
 {"id": "q019", "template": "revenue_group_2026", "question": "What was the total item net value in 2026 for products in product group PUMP?", "columns": ["revenue"], "rows": [[21466181.87]], "ordered": false, "tags": []}
 {"id": "q020", "template": "revenue_group_2026", "question": "What was the total item net value in 2026 for products in product group TOOL?", "columns": ["revenue"], "rows": [[6898312.03]], "ordered": false, "tags": []}
 {"id": "q021", "template": "top_group_2026", "question": "Which product group had the highest total item net value in 2026?", "columns": ["product_group"], "rows": [["BEAR"]], "ordered": false, "tags": []}
-{"id": "q022", "template": "customer_orders_2026", "question": "How many sales orders did South Halhaven Technologies Inc. place in 2026?", "columns": ["order_count"], "rows": [[2]], "ordered": false, "tags": []}
-{"id": "q023", "template": "customer_orders_2026", "question": "How many sales orders did West Granwick Technologies Inc. place in 2026?", "columns": ["order_count"], "rows": [[2]], "ordered": false, "tags": []}
-{"id": "q024", "template": "customer_orders_2026", "question": "How many sales orders did Global Zenpoint Engineering LLC place in 2026?", "columns": ["order_count"], "rows": [[122]], "ordered": false, "tags": []}
+{"id": "q022", "template": "customer_orders_2026", "question": "How many sales orders did Central Norbrook Supply Inc. place in 2026?", "columns": ["order_count"], "rows": [[2]], "ordered": false, "tags": []}
+{"id": "q023", "template": "customer_orders_2026", "question": "How many sales orders did West Lumwick Manufacturing Inc. place in 2026?", "columns": ["order_count"], "rows": [[2]], "ordered": false, "tags": []}
+{"id": "q024", "template": "customer_orders_2026", "question": "How many sales orders did South Brinmont Supply LLC place in 2026?", "columns": ["order_count"], "rows": [[122]], "ordered": false, "tags": []}
 {"id": "q025", "template": "avg_items_per_order", "question": "What is the average number of items per sales order?", "columns": ["avg_items"], "rows": [[2.99518]], "ordered": false, "tags": []}
 {"id": "q026", "template": "eur_open_items", "question": "How many open receivable line items are in EUR?", "columns": ["item_count"], "rows": [[8044]], "ordered": false, "tags": []}
 {"id": "q027", "template": "orders_per_sales_org", "question": "How many sales orders does each sales organization have?", "columns": ["sales_org", "order_count"], "rows": [["1000", 79583], ["2000", 20417]], "ordered": false, "tags": []}

@@ -19,9 +19,9 @@
 {"id": "q019", "template": "revenue_group_2026", "question": "What was the total item net value in 2026 for products in product group MOTR?", "columns": ["revenue"], "rows": [[7490643.95]], "ordered": false, "tags": []}
 {"id": "q020", "template": "revenue_group_2026", "question": "What was the total item net value in 2026 for products in product group SAFE?", "columns": ["revenue"], "rows": [[8846815.63]], "ordered": false, "tags": []}
 {"id": "q021", "template": "top_group_2026", "question": "Which product group had the highest total item net value in 2026?", "columns": ["product_group"], "rows": [["PUMP"]], "ordered": false, "tags": []}
-{"id": "q022", "template": "customer_orders_2026", "question": "How many sales orders did South Everwick Systems Pvt Ltd place in 2026?", "columns": ["order_count"], "rows": [[1]], "ordered": false, "tags": []}
-{"id": "q023", "template": "customer_orders_2026", "question": "How many sales orders did South Kelwood Industrial GmbH place in 2026?", "columns": ["order_count"], "rows": [[1]], "ordered": false, "tags": []}
-{"id": "q024", "template": "customer_orders_2026", "question": "How many sales orders did Atlantic Aldale Trading Inc. place in 2026?", "columns": ["order_count"], "rows": [[1]], "ordered": false, "tags": []}
+{"id": "q022", "template": "customer_orders_2026", "question": "How many sales orders did Ironview Distribution Pvt Ltd place in 2026?", "columns": ["order_count"], "rows": [[1]], "ordered": false, "tags": []}
+{"id": "q023", "template": "customer_orders_2026", "question": "How many sales orders did Global Silfield Components GmbH place in 2026?", "columns": ["order_count"], "rows": [[1]], "ordered": false, "tags": []}
+{"id": "q024", "template": "customer_orders_2026", "question": "How many sales orders did Atlantic Algate Distribution Inc. place in 2026?", "columns": ["order_count"], "rows": [[1]], "ordered": false, "tags": []}
 {"id": "q025", "template": "avg_items_per_order", "question": "What is the average number of items per sales order?", "columns": ["avg_items"], "rows": [[3.00085]], "ordered": false, "tags": []}
 {"id": "q026", "template": "eur_open_items", "question": "How many open receivable line items are in EUR?", "columns": ["item_count"], "rows": [[7883]], "ordered": false, "tags": []}
 {"id": "q027", "template": "orders_per_sales_org", "question": "How many sales orders does each sales organization have?", "columns": ["sales_org", "order_count"], "rows": [["1000", 56145], ["2000", 43855]], "ordered": false, "tags": []}

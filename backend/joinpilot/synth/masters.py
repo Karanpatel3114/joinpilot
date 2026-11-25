@@ -24,6 +24,8 @@ COUNTRIES: dict[str, tuple[float, list[str], list[str]]] = {
 NAME_PREFIXES = [
     "Al", "Bel", "Cor", "Dal", "Ever", "Fair", "Gran", "Hal", "Iron", "Jun", "Kel", "Lum",
     "Mar", "Nor", "Oak", "Pin", "Quin", "Ros", "Sil", "Tor", "Ul", "Ver", "Wes", "Yar", "Zen",
+    "Ash", "Brin", "Cal", "Dun", "El", "Fen", "Glen", "Hart", "Ivy", "Kin", "Lind", "Mill",
+    "New", "Pell", "Red",
 ]  # fmt: skip
 NAME_CORES = [
     "brook", "crest", "dale", "field", "gate", "haven", "ridge", "stone", "wood", "view",
@@ -73,7 +75,7 @@ class ProductMaster:
 
 def zero_padded_ids(rng: np.random.Generator, n: int, low: int, high: int, width: int) -> list[str]:
     """Return `n` distinct, sorted numbers in [low, high) as zero-padded strings."""
-    numbers = np.sort(rng.choice(np.arange(low, high), size=n, replace=False))
+    numbers = np.sort(rng.choice(high - low, size=n, replace=False) + low)
     return [str(int(x)).zfill(width) for x in numbers]
 
 
@@ -84,6 +86,8 @@ def make_customers(seed: int, n: int) -> pa.Table:
     shares = np.array([COUNTRIES[c][0] for c in countries])
     country_idx = rng.choice(len(countries), size=n, p=shares / shares.sum())
     name_space = len(NAME_PREFIXES) * len(NAME_CORES) * len(NAME_REGIONS) * len(NAME_INDUSTRIES)
+    if n > name_space:
+        raise ValueError(f"cannot make {n} unique customer names (at most {name_space})")
     name_codes = rng.choice(name_space, size=n, replace=False)
     names: list[str] = []
     cities: list[str] = []

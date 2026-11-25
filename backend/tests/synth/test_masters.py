@@ -1,6 +1,7 @@
 from datetime import date
 
 import pyarrow as pa
+import pytest
 
 from joinpilot.synth.masters import LANGUAGES, PRODUCT_GROUPS, make_customers, make_products
 
@@ -47,3 +48,13 @@ def test_same_seed_gives_same_masters_and_other_seed_differs() -> None:
     assert make_customers(7, 100).equals(make_customers(7, 100))
     assert make_products(7, 100).products.equals(make_products(7, 100).products)
     assert not make_customers(7, 100).equals(make_customers(8, 100))
+
+
+def test_size_l_customer_count_fits_the_name_space() -> None:
+    customers = make_customers(seed=1, n=50_000)
+    assert len(set(customers.column("customer_name").to_pylist())) == 50_000
+
+
+def test_asking_for_more_customers_than_names_fails_clearly() -> None:
+    with pytest.raises(ValueError, match="unique customer names"):
+        make_customers(seed=1, n=10_000_000)
