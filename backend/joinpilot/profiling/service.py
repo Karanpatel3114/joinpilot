@@ -32,7 +32,7 @@ def key_evidence(
     for column in columns:
         if not is_key_like_type(column.type):
             continue
-        non_null = round(row_count * (1 - column.null_pct))
+        non_null = column.non_null_count
         evidence.append(
             KeyEvidence(
                 evidence_id="",
@@ -40,7 +40,9 @@ def key_evidence(
                 columns=[column.name],
                 distinct_count=column.distinct_count,
                 non_null_count=non_null,
-                uniqueness=round(column.distinct_count / non_null, 6) if non_null else 0.0,
+                uniqueness=min(1.0, round(column.distinct_count / non_null, 6))
+                if non_null
+                else 0.0,
             )
         )
     for key in keys:

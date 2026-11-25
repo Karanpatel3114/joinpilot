@@ -31,6 +31,18 @@ SAMPLE_PATTERN = re.compile(r"^erp_(?P<size>[a-z])(?P<seed>\d{1,4})_(?P<naming>s
 CHUNK_BYTES = 1024 * 1024
 
 
+def existing_name(record: ProjectRecord, name: str) -> str:
+    """Reuse an existing table's spelling when names differ only by case.
+
+    DuckDB identifiers ignore case, so `vbak` would replace `VBAK`; keeping one
+    spelling keeps the store and the warehouse in step.
+    """
+    for table in record.tables:
+        if table.name.casefold() == name.casefold():
+            return table.name
+    return name
+
+
 class ProjectService:
     """Every project operation the API, worker, MCP server and evaluation need."""
 
@@ -56,7 +68,7 @@ class ProjectService:
         suffix = Path(filename).suffix.lower()
         if suffix not in SUPPORTED_SUFFIXES:
             raise InvalidInputError("Only CSV and Parquet files are supported.", {"file": filename})
-        table = table_name_from_filename(filename)
+        table = existing_name(record, table_name_from_filename(filename))
         self._check_capacity(record, [table])
         folder = self.store.project_dir(project_id) / "uploads"
         folder.mkdir(parents=True, exist_ok=True)
@@ -83,9 +95,10 @@ class ProjectService:
         tables = build_dataset(
             int(match["seed"]), size, naming, self.settings.synth
         ).output_tables()
-        self._check_capacity(record, list(tables))
+        names = {name: existing_name(record, name) for name in tables}
+        self._check_capacity(record, list(names.values()))
         with connect(self.store.project_dir(project_id)) as con:
-            loaded = [load_arrow(con, name, data) for name, data in tables.items()]
+            loaded = [load_arrow(con, names[name], data) for name, data in tables.items()]
         return self._register(record, loaded)
 
     def profile(self, project_id: str) -> ProjectProfile:
@@ -102,17 +115,17 @@ class ProjectService:
 
     def _register(self, record: ProjectRecord, loaded: list[LoadedTable]) -> list[TableRecord]:
         """Add or replace table records and invalidate the cached profile."""
-        existing = {t.name: t for t in record.tables}
+        existing = {t.name.casefold(): t for t in record.tables}
         added = []
         for table in loaded:
-            previous = existing.get(table.name)
+            previous = existing.get(table.name.casefold())
             entry = TableRecord(
                 table_id=previous.table_id if previous else str(uuid.uuid4()),
                 name=table.name,
                 row_count=table.row_count,
                 column_count=table.column_count,
             )
-            existing[table.name] = entry
+            existing[table.name.casefold()] = entry
             added.append(entry)
         record.tables = sorted(existing.values(), key=lambda t: t.name)
         self.store.save(record)
@@ -121,7 +134,7 @@ class ProjectService:
 
     def _check_capacity(self, record: ProjectRecord, new_tables: list[str]) -> None:
         """Refuse loads that would push the project past the table limit."""
-        names = {t.name for t in record.tables} | set(new_tables)
+        names = {t.name.casefold() for t in record.tables} | {n.casefold() for n in new_tables}
         if len(names) > self.settings.max_tables_per_project:
             raise InvalidInputError(
                 "Too many tables in this project.",

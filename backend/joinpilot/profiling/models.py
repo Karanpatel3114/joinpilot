@@ -18,6 +18,7 @@ class ColumnProfile(BaseModel):
     name: str
     type: str
     null_pct: float = Field(ge=0.0, le=1.0)
+    non_null_count: int = Field(ge=0)
     distinct_count: int = Field(ge=0)
     sample_values: list[str]
     is_key_candidate: bool

@@ -69,3 +69,14 @@ def test_unknown_samples_and_projects_are_reported(client: TestClient) -> None:
     assert missing.status_code == 404
     assert missing.json()["error"]["code"] == "NOT_FOUND"
     assert client.get("/projects/not-a-uuid/profile").status_code == 422
+
+
+def test_names_differing_only_by_case_replace_the_same_table(client: TestClient) -> None:
+    project = create(client)
+    url = f"/projects/{project['id']}/tables"
+    client.post(url, files=[("files", ("VBAK.csv", io.BytesIO(b"VBELN\n1\n")))])
+    second = client.post(url, files=[("files", ("vbak.csv", io.BytesIO(b"VBELN,X\n1,a\n2,b\n")))])
+    assert second.json()[0]["name"] == "VBAK"
+    profile = client.get(f"/projects/{project['id']}/profile").json()
+    [table] = profile["tables"]
+    assert (table["name"], table["row_count"], len(table["columns"])) == ("VBAK", 2, 2)

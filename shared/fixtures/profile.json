@@ -9,6 +9,7 @@
           "name": "BUKRS",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 8000,
           "distinct_count": 1,
           "sample_values": [
             "1000"
@@ -24,6 +25,7 @@
           "name": "KUNNR",
           "type": "VARCHAR",
           "null_pct": 0.003,
+          "non_null_count": 7976,
           "distinct_count": 633,
           "sample_values": [
             "106530",
@@ -43,6 +45,7 @@
           "name": "GJAHR",
           "type": "INTEGER",
           "null_pct": 0.0,
+          "non_null_count": 8000,
           "distinct_count": 2,
           "sample_values": [
             "2025",
@@ -59,6 +62,7 @@
           "name": "BELNR",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 8000,
           "distinct_count": 4004,
           "sample_values": [
             "1400000000",
@@ -78,6 +82,7 @@
           "name": "BUZEI",
           "type": "INTEGER",
           "null_pct": 0.0,
+          "non_null_count": 8000,
           "distinct_count": 3,
           "sample_values": [
             "1",
@@ -95,6 +100,7 @@
           "name": "BLDAT",
           "type": "DATE",
           "null_pct": 0.0,
+          "non_null_count": 8000,
           "distinct_count": 314,
           "sample_values": [
             "2025-07-01",
@@ -114,6 +120,7 @@
           "name": "ZFBDT",
           "type": "DATE",
           "null_pct": 0.0,
+          "non_null_count": 8000,
           "distinct_count": 331,
           "sample_values": [
             "2025-07-01",
@@ -133,6 +140,7 @@
           "name": "ZBD1T",
           "type": "INTEGER",
           "null_pct": 0.0,
+          "non_null_count": 8000,
           "distinct_count": 6,
           "sample_values": [
             "0",
@@ -152,6 +160,7 @@
           "name": "DMBTR",
           "type": "DECIMAL(15,2)",
           "null_pct": 0.0,
+          "non_null_count": 8000,
           "distinct_count": 7955,
           "sample_values": [
             "1000.07",
@@ -171,6 +180,7 @@
           "name": "WAERS",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 8000,
           "distinct_count": 2,
           "sample_values": [
             "EUR",
@@ -200,6 +210,7 @@
           "name": "KUNNR",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 1000,
           "distinct_count": 1000,
           "sample_values": [
             "0000100094",
@@ -219,6 +230,7 @@
           "name": "NAME1",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 1000,
           "distinct_count": 995,
           "sample_values": [
             "Algate Distribution Inc.",
@@ -238,6 +250,7 @@
           "name": "LAND1",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 1000,
           "distinct_count": 5,
           "sample_values": [
             "DE",
@@ -257,6 +270,7 @@
           "name": "ORT01",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 1000,
           "distinct_count": 23,
           "sample_values": [
             "Atlanta",
@@ -276,6 +290,7 @@
           "name": "KTOKD",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 1000,
           "distinct_count": 3,
           "sample_values": [
             "0001",
@@ -293,6 +308,7 @@
           "name": "ERDAT",
           "type": "DATE",
           "null_pct": 0.0,
+          "non_null_count": 1000,
           "distinct_count": 870,
           "sample_values": [
             "2015-01-01",
@@ -324,6 +340,7 @@
           "name": "MATNR",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 4000,
           "distinct_count": 2000,
           "sample_values": [
             "000000000010171947",
@@ -343,6 +360,7 @@
           "name": "SPRAS",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 4000,
           "distinct_count": 2,
           "sample_values": [
             "D",
@@ -359,6 +377,7 @@
           "name": "MAKTX",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 4000,
           "distinct_count": 3797,
           "sample_values": [
             "Compact Bearing BE-140",
@@ -391,6 +410,7 @@
           "name": "MATNR",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 2000,
           "distinct_count": 2000,
           "sample_values": [
             "000000000010171947",
@@ -410,6 +430,7 @@
           "name": "MTART",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 2000,
           "distinct_count": 3,
           "sample_values": [
             "DIEN",
@@ -427,6 +448,7 @@
           "name": "MATKL",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 2000,
           "distinct_count": 10,
           "sample_values": [
             "BEAR",
@@ -446,6 +468,7 @@
           "name": "MEINS",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 2000,
           "distinct_count": 5,
           "sample_values": [
             "BOX",
@@ -465,6 +488,7 @@
           "name": "ERSDA",
           "type": "DATE",
           "null_pct": 0.0,
+          "non_null_count": 2000,
           "distinct_count": 1626,
           "sample_values": [
             "2012-01-01",
@@ -496,6 +520,7 @@
           "name": "VBELN",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 10000,
           "distinct_count": 10000,
           "sample_values": [
             "0005000000",
@@ -515,6 +540,7 @@
           "name": "ERDAT",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 10000,
           "distinct_count": 546,
           "sample_values": [
             "20250101",
@@ -534,6 +560,7 @@
           "name": "KUNNR",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 10000,
           "distinct_count": 819,
           "sample_values": [
             "0000100094",
@@ -553,6 +580,7 @@
           "name": "VKORG",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 10000,
           "distinct_count": 2,
           "sample_values": [
             "1000",
@@ -569,6 +597,7 @@
           "name": "WAERK",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 10000,
           "distinct_count": 2,
           "sample_values": [
             "EUR",
@@ -585,6 +614,7 @@
           "name": "NETWR",
           "type": "DECIMAL(15,2)",
           "null_pct": 0.0,
+          "non_null_count": 10000,
           "distinct_count": 9442,
           "sample_values": [
             "10.47",
@@ -616,6 +646,7 @@
           "name": "VBELN",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 30116,
           "distinct_count": 10000,
           "sample_values": [
             "0005000000",
@@ -635,6 +666,7 @@
           "name": "POSNR",
           "type": "INTEGER",
           "null_pct": 0.0,
+          "non_null_count": 30116,
           "distinct_count": 5,
           "sample_values": [
             "1",
@@ -654,6 +686,7 @@
           "name": "MATNR",
           "type": "VARCHAR",
           "null_pct": 0.0,
+          "non_null_count": 30116,
           "distinct_count": 1884,
           "sample_values": [
             "000000000010171947",
@@ -673,6 +706,7 @@
           "name": "KWMENG",
           "type": "INTEGER",
           "null_pct": 0.0,
+          "non_null_count": 30116,
           "distinct_count": 20,
           "sample_values": [
             "1",
@@ -692,6 +726,7 @@
           "name": "NETWR",
           "type": "DECIMAL(15,2)",
           "null_pct": 0.0,
+          "non_null_count": 30116,
           "distinct_count": 12045,
           "sample_values": [
             "10.21",

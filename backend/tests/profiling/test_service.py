@@ -70,3 +70,15 @@ def test_weak_overlaps_are_dropped_and_results_are_deterministic(
     assert all(o.inclusion_ratio >= SETTINGS.overlap_min_ratio for o in profile.overlaps)
     again = profile_project(*warehouse, SETTINGS)
     assert again.model_dump_json() == profile.model_dump_json()
+
+
+def test_uniqueness_uses_exact_non_null_counts() -> None:
+    con = duckdb.connect()
+    con.execute(
+        "CREATE TABLE big AS "
+        "SELECT CASE WHEN range = 0 THEN NULL ELSE range END AS id FROM range(1_500_001)"
+    )
+    profile = profile_project(con, {"t": "big"}, SETTINGS)
+    [key] = [k for k in profile.keys if k.columns == ["id"]]
+    assert (key.non_null_count, key.uniqueness) == (1_500_000, 1.0)
+    assert profile.tables[0].columns[0].non_null_count == 1_500_000

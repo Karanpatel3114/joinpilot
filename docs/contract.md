@@ -1,6 +1,8 @@
 # JoinPilot API contract
 
-Version: 0.2. Change it only with the `contract-sync` skill, and bump the version.
+Version: 0.3. Change it only with the `contract-sync` skill, and bump the version.
+
+Changes in 0.3 (additive): profile columns gain `non_null_count` (exact count, used for uniqueness evidence); table names that differ only by case refer to the same table.
 
 Changes in 0.2 (additive, no breaking changes): `POST /projects` and `POST /projects/{project_id}/tables` return 201; the profile gains a top-level `keys` list (uniqueness evidence, `uk_` ids), extra column statistics, and extra overlap fields; error codes are listed.
 
@@ -24,16 +26,16 @@ Error codes: `NOT_FOUND` (404), `INVALID_INPUT` (422, also for malformed request
 ```json
 {
   "tables": [{"table_id": "...", "name": "VBAK", "row_count": 10000,
-    "columns": [{"name": "KUNNR", "type": "VARCHAR", "null_pct": 0.0,
-      "distinct_count": 819, "sample_values": ["0000100124"], "is_key_candidate": false,
-      "min_value": "0000100124", "max_value": "0000999745", "max_length": 10,
+    "columns": [{"name": "KUNNR", "type": "VARCHAR", "null_pct": 0.0, "non_null_count": 10000,
+      "distinct_count": 819, "sample_values": ["0000100094"], "is_key_candidate": false,
+      "min_value": "0000100094", "max_value": "0000999162", "max_length": 10,
       "fixed_length": 10, "digits_only": true}],
     "candidate_keys": [["VBELN"]]}],
-  "keys": [{"evidence_id": "uk_014", "table": "KNA1", "columns": ["KUNNR"],
+  "keys": [{"evidence_id": "uk_010", "table": "KNA1", "columns": ["KUNNR"],
     "distinct_count": 1000, "non_null_count": 1000, "uniqueness": 1.0}],
-  "overlaps": [{"evidence_id": "ov_001", "from": "BSID.KUNNR", "to": "KNA1.KUNNR",
-    "inclusion_ratio": 0.97, "raw_inclusion_ratio": 0.0, "normalization": "lpad_zeros:10",
-    "checked_values": 941, "matched_values": 913, "sampled": false}]
+  "overlaps": [{"evidence_id": "ov_005", "from": "BSID.KUNNR", "to": "KNA1.KUNNR",
+    "inclusion_ratio": 0.969984, "raw_inclusion_ratio": 0.0, "normalization": "lpad_zeros:10",
+    "checked_values": 633, "matched_values": 614, "sampled": false}]
 }
 ```
 - `keys` holds the uniqueness (distinct ÷ non-null rows) of every integer or text column and of every composite candidate key.

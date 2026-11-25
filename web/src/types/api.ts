@@ -1,4 +1,4 @@
-// Types for the JoinPilot API. They mirror docs/contract.md (version 0.2) exactly.
+// Types for the JoinPilot API. They mirror docs/contract.md (version 0.3) exactly.
 // Change them only together with the contract, the Pydantic schemas and the fixtures.
 
 export type ErrorCode =
@@ -10,7 +10,8 @@ export type ErrorCode =
 
 export interface ApiError {
   error: {
-    code: ErrorCode | string
+    // Known codes keep autocompletion; unknown future codes are still accepted.
+    code: ErrorCode | (string & {})
     message: string
     details: Record<string, unknown>
   }
@@ -47,6 +48,7 @@ export interface ColumnProfile {
   name: string
   type: string
   null_pct: number
+  non_null_count: number
   distinct_count: number
   sample_values: string[]
   is_key_candidate: boolean
@@ -74,8 +76,11 @@ export interface KeyEvidence {
   uniqueness: number
 }
 
-/** `none`, `lpad_zeros:<width>`, `strip_leading_zeros` or `trim_upper`. */
-export type Normalization = string
+export type Normalization =
+  | 'none'
+  | 'strip_leading_zeros'
+  | 'trim_upper'
+  | `lpad_zeros:${number}`
 
 export interface Overlap {
   evidence_id: string

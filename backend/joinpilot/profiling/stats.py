@@ -52,6 +52,7 @@ def profile_columns(
                 name=name,
                 type=data_type,
                 null_pct=round(1 - non_null / row_count, 6) if row_count else 0.0,
+                non_null_count=non_null,
                 distinct_count=distinct,
                 sample_values=first_values(con, table, name, sample_values),
                 is_key_candidate=(
