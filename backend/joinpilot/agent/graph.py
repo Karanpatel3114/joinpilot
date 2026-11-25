@@ -82,8 +82,9 @@ class AgentNodes:
     def rank_joins(self, state: RunState) -> dict[str, Any]:
         """Rank and explain the candidates for this requirement."""
         parsed = ParsedRequirement.model_validate(state["parsed_requirement"])
+        settings = self.ctx.settings
         proposals, warnings = rank_joins(
-            parsed, candidates_of(state), self.ctx.llm, self.ctx.settings.agent
+            parsed, candidates_of(state), self.ctx.llm, settings.agent, settings.joins.unique_min
         )
         return {
             "proposals": [p.model_dump(by_alias=True) for p in proposals],

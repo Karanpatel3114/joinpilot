@@ -3,12 +3,14 @@ found; it can never add a join or recommend one whose target is not unique (D-00
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from joinpilot.agent.prompts import load_prompt
 from joinpilot.agent.requirement import ParsedRequirement
+from joinpilot.agent.validator import check_explanation
 from joinpilot.config import AgentSettings
 from joinpilot.errors import LLMUnavailableError
 from joinpilot.joins.models import Cardinality, JoinCandidate, JoinFilter
@@ -173,14 +175,41 @@ def to_proposal(c: JoinCandidate, ranked: RankedJoin | None, settings: AgentSett
     )
 
 
+def grounding_problems(
+    ranked: dict[str, RankedJoin],
+    by_edge: dict[str, JoinCandidate],
+    settings: AgentSettings,
+    unique_min: float,
+) -> dict[str, list[str]]:
+    """Evidence problems per edge; edges without problems are left out."""
+    problems = {}
+    for edge_id, r in ranked.items():
+        found = check_explanation(
+            by_edge[edge_id],
+            r.explanation,
+            r.evidence_ids,
+            unique_min,
+            settings.explanation_tolerance_points,
+        )
+        if found:
+            problems[edge_id] = found
+    return problems
+
+
 def rank_joins(
     requirement: ParsedRequirement,
     candidates: list[JoinCandidate],
     llm: LLMProvider,
     settings: AgentSettings,
+    unique_min: float = 0.999,
 ) -> tuple[list[Proposal], list[str]]:
-    """Ask the model to rank and explain the shortlisted candidates; keep it within bounds."""
+    """Ask the model to rank and explain the shortlisted candidates; keep it within bounds.
+
+    Explanations that cite foreign evidence or state numbers the evidence does not
+    contain get one corrective retry; any still failing are replaced by templates.
+    """
     short = shortlist(candidates, settings.ranking_max_candidates)
+    by_edge = {c.edge_id: c for c in short}
     prompt = load_prompt("rank_joins").render(
         summary=requirement.summary,
         tables=", ".join(requirement.relevant_tables),
@@ -188,17 +217,35 @@ def rank_joins(
     )
     try:
         draft = llm.generate(prompt, RankingDraft).value
+        ranked = {r.edge_id: r for r in draft.joins if r.edge_id in by_edge}
+        problems = grounding_problems(ranked, by_edge, settings, unique_min)
+        if problems:
+            feedback = "\n".join(f"- {e}: {'; '.join(p)}" for e, p in sorted(problems.items()))
+            retry = replace(
+                prompt,
+                user=f"{prompt.user}\n\nThese explanations failed the evidence check; "
+                f"fix them and return every candidate again:\n{feedback}",
+            )
+            retried = llm.generate(retry, RankingDraft).value
+            ranked |= {r.edge_id: r for r in retried.joins if r.edge_id in problems}
+            problems = grounding_problems(ranked, by_edge, settings, unique_min)
     except LLMUnavailableError as error:
         proposals = [to_proposal(c, None, settings) for c in short]
         return proposals, [f"Deterministic ranking used: {error.message}"]
-    known = {c.edge_id for c in short}
-    ranked = {r.edge_id: r for r in draft.joins if r.edge_id in known}
     warnings = [
         f"The model referred to an unknown join {r.edge_id}; it was ignored."
         for r in draft.joins
-        if r.edge_id not in known
+        if r.edge_id not in by_edge
     ]
+    for edge_id, found in sorted(problems.items()):
+        ranked[edge_id] = ranked[edge_id].model_copy(
+            update={"explanation": template_explanation(by_edge[edge_id])}
+        )
+        warnings.append(f"The explanation for {edge_id} failed the evidence check ({found[0]}).")
     proposals = [to_proposal(c, ranked.get(c.edge_id), settings) for c in short]
+    for p in proposals:
+        if p.edge_id in problems:
+            p.explanation_source = "template"
     for p, c in zip(proposals, short, strict=True):
         if p.recommended and not c.accepted:
             warnings.append(f"The model recommended {p.edge_id}, which the scorer had rejected.")

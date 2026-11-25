@@ -63,7 +63,7 @@ Done when: the agent turns a requirement and candidates into a ranked, explained
 - [x] M4.3 `feat(agent): add LangGraph state and graph skeleton`
 - [x] M4.4 `feat(agent): parse requirements into entities, measures and filters`
 - [x] M4.5 `feat(agent): rank and explain joins with evidence citations`
-- [ ] M4.6 `feat(agent): reject explanations with unknown or contradicting evidence`
+- [x] M4.6 `feat(agent): reject explanations with unknown or contradicting evidence`
 - [ ] M4.7 `feat(eval): compare the agent with baselines and an LLM-only ablation`
 - [ ] M4.8 `feat(obs): add optional Langfuse tracing`
 
