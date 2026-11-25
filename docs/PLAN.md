@@ -24,15 +24,15 @@ M0.1 is the repository's first commit, made directly on `main`. Create `m0-boots
 ## M1: Synthetic ERP data (branch `m1-erp-data`)
 Done when: the generator produces deterministic datasets in both naming modes, with gold answers and passing tests.
 
-- [ ] M1.1 `feat(synth): generate customer and product master tables from a seed`
-- [ ] M1.2 `feat(synth): generate sales order headers and items`
-- [ ] M1.3 `feat(synth): generate customer open items with due dates`
-- [ ] M1.4 `feat(synth): add SAP-style and friendly naming modes`
-- [ ] M1.5 `feat(synth): plant data-quality issues with configurable rates`
-- [ ] M1.6 `feat(synth): write gold join graph, KPI values and question answers`
-- [ ] M1.7 `test(synth): add determinism and gold consistency tests`
-- [ ] M1.8 `feat(data): add TPC-H loader with its gold foreign-key graph`
-- [ ] M1.9 `docs(data): document tables, planted issues and licenses`
+- [x] M1.1 `feat(synth): generate customer and product master tables from a seed`
+- [x] M1.2 `feat(synth): generate sales order headers and items`
+- [x] M1.3 `feat(synth): generate customer open items with due dates`
+- [x] M1.4 `feat(synth): add SAP-style and friendly naming modes`
+- [x] M1.5 `feat(synth): plant data-quality issues with configurable rates`
+- [x] M1.6 `feat(synth): write gold join graph, KPI values and question answers`
+- [x] M1.7 `test(synth): add determinism and gold consistency tests`
+- [x] M1.8 `feat(data): add TPC-H loader with its gold foreign-key graph`
+- [x] M1.9 `docs(data): document tables, planted issues and licenses`
 
 ## M2: Profiling (branch `m2-profiling`)
 Done when: any uploaded table gets column statistics, candidate keys and overlap scores through the API.

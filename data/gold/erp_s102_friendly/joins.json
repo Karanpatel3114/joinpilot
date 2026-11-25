@@ -1,0 +1,107 @@
+{
+  "dataset_id": "erp_s102_friendly",
+  "edges": [
+    {
+      "from": "order_headers.customer_id",
+      "to": "customers.customer_id",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "order_items.order_id",
+      "to": "order_headers.order_id",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "order_items.product_id",
+      "to": "products.product_id",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 299,
+      "null_rows": 0
+    },
+    {
+      "from": "product_texts.product_id",
+      "to": "products.product_id",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": true,
+      "filter": {
+        "column": "product_texts.language",
+        "value": "E"
+      },
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "open_items.customer_id",
+      "to": "customers.customer_id",
+      "cardinality": "N:1",
+      "normalization": "lpad_zeros:10",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 40,
+      "null_rows": 24
+    }
+  ],
+  "decoys": [
+    {
+      "a": "order_headers.net_value",
+      "b": "order_items.net_value",
+      "reason": "same name, different meaning"
+    },
+    {
+      "a": "order_headers.order_date",
+      "b": "customers.created_on",
+      "reason": "dates, not keys"
+    },
+    {
+      "a": "customers.created_on",
+      "b": "products.created_on",
+      "reason": "dates, not keys"
+    },
+    {
+      "a": "order_items.item_no",
+      "b": "open_items.line_no",
+      "reason": "small integers overlap by chance"
+    },
+    {
+      "a": "order_headers.currency",
+      "b": "open_items.currency",
+      "reason": "currency codes, not keys"
+    }
+  ],
+  "duplicate_customers": [
+    [
+      "0000341282",
+      "0000600139"
+    ],
+    [
+      "0000699267",
+      "0000712241"
+    ],
+    [
+      "0000860709",
+      "0000792395"
+    ],
+    [
+      "0000938273",
+      "0000658681"
+    ],
+    [
+      "0000963116",
+      "0000793457"
+    ]
+  ]
+}

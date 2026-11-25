@@ -1,0 +1,107 @@
+{
+  "dataset_id": "erp_s102_sap",
+  "edges": [
+    {
+      "from": "VBAK.KUNNR",
+      "to": "KNA1.KUNNR",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "VBAP.VBELN",
+      "to": "VBAK.VBELN",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "VBAP.MATNR",
+      "to": "MARA.MATNR",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 299,
+      "null_rows": 0
+    },
+    {
+      "from": "MAKT.MATNR",
+      "to": "MARA.MATNR",
+      "cardinality": "N:1",
+      "normalization": "none",
+      "fan_out": true,
+      "filter": {
+        "column": "MAKT.SPRAS",
+        "value": "E"
+      },
+      "orphan_rows": 0,
+      "null_rows": 0
+    },
+    {
+      "from": "BSID.KUNNR",
+      "to": "KNA1.KUNNR",
+      "cardinality": "N:1",
+      "normalization": "lpad_zeros:10",
+      "fan_out": false,
+      "filter": null,
+      "orphan_rows": 40,
+      "null_rows": 24
+    }
+  ],
+  "decoys": [
+    {
+      "a": "VBAK.NETWR",
+      "b": "VBAP.NETWR",
+      "reason": "same name, different meaning"
+    },
+    {
+      "a": "VBAK.ERDAT",
+      "b": "KNA1.ERDAT",
+      "reason": "dates, not keys"
+    },
+    {
+      "a": "KNA1.ERDAT",
+      "b": "MARA.ERSDA",
+      "reason": "dates, not keys"
+    },
+    {
+      "a": "VBAP.POSNR",
+      "b": "BSID.BUZEI",
+      "reason": "small integers overlap by chance"
+    },
+    {
+      "a": "VBAK.WAERK",
+      "b": "BSID.WAERS",
+      "reason": "currency codes, not keys"
+    }
+  ],
+  "duplicate_customers": [
+    [
+      "0000341282",
+      "0000600139"
+    ],
+    [
+      "0000699267",
+      "0000712241"
+    ],
+    [
+      "0000860709",
+      "0000792395"
+    ],
+    [
+      "0000938273",
+      "0000658681"
+    ],
+    [
+      "0000963116",
+      "0000793457"
+    ]
+  ]
+}

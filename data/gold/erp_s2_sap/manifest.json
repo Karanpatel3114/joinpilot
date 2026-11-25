@@ -1,0 +1,44 @@
+{
+  "dataset_id": "erp_s2_sap",
+  "seed": 2,
+  "size": "S",
+  "naming": "sap",
+  "generator_version": "1",
+  "fingerprint": "sha256:d470653a11024d8d68218f25d2f26d12ff739c00abbc58b749abd7d6713897a4",
+  "settings": {
+    "sizes": {
+      "S": {
+        "customers": 1000,
+        "products": 2000,
+        "orders": 10000,
+        "open_items": 8000
+      },
+      "M": {
+        "customers": 10000,
+        "products": 20000,
+        "orders": 100000,
+        "open_items": 80000
+      },
+      "L": {
+        "customers": 50000,
+        "products": 50000,
+        "orders": 500000,
+        "open_items": 400000
+      }
+    },
+    "order_start": "2025-01-01",
+    "order_end": "2026-06-30",
+    "open_item_start": "2025-07-01",
+    "reference_date": "2026-06-30",
+    "max_items_per_order": 5,
+    "max_lines_per_document": 3,
+    "eur_share": 0.1,
+    "issues": {
+      "orphan_order_items": 0.01,
+      "orphan_open_items": 0.005,
+      "duplicate_customers": 0.005,
+      "null_key_open_items": 0.003,
+      "stripped_zeros_open_items": 1.0
+    }
+  }
+}

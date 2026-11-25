@@ -50,3 +50,26 @@ One entry per design choice that had real alternatives. Newest at the bottom. Fo
 ## D-009: One commit per task, one pull request per milestone
 - **Decision:** small conventional commits pushed as they happen; each milestone merged with a merge commit after CI and review.
 - **Consequences:** a readable history that shows how the project was built.
+
+## D-010: Gold computed in Python, cross-checked with SQL
+- **Context:** evaluation is only as honest as its answers. Gold computed with the same SQL that JoinPilot generates would share its mistakes.
+- **Decision:** the generator computes gold in plain Python from the rows it created; a test recomputes the KPIs and several answers with DuckDB SQL over the written Parquet files and requires an exact match.
+- **Alternatives:** gold from SQL only (shares blind spots); hand-written answers (do not scale, drift).
+- **Consequences:** two independent implementations must agree, and money is generated as integer cents so sums compare exactly.
+
+## D-011: One random stream per table and per planted issue
+- **Context:** the data must be byte-identical for a given seed, and adding a feature must not silently change every other table.
+- **Decision:** each table and issue draws from `numpy.random.default_rng([seed, crc32(name)])`.
+- **Alternatives:** one shared generator (any change reshuffles everything downstream).
+- **Consequences:** stable datasets across generator changes; a determinism test hashes the output files.
+
+## D-012: Aging buckets measured in days past the due date
+- **Context:** the spec named buckets "0–30" and "not due", which overlap at day 0.
+- **Decision:** days overdue = reference date − (baseline date + payment days); `not_due` is ≤ 0 (due today or later), then `1-30`, `31-60`, `61-90` and `90+`.
+- **Consequences:** buckets are disjoint and cover every item; docs/data-model.md records the definition.
+
+## D-013: Distribution shapes stay in code; issue rates live in config
+- **Context:** the config rule says every tunable number lives in config, but the generator also has shape constants (payment terms, discount levels, the Zipf exponent, price and amount distributions, the average age of open items).
+- **Decision:** the planted-issue rates, sizes, dates and currency mix are in `SynthSettings`, because experiments vary them. Shape constants stay as named module constants, because changing any of them changes every dataset and must go together with regenerated gold and a new pinned fingerprint.
+- **Alternatives:** everything in config (makes it easy to change the data without noticing that gold is now stale).
+- **Consequences:** the data's realism lives in a few readable constants; the fingerprint test guards them.

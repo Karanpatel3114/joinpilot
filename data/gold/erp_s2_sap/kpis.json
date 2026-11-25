@@ -1,0 +1,299 @@
+{
+  "reference_date": "2026-06-30",
+  "aging_buckets": [
+    {
+      "bucket": "not_due",
+      "amount": "11743903.42"
+    },
+    {
+      "bucket": "1-30",
+      "amount": "6977230.55"
+    },
+    {
+      "bucket": "31-60",
+      "amount": "4797731.72"
+    },
+    {
+      "bucket": "61-90",
+      "amount": "3165759.21"
+    },
+    {
+      "bucket": "90+",
+      "amount": "6285275.22"
+    }
+  ],
+  "aging_top_customers": [
+    {
+      "customer_id": "0000652731",
+      "customer_name": "North Pinfield Manufacturing AG",
+      "total": "5258704.82",
+      "bucket_not_due": "1892035.32",
+      "bucket_1-30": "1183123.91",
+      "bucket_31-60": "703726.53",
+      "bucket_61-90": "629223.15",
+      "bucket_90+": "850595.91"
+    },
+    {
+      "customer_id": "0000324718",
+      "customer_name": "Alpine Corford Engineering AG",
+      "total": "2693661.15",
+      "bucket_not_due": "899489.83",
+      "bucket_1-30": "589302.11",
+      "bucket_31-60": "401996.73",
+      "bucket_61-90": "204056.40",
+      "bucket_90+": "598816.08"
+    },
+    {
+      "customer_id": "0000131540",
+      "customer_name": "Atlantic Everridge Industrial Ltd",
+      "total": "1808106.00",
+      "bucket_not_due": "753848.58",
+      "bucket_1-30": "295712.83",
+      "bucket_31-60": "237579.57",
+      "bucket_61-90": "165155.38",
+      "bucket_90+": "355809.64"
+    },
+    {
+      "customer_id": "0000878072",
+      "customer_name": "South Pellcrest Technologies Inc.",
+      "total": "1211375.12",
+      "bucket_not_due": "375406.82",
+      "bucket_1-30": "309725.26",
+      "bucket_31-60": "180541.09",
+      "bucket_61-90": "95443.53",
+      "bucket_90+": "250258.42"
+    },
+    {
+      "customer_id": "0000548254",
+      "customer_name": "Global Alford Supply Ltd",
+      "total": "1185369.25",
+      "bucket_not_due": "345153.91",
+      "bucket_1-30": "213475.04",
+      "bucket_31-60": "161194.77",
+      "bucket_61-90": "129604.41",
+      "bucket_90+": "335941.12"
+    },
+    {
+      "customer_id": "0000957778",
+      "customer_name": "Lindwood Logistics Ltd",
+      "total": "869551.94",
+      "bucket_not_due": "347634.27",
+      "bucket_1-30": "175618.84",
+      "bucket_31-60": "71947.30",
+      "bucket_61-90": "12651.06",
+      "bucket_90+": "261700.47"
+    },
+    {
+      "customer_id": "0000879058",
+      "customer_name": "West Almont Trading AG",
+      "total": "655732.36",
+      "bucket_not_due": "201517.29",
+      "bucket_1-30": "166404.94",
+      "bucket_31-60": "166952.14",
+      "bucket_61-90": "28080.51",
+      "bucket_90+": "92777.48"
+    },
+    {
+      "customer_id": "0000451814",
+      "customer_name": "South Elton Logistics SARL",
+      "total": "607715.07",
+      "bucket_not_due": "198307.75",
+      "bucket_1-30": "144790.21",
+      "bucket_31-60": "114534.45",
+      "bucket_61-90": "31627.70",
+      "bucket_90+": "118454.96"
+    },
+    {
+      "customer_id": "0000984003",
+      "customer_name": "Global Fairhaven Manufacturing SARL",
+      "total": "531594.77",
+      "bucket_not_due": "144374.61",
+      "bucket_1-30": "88785.28",
+      "bucket_31-60": "141851.42",
+      "bucket_61-90": "90390.90",
+      "bucket_90+": "66192.56"
+    },
+    {
+      "customer_id": "0000125548",
+      "customer_name": "West Brinstone Engineering LLC",
+      "total": "490952.40",
+      "bucket_not_due": "186523.98",
+      "bucket_1-30": "116624.93",
+      "bucket_31-60": "94996.26",
+      "bucket_61-90": "52802.48",
+      "bucket_90+": "40004.75"
+    }
+  ],
+  "revenue_2026_by_product_group": [
+    {
+      "product_group": "BEAR",
+      "revenue": "520308.55"
+    },
+    {
+      "product_group": "CABL",
+      "revenue": "914373.84"
+    },
+    {
+      "product_group": "ELEC",
+      "revenue": "616653.06"
+    },
+    {
+      "product_group": "FILT",
+      "revenue": "588891.05"
+    },
+    {
+      "product_group": "MOTR",
+      "revenue": "8437823.22"
+    },
+    {
+      "product_group": "PUMP",
+      "revenue": "540438.60"
+    },
+    {
+      "product_group": "SAFE",
+      "revenue": "2694525.87"
+    },
+    {
+      "product_group": "SENS",
+      "revenue": "996023.01"
+    },
+    {
+      "product_group": "TOOL",
+      "revenue": "599774.63"
+    },
+    {
+      "product_group": "VALV",
+      "revenue": "847008.59"
+    },
+    {
+      "product_group": null,
+      "revenue": "185593.98"
+    }
+  ],
+  "monthly_order_counts": [
+    {
+      "month": "2025-01",
+      "orders": 565
+    },
+    {
+      "month": "2025-02",
+      "orders": 524
+    },
+    {
+      "month": "2025-03",
+      "orders": 557
+    },
+    {
+      "month": "2025-04",
+      "orders": 520
+    },
+    {
+      "month": "2025-05",
+      "orders": 592
+    },
+    {
+      "month": "2025-06",
+      "orders": 604
+    },
+    {
+      "month": "2025-07",
+      "orders": 545
+    },
+    {
+      "month": "2025-08",
+      "orders": 564
+    },
+    {
+      "month": "2025-09",
+      "orders": 581
+    },
+    {
+      "month": "2025-10",
+      "orders": 536
+    },
+    {
+      "month": "2025-11",
+      "orders": 522
+    },
+    {
+      "month": "2025-12",
+      "orders": 575
+    },
+    {
+      "month": "2026-01",
+      "orders": 542
+    },
+    {
+      "month": "2026-02",
+      "orders": 541
+    },
+    {
+      "month": "2026-03",
+      "orders": 567
+    },
+    {
+      "month": "2026-04",
+      "orders": 547
+    },
+    {
+      "month": "2026-05",
+      "orders": 569
+    },
+    {
+      "month": "2026-06",
+      "orders": 549
+    }
+  ],
+  "top_customers_by_revenue": [
+    {
+      "customer_id": "0000842153",
+      "customer_name": "Atlantic Belgate Industrial AG",
+      "revenue": "9032056.25"
+    },
+    {
+      "customer_id": "0000629530",
+      "customer_name": "Atlantic Kinstone Trading Inc.",
+      "revenue": "4010651.64"
+    },
+    {
+      "customer_id": "0000590884",
+      "customer_name": "Alpine Redhaven Distribution Pvt Ltd",
+      "revenue": "2806192.31"
+    },
+    {
+      "customer_id": "0000893044",
+      "customer_name": "Central Pinpoint Industrial LLC",
+      "revenue": "1978033.45"
+    },
+    {
+      "customer_id": "0000698623",
+      "customer_name": "United Millford Supply LLC",
+      "revenue": "1662104.87"
+    },
+    {
+      "customer_id": "0000574794",
+      "customer_name": "Pacific Pinpoint Trading Ltd",
+      "revenue": "1380652.46"
+    },
+    {
+      "customer_id": "0000909732",
+      "customer_name": "Alpine Ironmont Manufacturing Inc.",
+      "revenue": "1097425.21"
+    },
+    {
+      "customer_id": "0000358536",
+      "customer_name": "North Torstone Engineering Inc.",
+      "revenue": "988151.17"
+    },
+    {
+      "customer_id": "0000493778",
+      "customer_name": "East Glenwood Trading Pvt Ltd",
+      "revenue": "720901.08"
+    },
+    {
+      "customer_id": "0000287793",
+      "customer_name": "South Silridge Trading Inc.",
+      "revenue": "695321.86"
+    }
+  ]
+}

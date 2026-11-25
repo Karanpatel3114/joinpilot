@@ -1,0 +1,299 @@
+{
+  "reference_date": "2026-06-30",
+  "aging_buckets": [
+    {
+      "bucket": "not_due",
+      "amount": "12242876.64"
+    },
+    {
+      "bucket": "1-30",
+      "amount": "6557397.73"
+    },
+    {
+      "bucket": "31-60",
+      "amount": "4453188.13"
+    },
+    {
+      "bucket": "61-90",
+      "amount": "3016478.11"
+    },
+    {
+      "bucket": "90+",
+      "amount": "6524713.28"
+    }
+  ],
+  "aging_top_customers": [
+    {
+      "customer_id": "0000274559",
+      "customer_name": "Central Corcrest Supply LLC",
+      "total": "5845256.11",
+      "bucket_not_due": "2290232.33",
+      "bucket_1-30": "1080387.54",
+      "bucket_31-60": "761766.90",
+      "bucket_61-90": "507096.24",
+      "bucket_90+": "1205773.10"
+    },
+    {
+      "customer_id": "0000747951",
+      "customer_name": "Pacific Kinford Technologies LLC",
+      "total": "2630120.26",
+      "bucket_not_due": "967150.83",
+      "bucket_1-30": "496314.50",
+      "bucket_31-60": "453932.61",
+      "bucket_61-90": "241849.53",
+      "bucket_90+": "470872.79"
+    },
+    {
+      "customer_id": "0000520298",
+      "customer_name": "Pacific Corwick Systems PLC",
+      "total": "1750079.91",
+      "bucket_not_due": "804852.05",
+      "bucket_1-30": "271436.26",
+      "bucket_31-60": "148531.10",
+      "bucket_61-90": "146669.85",
+      "bucket_90+": "378590.65"
+    },
+    {
+      "customer_id": "0000518970",
+      "customer_name": "Global Everbrook Manufacturing GmbH",
+      "total": "1198364.95",
+      "bucket_not_due": "543424.50",
+      "bucket_1-30": "174155.32",
+      "bucket_31-60": "149347.08",
+      "bucket_61-90": "158043.62",
+      "bucket_90+": "173394.43"
+    },
+    {
+      "customer_id": "0000915199",
+      "customer_name": "West Ivywick Components SARL",
+      "total": "1048266.60",
+      "bucket_not_due": "362999.29",
+      "bucket_1-30": "231388.39",
+      "bucket_31-60": "200983.83",
+      "bucket_61-90": "113759.71",
+      "bucket_90+": "139135.38"
+    },
+    {
+      "customer_id": "0000633729",
+      "customer_name": "Belmont Systems LLC",
+      "total": "781834.49",
+      "bucket_not_due": "288519.82",
+      "bucket_1-30": "129116.20",
+      "bucket_31-60": "141739.94",
+      "bucket_61-90": "53077.04",
+      "bucket_90+": "169381.49"
+    },
+    {
+      "customer_id": "0000572206",
+      "customer_name": "United Norpoint Engineering Inc.",
+      "total": "635202.05",
+      "bucket_not_due": "237891.12",
+      "bucket_1-30": "217613.38",
+      "bucket_31-60": "47732.18",
+      "bucket_61-90": "34918.19",
+      "bucket_90+": "97047.18"
+    },
+    {
+      "customer_id": "0000530851",
+      "customer_name": "Global Lumgate Systems SA",
+      "total": "623053.91",
+      "bucket_not_due": "263711.15",
+      "bucket_1-30": "100367.43",
+      "bucket_31-60": "83212.51",
+      "bucket_61-90": "49004.53",
+      "bucket_90+": "126758.29"
+    },
+    {
+      "customer_id": "0000888263",
+      "customer_name": "Pacific Ivygate Trading LLC",
+      "total": "541770.90",
+      "bucket_not_due": "215225.89",
+      "bucket_1-30": "90776.84",
+      "bucket_31-60": "32385.89",
+      "bucket_61-90": "66257.90",
+      "bucket_90+": "137124.38"
+    },
+    {
+      "customer_id": "0000230116",
+      "customer_name": "Pacific Lumview Technologies LLC",
+      "total": "482645.43",
+      "bucket_not_due": "164896.45",
+      "bucket_1-30": "96748.10",
+      "bucket_31-60": "104946.92",
+      "bucket_61-90": "68307.63",
+      "bucket_90+": "47746.33"
+    }
+  ],
+  "revenue_2026_by_product_group": [
+    {
+      "product_group": "BEAR",
+      "revenue": "559041.50"
+    },
+    {
+      "product_group": "CABL",
+      "revenue": "568100.26"
+    },
+    {
+      "product_group": "ELEC",
+      "revenue": "585350.45"
+    },
+    {
+      "product_group": "FILT",
+      "revenue": "1125745.17"
+    },
+    {
+      "product_group": "MOTR",
+      "revenue": "1348204.66"
+    },
+    {
+      "product_group": "PUMP",
+      "revenue": "531886.69"
+    },
+    {
+      "product_group": "SAFE",
+      "revenue": "1068925.88"
+    },
+    {
+      "product_group": "SENS",
+      "revenue": "320646.39"
+    },
+    {
+      "product_group": "TOOL",
+      "revenue": "737131.48"
+    },
+    {
+      "product_group": "VALV",
+      "revenue": "942232.09"
+    },
+    {
+      "product_group": null,
+      "revenue": "81816.52"
+    }
+  ],
+  "monthly_order_counts": [
+    {
+      "month": "2025-01",
+      "orders": 552
+    },
+    {
+      "month": "2025-02",
+      "orders": 525
+    },
+    {
+      "month": "2025-03",
+      "orders": 587
+    },
+    {
+      "month": "2025-04",
+      "orders": 515
+    },
+    {
+      "month": "2025-05",
+      "orders": 544
+    },
+    {
+      "month": "2025-06",
+      "orders": 569
+    },
+    {
+      "month": "2025-07",
+      "orders": 584
+    },
+    {
+      "month": "2025-08",
+      "orders": 604
+    },
+    {
+      "month": "2025-09",
+      "orders": 548
+    },
+    {
+      "month": "2025-10",
+      "orders": 561
+    },
+    {
+      "month": "2025-11",
+      "orders": 534
+    },
+    {
+      "month": "2025-12",
+      "orders": 579
+    },
+    {
+      "month": "2026-01",
+      "orders": 585
+    },
+    {
+      "month": "2026-02",
+      "orders": 488
+    },
+    {
+      "month": "2026-03",
+      "orders": 523
+    },
+    {
+      "month": "2026-04",
+      "orders": 554
+    },
+    {
+      "month": "2026-05",
+      "orders": 581
+    },
+    {
+      "month": "2026-06",
+      "orders": 567
+    }
+  ],
+  "top_customers_by_revenue": [
+    {
+      "customer_id": "0000988357",
+      "customer_name": "Alpine Fairmont Supply LLC",
+      "revenue": "4454403.91"
+    },
+    {
+      "customer_id": "0000650725",
+      "customer_name": "Alpine Zenwick Manufacturing LLC",
+      "revenue": "1993638.30"
+    },
+    {
+      "customer_id": "0000438638",
+      "customer_name": "East Glenford Distribution Ltd",
+      "revenue": "1224118.82"
+    },
+    {
+      "customer_id": "0000347104",
+      "customer_name": "United Quinmont Distribution Inc.",
+      "revenue": "963076.93"
+    },
+    {
+      "customer_id": "0000910297",
+      "customer_name": "Alpine Norwood Manufacturing SA",
+      "revenue": "693161.20"
+    },
+    {
+      "customer_id": "0000266290",
+      "customer_name": "North Hartton Trading Inc.",
+      "revenue": "571183.16"
+    },
+    {
+      "customer_id": "0000599630",
+      "customer_name": "Atlantic Millwick Supply LLC",
+      "revenue": "494611.71"
+    },
+    {
+      "customer_id": "0000171939",
+      "customer_name": "Wesfield Logistics PLC",
+      "revenue": "420030.78"
+    },
+    {
+      "customer_id": "0000869688",
+      "customer_name": "Dunridge Trading SARL",
+      "revenue": "392859.44"
+    },
+    {
+      "customer_id": "0000513275",
+      "customer_name": "Central Redfield Industrial Inc.",
+      "revenue": "316141.76"
+    }
+  ]
+}

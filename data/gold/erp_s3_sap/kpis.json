@@ -1,0 +1,299 @@
+{
+  "reference_date": "2026-06-30",
+  "aging_buckets": [
+    {
+      "bucket": "not_due",
+      "amount": "13201633.98"
+    },
+    {
+      "bucket": "1-30",
+      "amount": "6830725.23"
+    },
+    {
+      "bucket": "31-60",
+      "amount": "4194989.42"
+    },
+    {
+      "bucket": "61-90",
+      "amount": "3391838.84"
+    },
+    {
+      "bucket": "90+",
+      "amount": "5790740.72"
+    }
+  ],
+  "aging_top_customers": [
+    {
+      "customer_id": "0000508317",
+      "customer_name": "Alpine Marford Trading Ltd",
+      "total": "6233253.70",
+      "bucket_not_due": "2510435.17",
+      "bucket_1-30": "1331484.68",
+      "bucket_31-60": "756250.22",
+      "bucket_61-90": "665600.24",
+      "bucket_90+": "969483.39"
+    },
+    {
+      "customer_id": "0000252148",
+      "customer_name": "West Lindford Trading SA",
+      "total": "2556759.83",
+      "bucket_not_due": "1075132.56",
+      "bucket_1-30": "376511.46",
+      "bucket_31-60": "222955.22",
+      "bucket_61-90": "323817.65",
+      "bucket_90+": "558342.94"
+    },
+    {
+      "customer_id": "0000935684",
+      "customer_name": "West Norwick Technologies LLC",
+      "total": "1663241.63",
+      "bucket_not_due": "580590.67",
+      "bucket_1-30": "396501.60",
+      "bucket_31-60": "228638.82",
+      "bucket_61-90": "144301.07",
+      "bucket_90+": "313209.47"
+    },
+    {
+      "customer_id": "0000215039",
+      "customer_name": "South Norhaven Engineering GmbH",
+      "total": "1121109.81",
+      "bucket_not_due": "439050.28",
+      "bucket_1-30": "248698.71",
+      "bucket_31-60": "83629.28",
+      "bucket_61-90": "115980.44",
+      "bucket_90+": "233751.10"
+    },
+    {
+      "customer_id": "0000555779",
+      "customer_name": "Atlantic Lummont Engineering LLC",
+      "total": "796811.31",
+      "bucket_not_due": "260646.04",
+      "bucket_1-30": "134031.93",
+      "bucket_31-60": "107092.85",
+      "bucket_61-90": "98467.93",
+      "bucket_90+": "196572.56"
+    },
+    {
+      "customer_id": "0000156845",
+      "customer_name": "South Belstone Logistics Inc.",
+      "total": "788537.36",
+      "bucket_not_due": "304714.36",
+      "bucket_1-30": "217914.79",
+      "bucket_31-60": "78089.68",
+      "bucket_61-90": "69614.73",
+      "bucket_90+": "118203.80"
+    },
+    {
+      "customer_id": "0000216814",
+      "customer_name": "Atlantic Torbrook Trading SARL",
+      "total": "685114.04",
+      "bucket_not_due": "152728.14",
+      "bucket_1-30": "179397.10",
+      "bucket_31-60": "94793.16",
+      "bucket_61-90": "91101.09",
+      "bucket_90+": "167094.55"
+    },
+    {
+      "customer_id": "0000307213",
+      "customer_name": "Atlantic Ulpoint Trading SARL",
+      "total": "646797.02",
+      "bucket_not_due": "229845.61",
+      "bucket_1-30": "54177.36",
+      "bucket_31-60": "131303.38",
+      "bucket_61-90": "35125.43",
+      "bucket_90+": "196345.24"
+    },
+    {
+      "customer_id": "0000389444",
+      "customer_name": "West Marcrest Logistics LLC",
+      "total": "597318.29",
+      "bucket_not_due": "233780.45",
+      "bucket_1-30": "203802.37",
+      "bucket_31-60": "42784.12",
+      "bucket_61-90": "51523.86",
+      "bucket_90+": "65427.49"
+    },
+    {
+      "customer_id": "0000119714",
+      "customer_name": "South Beldale Trading LLC",
+      "total": "543139.90",
+      "bucket_not_due": "194368.22",
+      "bucket_1-30": "116818.38",
+      "bucket_31-60": "81667.90",
+      "bucket_61-90": "48956.50",
+      "bucket_90+": "101328.90"
+    }
+  ],
+  "revenue_2026_by_product_group": [
+    {
+      "product_group": "BEAR",
+      "revenue": "377677.62"
+    },
+    {
+      "product_group": "CABL",
+      "revenue": "750361.41"
+    },
+    {
+      "product_group": "ELEC",
+      "revenue": "780787.01"
+    },
+    {
+      "product_group": "FILT",
+      "revenue": "1255909.34"
+    },
+    {
+      "product_group": "MOTR",
+      "revenue": "1495947.84"
+    },
+    {
+      "product_group": "PUMP",
+      "revenue": "496267.96"
+    },
+    {
+      "product_group": "SAFE",
+      "revenue": "532380.45"
+    },
+    {
+      "product_group": "SENS",
+      "revenue": "1276148.17"
+    },
+    {
+      "product_group": "TOOL",
+      "revenue": "823752.25"
+    },
+    {
+      "product_group": "VALV",
+      "revenue": "837621.06"
+    },
+    {
+      "product_group": null,
+      "revenue": "84944.93"
+    }
+  ],
+  "monthly_order_counts": [
+    {
+      "month": "2025-01",
+      "orders": 577
+    },
+    {
+      "month": "2025-02",
+      "orders": 496
+    },
+    {
+      "month": "2025-03",
+      "orders": 592
+    },
+    {
+      "month": "2025-04",
+      "orders": 575
+    },
+    {
+      "month": "2025-05",
+      "orders": 542
+    },
+    {
+      "month": "2025-06",
+      "orders": 547
+    },
+    {
+      "month": "2025-07",
+      "orders": 577
+    },
+    {
+      "month": "2025-08",
+      "orders": 540
+    },
+    {
+      "month": "2025-09",
+      "orders": 565
+    },
+    {
+      "month": "2025-10",
+      "orders": 554
+    },
+    {
+      "month": "2025-11",
+      "orders": 550
+    },
+    {
+      "month": "2025-12",
+      "orders": 588
+    },
+    {
+      "month": "2026-01",
+      "orders": 590
+    },
+    {
+      "month": "2026-02",
+      "orders": 530
+    },
+    {
+      "month": "2026-03",
+      "orders": 551
+    },
+    {
+      "month": "2026-04",
+      "orders": 544
+    },
+    {
+      "month": "2026-05",
+      "orders": 553
+    },
+    {
+      "month": "2026-06",
+      "orders": 529
+    }
+  ],
+  "top_customers_by_revenue": [
+    {
+      "customer_id": "0000776311",
+      "customer_name": "Global Ulbrook Logistics LLC",
+      "revenue": "4622827.49"
+    },
+    {
+      "customer_id": "0000708507",
+      "customer_name": "Central Dalview Supply LLC",
+      "revenue": "2140412.49"
+    },
+    {
+      "customer_id": "0000867154",
+      "customer_name": "Millbrook Supply LLC",
+      "revenue": "1372573.67"
+    },
+    {
+      "customer_id": "0000470621",
+      "customer_name": "Elstone Trading LLC",
+      "revenue": "1129064.21"
+    },
+    {
+      "customer_id": "0000722484",
+      "customer_name": "Atlantic Ashpoint Engineering SA",
+      "revenue": "821603.02"
+    },
+    {
+      "customer_id": "0000869113",
+      "customer_name": "South Weswood Technologies LLC",
+      "revenue": "736897.99"
+    },
+    {
+      "customer_id": "0000886064",
+      "customer_name": "South Junwood Logistics Ltd",
+      "revenue": "605751.48"
+    },
+    {
+      "customer_id": "0000648553",
+      "customer_name": "West Calwood Technologies SARL",
+      "revenue": "467594.08"
+    },
+    {
+      "customer_id": "0000119714",
+      "customer_name": "South Beldale Trading LLC",
+      "revenue": "428398.23"
+    },
+    {
+      "customer_id": "0000972217",
+      "customer_name": "Alpine Pellstone Components Inc.",
+      "revenue": "360803.87"
+    }
+  ]
+}
