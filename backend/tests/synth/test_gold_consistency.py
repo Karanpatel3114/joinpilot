@@ -16,7 +16,12 @@ from joinpilot.synth.gold import write_gold
 
 SETTINGS = SynthSettings()
 DUE = "(ZFBDT + ZBD1T * INTERVAL 1 DAY)"
-OVERDUE_DAYS = f"date_diff('day', CAST({DUE} AS DATE), DATE '2026-06-30')"
+REFERENCE = f"DATE '{SETTINGS.reference_date.isoformat()}'"
+OVERDUE_DAYS = f"date_diff('day', CAST({DUE} AS DATE), {REFERENCE})"
+BUCKET = (
+    "CASE WHEN d <= 0 THEN 'not_due' WHEN d <= 30 THEN '1-30' WHEN d <= 60 THEN '31-60' "
+    "WHEN d <= 90 THEN '61-90' ELSE '90+' END"
+)
 
 
 @pytest.fixture(scope="module")
@@ -45,10 +50,7 @@ def question(gold: Path, template: str) -> dict[str, Any]:
 def test_aging_buckets_match_sql(env: tuple[Any, Path]) -> None:
     con, gold = env
     rows = con.execute(f"""
-        SELECT CASE WHEN d <= 0 THEN 'not_due' WHEN d <= 30 THEN '1-30'
-                    WHEN d <= 60 THEN '31-60' WHEN d <= 90 THEN '61-90' ELSE '90+' END,
-               SUM(DMBTR)
-        FROM (SELECT {OVERDUE_DAYS} AS d, DMBTR FROM BSID) GROUP BY 1
+        SELECT {BUCKET}, SUM(DMBTR) FROM (SELECT {OVERDUE_DAYS} AS d, DMBTR FROM BSID) GROUP BY 1
     """).fetchall()
     expected = {b["bucket"]: Decimal(b["amount"]) for b in load(gold, "kpis.json")["aging_buckets"]}
     assert dict(rows) == expected
@@ -136,3 +138,79 @@ def test_true_joins_hold_and_fan_out_trap_is_real(env: tuple[Any, Path]) -> None
         / con.execute("SELECT COUNT(*) FROM VBAP p JOIN MARA m ON p.MATNR = m.MATNR").fetchone()[0]
     )
     assert fan_out == 2.0
+
+
+def test_per_customer_aging_buckets_match_sql(env: tuple[Any, Path]) -> None:
+    con, gold = env
+    for row in load(gold, "kpis.json")["aging_top_customers"]:
+        buckets = dict(con.execute(f"""
+            SELECT {BUCKET}, SUM(DMBTR) FROM (
+                SELECT {OVERDUE_DAYS} AS d, DMBTR FROM BSID
+                WHERE lpad(KUNNR, 10, '0') = ?
+            ) GROUP BY 1
+        """, [row["customer_id"]]).fetchall())  # fmt: skip
+        for label in ("not_due", "1-30", "31-60", "61-90", "90+"):
+            assert Decimal(row[f"bucket_{label}"]) == buckets.get(label, Decimal(0))
+
+
+def test_null_keys_and_duplicate_customers_match_sql(env: tuple[Any, Path]) -> None:
+    con, gold = env
+    joins = load(gold, "joins.json")
+    bsid = next(e for e in joins["edges"] if e["from"] == "BSID.KUNNR")
+    assert con.execute("SELECT COUNT(*) FROM BSID WHERE KUNNR IS NULL").fetchone() == (
+        bsid["null_rows"],
+    )
+    names = dict(con.execute("SELECT KUNNR, NAME1 FROM KNA1").fetchall())
+    assert joins["duplicate_customers"]
+    for duplicate, original in joins["duplicate_customers"]:
+        assert names[duplicate] == names[original]
+
+
+def as_answer(value: Any) -> Any:
+    """Format a SQL value the way gold stores it."""
+    if isinstance(value, Decimal):
+        return f"{value:.2f}"
+    if isinstance(value, float):
+        return round(value, 6)
+    return value
+
+
+OVERDUE = f"(SELECT *, {OVERDUE_DAYS} AS d FROM BSID)"
+PARAMETERLESS_SQL = {
+    "open_total": "SELECT SUM(DMBTR) FROM BSID",
+    "open_over_90": f"SELECT SUM(DMBTR) FROM {OVERDUE} WHERE d > 90",
+    "top_group_2026": """
+        SELECT m.MATKL FROM VBAP p JOIN VBAK k ON p.VBELN = k.VBELN
+        JOIN MARA m ON p.MATNR = m.MATNR WHERE substr(k.ERDAT, 1, 4) = '2026'
+        GROUP BY 1 ORDER BY SUM(p.NETWR) DESC LIMIT 1""",
+    "avg_items_per_order": "SELECT (SELECT COUNT(*) FROM VBAP) / (SELECT COUNT(*) FROM VBAK)",
+    "eur_open_items": "SELECT COUNT(*) FROM BSID WHERE WAERS = 'EUR'",
+    "orders_per_sales_org": "SELECT VKORG, COUNT(*) FROM VBAK GROUP BY 1 ORDER BY 1",
+    "top_country_customers": "SELECT LAND1 FROM KNA1 GROUP BY 1 ORDER BY COUNT(*) DESC LIMIT 1",
+    "top_products_2026": """
+        SELECT p.MATNR, SUM(p.NETWR) AS v FROM VBAP p JOIN VBAK k ON p.VBELN = k.VBELN
+        WHERE substr(k.ERDAT, 1, 4) = '2026' GROUP BY 1 ORDER BY v DESC, p.MATNR LIMIT 3""",
+    "largest_open_item": "SELECT MAX(DMBTR) FROM BSID",
+    "not_due_count": f"SELECT COUNT(*) FROM {OVERDUE} WHERE d <= 0",
+    "duplicate_customer_names": """
+        SELECT COUNT(*) FROM (SELECT NAME1 FROM KNA1 GROUP BY 1 HAVING COUNT(*) > 1)""",
+    "open_items_without_customer": "SELECT COUNT(*) FROM BSID WHERE KUNNR IS NULL",
+}
+
+
+@pytest.mark.parametrize("template", sorted(PARAMETERLESS_SQL))
+def test_parameterless_answers_match_sql(env: tuple[Any, Path], template: str) -> None:
+    con, gold = env
+    rows = con.execute(PARAMETERLESS_SQL[template]).fetchall()
+    assert [[as_answer(v) for v in row] for row in rows] == question(gold, template)["rows"]
+
+
+def test_yearly_order_values_match_sql(env: tuple[Any, Path]) -> None:
+    con, gold = env
+    lines = (gold / "qa.jsonl").read_text().splitlines()
+    for q in (q for q in map(json.loads, lines) if q["template"] == "order_value_year"):
+        year = q["question"].rstrip("?").split()[-1]
+        total = con.execute(
+            "SELECT SUM(NETWR) FROM VBAK WHERE substr(ERDAT, 1, 4) = ?", [year]
+        ).fetchone()
+        assert [[as_answer(total[0])]] == q["rows"]
