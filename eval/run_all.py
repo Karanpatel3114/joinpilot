@@ -13,9 +13,11 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
+from eval.baselines import name_only, overlap_only
 from eval.datasets import EvalDataset, load_dataset, split_ids
 from eval.gold import load_joins
 from eval.join_metrics import JoinCounts, PredictedEdge, score_dataset
+from eval.results import new_report, write_results
 from joinpilot.config import get_settings
 from joinpilot.joins.scoring import score_candidates
 from joinpilot.profiling.models import ProjectProfile
@@ -33,7 +35,11 @@ def joinpilot_deterministic(profile: ProjectProfile) -> list[PredictedEdge]:
     ]
 
 
-JOIN_SYSTEMS: dict[str, System] = {"joinpilot_deterministic": joinpilot_deterministic}
+JOIN_SYSTEMS: dict[str, System] = {
+    "name_only": name_only,
+    "overlap_only": overlap_only,
+    "joinpilot_deterministic": joinpilot_deterministic,
+}
 
 
 def evaluate_joins(datasets: list[EvalDataset]) -> dict[str, Any]:
@@ -63,10 +69,22 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     profiling = get_settings().profiling
+    report = new_report(args.split)
+    if report["dirty"]:
+        logger.warning("the working tree has uncommitted changes; results will say so")
     datasets = [load_dataset(i, profiling) for i in split_ids(args.split)]
-    results = evaluate_joins(datasets)
-    for system, result in results.items():
+    report["datasets"] = [
+        {
+            "dataset_id": d.dataset_id,
+            "fingerprint": d.fingerprint,
+            "profile_seconds": round(d.profile_seconds, 3),
+        }
+        for d in datasets
+    ]
+    report["joins"] = evaluate_joins(datasets)
+    for system, result in report["joins"].items():
         logger.info("%s: %s", system, json.dumps(result["aggregate"]))
+    logger.info("results written to %s", write_results(report))
 
 
 if __name__ == "__main__":
