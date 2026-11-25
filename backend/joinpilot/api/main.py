@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager, suppress
+from typing import Any
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,13 +19,35 @@ from joinpilot.api.schemas import HealthResponse
 from joinpilot.config import Settings, get_settings
 from joinpilot.db.session import ensure_migrated
 from joinpilot.jobs.queue import make_job_queue
+from joinpilot.jobs.worker import make_worker
+
+
+def make_lifespan(settings: Settings) -> Any:
+    """Start the in-process arq worker with the app when jobs go through Redis (D-022)."""
+
+    @asynccontextmanager
+    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        if settings.jobs_mode != "arq":
+            yield
+            return
+        worker = make_worker(settings)
+        task = asyncio.create_task(worker.async_run())
+        try:
+            yield
+        finally:
+            await worker.close()
+            task.cancel()
+            with suppress(asyncio.CancelledError):
+                await task
+
+    return lifespan
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     """Build the API with CORS limited to the configured origins."""
     settings = settings or get_settings()
     logging.basicConfig(level=settings.log_level)
-    app = FastAPI(title="JoinPilot API", version=__version__)
+    app = FastAPI(title="JoinPilot API", version=__version__, lifespan=make_lifespan(settings))
     app.state.settings = settings
     app.add_middleware(
         CORSMiddleware,

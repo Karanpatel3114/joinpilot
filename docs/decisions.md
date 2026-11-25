@@ -120,3 +120,9 @@ One entry per design choice that had real alternatives. Newest at the bottom. Fo
 - **Decision:** the graph's `await_approval` step calls LangGraph's `interrupt`, and every step's state is saved by a checkpointer in the application database (LangGraph's PostgresSaver; a SQLite file locally), keyed by run id. Resuming with `Command(resume=decisions)` in any process continues from the saved state. Decisions on unknown joins are ignored with a warning; if nothing is approved the run completes without views. Alembic ignores the checkpointer's own tables.
 - **Alternatives:** storing a "waiting" flag and re-running the pipeline on approval (repeats model calls and can rank differently); a hand-written state machine (D-003).
 - **Consequences:** approval is a real pause with durable state; a test resumes a run from its checkpoint in a new graph instance, on SQLite and on Postgres.
+
+## D-022: The arq worker runs inside the API process by default
+- **Context:** agent runs must not block HTTP requests and should survive restarts, but one process must own each project's DuckDB file (D-016), and the free hosting tier gives one small container.
+- **Decision:** jobs go through a `JobQueue`: inline (tests), a thread pool (local, no Redis), or Redis with arq. In arq mode the API's lifespan starts an arq worker in the same process, so DuckDB ownership is unchanged while jobs are durable, de-duplicated by a job id per run step, limited in concurrency and timed out. A standalone `arq joinpilot.jobs.worker.WorkerSettings` exists for setups where the API never writes warehouses at the same time.
+- **Alternatives:** a separate worker container (DuckDB write conflicts, and a second paid-tier service); FastAPI background tasks (lost on restart).
+- **Consequences:** one container to deploy; an integration test drives a run through Redis and the in-process worker from start to approval to completion.

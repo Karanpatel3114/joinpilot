@@ -1,12 +1,16 @@
-"""Where run jobs go: inline (tests), a thread in the API process (local), or Redis (M5.6).
+"""Where run jobs go: inline (tests), a thread in the API process, or Redis with arq.
 
 All three call the same `run_job`, so behavior does not depend on the queue.
 """
 
 from __future__ import annotations
 
+import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from typing import Literal, Protocol
+
+from arq import create_pool
+from arq.connections import RedisSettings
 
 from joinpilot.config import Settings
 
@@ -55,8 +59,31 @@ class ThreadJobQueue:
         self.pool.submit(run_job, self.settings, name, run_id)
 
 
+class ArqJobQueue:
+    """Puts jobs on Redis for the arq worker; a job id per run step prevents duplicates."""
+
+    def __init__(self, settings: Settings) -> None:
+        if not settings.redis_url:
+            raise ValueError("JOBS_MODE=arq needs REDIS_URL")
+        self.redis_url = settings.redis_url
+
+    def submit(self, name: JobName, run_id: str) -> None:
+        """Enqueue the job (called from a worker thread, so it runs its own event loop)."""
+
+        async def enqueue() -> None:
+            pool = await create_pool(RedisSettings.from_dsn(self.redis_url))
+            try:
+                await pool.enqueue_job(name, run_id, _job_id=f"{name}:{run_id}")
+            finally:
+                await pool.aclose()
+
+        asyncio.run(enqueue())
+
+
 def make_job_queue(settings: Settings) -> JobQueue:
-    """The configured queue: inline, or a thread pool (Redis arrives in M5.6)."""
+    """The configured queue: inline, a thread pool, or Redis with arq."""
     if settings.jobs_mode == "inline":
         return InlineJobQueue(settings)
+    if settings.jobs_mode == "arq":
+        return ArqJobQueue(settings)
     return ThreadJobQueue(settings)

@@ -71,6 +71,8 @@ markers = ["integration: needs Postgres or Redis (run with -m integration)"]
 filterwarnings = [
     # Starlette suggests a renamed httpx fork for its TestClient; httpx still works.
     "ignore:Using `httpx` with `starlette.testclient` is deprecated",
+    # arq's worker calls redis-py's deprecated close() internally.
+    "ignore:Call to deprecated close:DeprecationWarning:arq.worker",
 ]
 
 [dependency-groups]
