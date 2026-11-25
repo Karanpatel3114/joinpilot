@@ -40,6 +40,9 @@ class JoinCandidate(BaseModel):
     accepted: bool = False
     rejection_reason: str | None = None
     evidence_ids: list[str] = Field(default_factory=list)
+    # Which evidence id plays which role: inclusion, coverage, target_uniqueness,
+    # source_uniqueness, fan_out_key.
+    evidence_roles: dict[str, str] = Field(default_factory=dict)
 
     @property
     def source_table(self) -> str:

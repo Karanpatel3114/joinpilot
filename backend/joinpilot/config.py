@@ -11,7 +11,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -91,6 +91,31 @@ class JoinSettings(BaseModel):
     preferred_filter_values: list[str] = Field(default_factory=lambda: ["E", "EN", "en"])
 
 
+class LLMSettings(BaseModel):
+    """Which model to call and how (D-005). The key itself is `GEMINI_API_KEY`."""
+
+    provider: Literal["gemini", "fake"] = "gemini"
+    model: str = "gemini-flash-lite-latest"
+    temperature: float = 0.0
+    timeout_seconds: float = 30.0
+    max_retries: int = 3
+    backoff_base_seconds: float = 2.0
+    backoff_max_seconds: float = 30.0
+    cache_responses: bool = True
+    # USD per million (input, output) tokens at the paid list price, for cost estimates.
+    # Free-tier calls are not billed; leave empty to report $0.
+    prices_per_million: dict[str, tuple[float, float]] = Field(default_factory=dict)
+
+
+class AgentSettings(BaseModel):
+    """Tunables for the agent's ranking and its evidence checks."""
+
+    prompt_example_values: int = 2
+    ranking_max_candidates: int = 25
+    rescue_min_score: float = 0.5
+    explanation_tolerance_points: float = 0.6
+
+
 class Settings(BaseSettings):
     """Typed settings loaded from the environment (prefix-free) and `.env`."""
 
@@ -120,6 +145,24 @@ class Settings(BaseSettings):
 
     # Join candidates
     joins: JoinSettings = Field(default_factory=JoinSettings)
+
+    # Agent
+    agent: AgentSettings = Field(default_factory=AgentSettings)
+
+    # Language model
+    llm: LLMSettings = Field(default_factory=LLMSettings)
+    gemini_api_key: SecretStr = SecretStr("")
+
+    # Tracing (optional)
+    langfuse_public_key: SecretStr = SecretStr("")
+    langfuse_secret_key: SecretStr = SecretStr("")
+    langfuse_host: str = "https://cloud.langfuse.com"
+    langfuse_capture_prompts: bool = False
+
+    @property
+    def llm_cache_dir(self) -> Path:
+        """Folder for cached model answers (saves free-tier quota on reruns)."""
+        return self.data_dir / "llm_cache"
 
     @property
     def projects_dir(self) -> Path:

@@ -58,14 +58,14 @@ Done when: deterministic join candidates are scored and evaluated against gold, 
 ## M4: Agent with LangGraph (branch `m4-agent`)
 Done when: the agent turns a requirement and candidates into a ranked, explained join graph that cites evidence, and is evaluated against baselines.
 
-- [ ] M4.1 `feat(llm): add provider interface with Gemini and fake providers`
-- [ ] M4.2 `feat(llm): log tokens, latency and cost with retries and backoff`
-- [ ] M4.3 `feat(agent): add LangGraph state and graph skeleton`
-- [ ] M4.4 `feat(agent): parse requirements into entities, measures and filters`
-- [ ] M4.5 `feat(agent): rank and explain joins with evidence citations`
-- [ ] M4.6 `feat(agent): reject explanations with unknown or contradicting evidence`
-- [ ] M4.7 `feat(eval): compare the agent with baselines and an LLM-only ablation`
-- [ ] M4.8 `feat(obs): add optional Langfuse tracing`
+- [x] M4.1 `feat(llm): add provider interface with Gemini and fake providers`
+- [x] M4.2 `feat(llm): log tokens, latency and cost with retries and backoff`
+- [x] M4.3 `feat(agent): add LangGraph state and graph skeleton`
+- [x] M4.4 `feat(agent): parse requirements into entities, measures and filters`
+- [x] M4.5 `feat(agent): rank and explain joins with evidence citations`
+- [x] M4.6 `feat(agent): reject explanations with unknown or contradicting evidence`
+- [x] M4.7 `feat(eval): compare the agent with baselines and an LLM-only ablation`
+- [x] M4.8 `feat(obs): add optional Langfuse tracing`
 
 ## M5: Persistence and human approval (branch `m5-approval`)
 Done when: runs persist in Postgres, pause for approval, and resume in a background worker.
