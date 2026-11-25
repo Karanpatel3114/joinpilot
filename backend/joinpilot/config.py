@@ -127,6 +127,17 @@ class Settings(BaseSettings):
     app_env: Literal["dev", "test", "prod"] = "dev"
     log_level: str = "INFO"
     data_dir: Path = REPO_ROOT / "data"
+    # Postgres in Docker and production; empty means a SQLite file in DATA_DIR
+    database_url: str = ""
+    # Redis for background jobs; empty means jobs run in a thread in the API process
+    redis_url: str = ""
+    # inline (run in the request, for tests), thread or arq (Redis)
+    jobs_mode: Literal["inline", "thread", "arq"] = "thread"
+    jobs_max_concurrent: int = 2
+    jobs_timeout_seconds: int = 600
+    jobs_keep_result_seconds: int = 3600
+    db_pool_size: int = 5
+    db_max_overflow: int = 5
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
 
     # Limits
@@ -163,6 +174,11 @@ class Settings(BaseSettings):
     def llm_cache_dir(self) -> Path:
         """Folder for cached model answers (saves free-tier quota on reruns)."""
         return self.data_dir / "llm_cache"
+
+    @property
+    def db_url(self) -> str:
+        """The configured database, or a local SQLite file when none is set."""
+        return self.database_url or f"sqlite:///{(self.data_dir / 'joinpilot.db').resolve()}"
 
     @property
     def projects_dir(self) -> Path:

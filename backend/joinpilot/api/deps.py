@@ -5,7 +5,10 @@ from __future__ import annotations
 from fastapi import Request
 
 from joinpilot.config import Settings
+from joinpilot.glossary.service import GlossaryService
+from joinpilot.jobs.queue import JobQueue
 from joinpilot.services.projects import ProjectService
+from joinpilot.services.runs import RunService
 
 
 def get_settings_from_app(request: Request) -> Settings:
@@ -17,3 +20,14 @@ def get_settings_from_app(request: Request) -> Settings:
 def get_project_service(request: Request) -> ProjectService:
     """A project service bound to the app's settings."""
     return ProjectService(get_settings_from_app(request))
+
+
+def get_run_service(request: Request) -> RunService:
+    """A run service using the app's job queue."""
+    jobs: JobQueue = request.app.state.jobs
+    return RunService(get_settings_from_app(request), jobs)
+
+
+def get_glossary_service(request: Request) -> GlossaryService:
+    """A glossary service bound to the app's settings."""
+    return GlossaryService(get_settings_from_app(request))

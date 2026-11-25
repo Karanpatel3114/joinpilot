@@ -62,10 +62,12 @@ Fill these in as each tool is set up in M0, and keep them accurate afterwards.
 - Backend checks: `uv run ruff check . && uv run ruff format --check . && uv run mypy backend/joinpilot eval && uv run pytest -q`
 - Web setup: `cd web && npm install`
 - Web checks: `cd web && npm run lint && npm run typecheck && npm test -- --run`
-- Run locally: `docker compose -f infra/docker-compose.yml up -d`, then `uv run uvicorn joinpilot.api.main:app --reload` and `cd web && npm run dev`
+- Services: `docker compose -f infra/docker-compose.yml up -d --wait` (Postgres + pgvector, Redis); stop with `down`
+- Run locally: start the services, set `DATABASE_URL`, `REDIS_URL` and `JOBS_MODE=arq` in `.env`, then `uv run uvicorn joinpilot.api.main:app --reload` and `cd web && npm run dev` (without Docker, leave both empty: SQLite and in-process jobs)
+- Migrations: applied on API startup; by hand `uv run alembic upgrade head`
 - Generate data: `uv run python -m joinpilot.synth.generate --seed 1 --size S --naming sap --out data/generated/erp_s1_sap`
 - Regenerate gold (M1 only): `uv run python -m joinpilot.synth.splits --gold data/gold` and `uv run python -m joinpilot.synth.tpch --sf 0.1 --gold data/gold`
-- Integration tests (Postgres, Redis, network): `uv run pytest -m integration`
+- Integration tests (Postgres, Redis, network; start the services first): `uv run pytest -m integration`
 - Evaluation: `uv run python -m eval.run_all --split dev`
 
 ## Git

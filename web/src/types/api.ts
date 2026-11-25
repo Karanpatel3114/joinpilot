@@ -1,4 +1,4 @@
-// Types for the JoinPilot API. They mirror docs/contract.md (version 0.3) exactly.
+// Types for the JoinPilot API. They mirror docs/contract.md (version 0.5) exactly.
 // Change them only together with the contract, the Pydantic schemas and the fixtures.
 
 export type ErrorCode =
@@ -98,4 +98,97 @@ export interface ProjectProfile {
   tables: TableProfile[]
   keys: KeyEvidence[]
   overlaps: Overlap[]
+}
+
+export type RunStatus =
+  | 'queued'
+  | 'profiling'
+  | 'ranking'
+  | 'awaiting_approval'
+  | 'generating'
+  | 'checking'
+  | 'repairing'
+  | 'completed'
+  | 'failed'
+
+export interface CreateRunRequest {
+  requirement: string
+}
+
+export interface Measure {
+  name: string
+  description: string
+}
+
+export interface RequirementFilter {
+  field: string
+  operator: '=' | '!=' | '>' | '>=' | '<' | '<=' | 'between' | 'in'
+  value: string
+}
+
+export interface ParsedRequirement {
+  summary: string
+  entities: string[]
+  measures: Measure[]
+  dimensions: string[]
+  filters: RequirementFilter[]
+  relevant_tables: string[]
+  source: 'llm' | 'fallback'
+}
+
+export interface Run {
+  run_id: string
+  project_id: string
+  status: RunStatus
+  requirement: string
+  parsed_requirement: ParsedRequirement | null
+  error: string | null
+  warnings: string[]
+  timings_ms: Record<string, number>
+  created_at: string
+  updated_at: string
+}
+
+export type Cardinality = 'N:1' | '1:1' | '1:N' | 'N:M'
+
+export interface JoinFilter {
+  column: string
+  value: string
+  choices: string[]
+}
+
+export interface Proposal {
+  edge_id: string
+  from: string
+  to: string
+  cardinality: Cardinality
+  normalization: Normalization
+  fan_out_risk: boolean
+  filter: JoinFilter | null
+  score: number
+  evidence_ids: string[]
+  explanation: string
+  explanation_source: 'llm' | 'template'
+  relevance: 'required' | 'useful' | 'not_needed'
+  recommended: boolean
+  rescued: boolean
+  status: 'proposed' | 'approved' | 'rejected'
+  rejection_reason: string | null
+  decision_reason: string | null
+}
+
+export interface Decision {
+  edge_id: string
+  action: 'approve' | 'reject'
+  reason?: string | null
+}
+
+export interface ApprovalRequest {
+  decisions: Decision[]
+}
+
+export interface GlossaryMatch {
+  column: string
+  description: string
+  score: number
 }

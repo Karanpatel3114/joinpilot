@@ -8,9 +8,12 @@ from pydantic import TypeAdapter
 
 from joinpilot.api.schemas import (
     ErrorResponse,
+    GlossaryMatch,
     HealthResponse,
     Project,
     ProjectProfile,
+    Run,
+    RunProposal,
     TableSummary,
 )
 from joinpilot.config import REPO_ROOT
@@ -22,6 +25,10 @@ FIXTURES: dict[str, Any] = {
     "projects.json": list[Project],
     "tables.json": list[TableSummary],
     "profile.json": ProjectProfile,
+    "run.json": Run,
+    "runs.json": list[Run],
+    "proposals.json": list[RunProposal],
+    "glossary.json": list[GlossaryMatch],
 }
 
 

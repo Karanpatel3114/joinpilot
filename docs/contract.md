@@ -1,6 +1,10 @@
 # JoinPilot API contract
 
-Version: 0.3. Change it only with the `contract-sync` skill, and bump the version.
+Version: 0.5. Change it only with the `contract-sync` skill, and bump the version.
+
+Changes in 0.5 (additive): `GET /projects/{project_id}/glossary` searches columns by business words.
+
+Changes in 0.4 (additive): the run endpoints are implemented; `Run` gains `project_id`, `warnings`, `created_at` and `updated_at`; proposals gain `filter`, `explanation_source`, `relevance`, `recommended`, `rescued`, `rejection_reason` and `decision_reason`; `GET /projects/{project_id}/runs` lists runs. The views and checks endpoints arrive in M6.
 
 Changes in 0.3 (additive): profile columns gain `non_null_count` (exact count, used for uniqueness evidence); table names that differ only by case refer to the same table.
 
@@ -42,27 +46,51 @@ Error codes: `NOT_FOUND` (404), `INVALID_INPUT` (422, also for malformed request
 - `overlaps` holds, for ordered column pairs in different tables, the share of distinct `from` values found in `to` (only pairs at or above `overlap_min_ratio`). `normalization` is `none`, `lpad_zeros:<width>` (pad the `from` side), `strip_leading_zeros` or `trim_upper` (both sides); `raw_inclusion_ratio` is the ratio before normalization. `sampled` is true when the `from` column had more distinct values than `overlap_sample_size`.
 - Evidence ids are assigned in sorted order and are stable for the same data.
 
-## Runs (agent)
-`POST /projects/{project_id}/runs` with `{"requirement": "Open receivables by customer and aging bucket"}` returns `Run {run_id, status}`
-
-Run status values: `queued`, `profiling`, `ranking`, `awaiting_approval`, `generating`, `checking`, `repairing`, `completed`, `failed`.
-
-`GET /runs/{run_id}` returns `Run {run_id, status, requirement, parsed_requirement, error, timings_ms}`
-
-`GET /runs/{run_id}/proposals` returns (planned; finalized in M4):
+`GET /projects/{project_id}/glossary?q=customer%20name&k=5` returns the `k` (1–20, default 5) columns whose business description best matches `q` (1–200 characters):
 ```json
-[{"edge_id": "e1", "from": "VBAK.KUNNR", "to": "KNA1.KUNNR",
-  "cardinality": "N:1", "normalization": "none", "fan_out_risk": false,
-  "score": 0.94, "evidence_ids": ["ov_001", "uk_014"],
-  "explanation": "Every order's customer number appears in the customer master (99.8% overlap, ov_001), and KNA1.KUNNR is unique (uk_014).",
-  "status": "proposed"}]
+[{"column": "KNA1.NAME1", "description": "name of customer master (KNA1.NAME1)", "score": 0.6123}]
 ```
+Descriptions use plain words for SAP-style names (KUNNR is "customer number") and the column name otherwise; `score` is the cosine similarity of local text embeddings (pgvector on Postgres). The glossary is rebuilt after any table change.
 
-`POST /runs/{run_id}/approvals` with `{"decisions": [{"edge_id": "e1", "action": "approve"}, {"edge_id": "e2", "action": "reject", "reason": "..."}]}` returns `Run` and resumes the run.
+## Runs (agent)
+`POST /projects/{project_id}/runs` with `{"requirement": "Open receivables by customer and aging bucket"}` (3–2000 characters) returns 202 and a `Run`. The run continues in the background: it profiles, parses the requirement, ranks and explains joins, then waits for approval. A project without tables gives 409.
 
-`GET /runs/{run_id}/views` returns `[View {name, sql, dialect, status}]`
+`GET /projects/{project_id}/runs` returns `[Run]`, newest first.
 
-`GET /runs/{run_id}/checks` returns `[CheckResult {check_id, view, kind, passed, observed, expected, message}]`
+`GET /runs/{run_id}` returns (poll it to follow progress):
+```json
+{"run_id": "...", "project_id": "...", "status": "awaiting_approval",
+ "requirement": "Open receivables by customer and aging bucket",
+ "parsed_requirement": {"summary": "...", "entities": ["customer", "receivable"],
+   "measures": [{"name": "open amount", "description": "sum of open item amounts"}],
+   "dimensions": ["aging bucket"], "filters": [{"field": "year", "operator": "=", "value": "2026"}],
+   "relevant_tables": ["BSID", "KNA1"], "source": "llm"},
+ "error": null, "warnings": ["Keyword parsing used: GEMINI_API_KEY is not set, so the language model is off."],
+ "timings_ms": {"profile": 210.0, "parse_requirement": 1.0, "rank_joins": 2.0},
+ "created_at": "2026-11-25T21:05:00Z", "updated_at": "2026-11-25T21:05:02Z"}
+```
+Run status values: `queued`, `profiling`, `ranking`, `awaiting_approval`, `generating`, `checking`, `repairing`, `completed`, `failed`. `parsed_requirement.source` is `llm` or `fallback` (keyword parsing when no model is available). `error` is set when `status` is `failed`.
+
+`GET /runs/{run_id}/proposals` returns, recommended first:
+```json
+[{"edge_id": "e5", "from": "BSID.KUNNR", "to": "KNA1.KUNNR",
+  "cardinality": "N:1", "normalization": "lpad_zeros:10", "fan_out_risk": false, "filter": null,
+  "score": 0.932, "evidence_ids": ["ov_005", "ov_011", "uk_010", "uk_002"],
+  "explanation": "97.0% of BSID.KUNNR values appear in KNA1.KUNNR after padding them with zeros to 10 characters (ov_005), and KNA1.KUNNR is unique (uk_010).",
+  "explanation_source": "template", "relevance": "required", "recommended": true, "rescued": false,
+  "status": "proposed", "rejection_reason": null, "decision_reason": null}]
+```
+- `cardinality` is `N:1`, `1:1`, `1:N` or `N:M`; only `N:1` and `1:1` joins can be recommended.
+- `filter` is `{"column", "value", "choices"}` for attribute tables that would multiply rows (for example `MAKT.SPRAS = 'E'`).
+- `explanation_source` is `llm` (checked against the evidence) or `template` (built from the evidence).
+- `rescued` is true when the model recommended a join the scorer rejected only for a low score.
+- `status` is `proposed`, `approved` or `rejected`.
+
+`POST /runs/{run_id}/approvals` with `{"decisions": [{"edge_id": "e1", "action": "approve"}, {"edge_id": "e2", "action": "reject", "reason": "..."}]}` (1–200 decisions) returns 202 and the `Run`, which resumes in the background. Unknown edge ids give 422 (`details.edge_ids`); a run that is not `awaiting_approval` gives 409.
+
+`GET /runs/{run_id}/views` returns `[View {name, sql, dialect, status}]` (M6)
+
+`GET /runs/{run_id}/checks` returns `[CheckResult {check_id, view, kind, passed, observed, expected, message}]` (M6)
 
 Check kinds: `row_count`, `fan_out`, `orphan_keys`, `null_keys`, `bucket_coverage`, `reconciliation`.
 

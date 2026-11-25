@@ -1,8 +1,8 @@
 """The agent graph. Each node is a small function of the state; dependencies come in
 through `AgentContext`, so tests swap in fakes.
 
-Flow so far: profile -> parse_requirement -> rank_joins. Later milestones add the
-approval interrupt (M5), view generation, checks and repair (M6).
+Flow so far: profile -> parse_requirement -> rank_joins -> await_approval (a pause
+until a person decides). M6 adds view generation, checks and repair after approval.
 """
 
 from __future__ import annotations
@@ -15,7 +15,9 @@ from typing import Any, Protocol
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
+from langgraph.types import interrupt
 
+from joinpilot.agent.approval import Decision, apply_decisions
 from joinpilot.agent.ranking import rank_joins
 from joinpilot.agent.requirement import ParsedRequirement, parse_requirement
 from joinpilot.agent.state import RunState
@@ -93,11 +95,41 @@ class AgentNodes:
         outcome = rank_joins(
             parsed, candidates_of(state), self.ctx.llm, settings.agent, settings.joins.unique_min
         )
+        warnings = list(outcome.warnings)
+        if not outcome.proposals:
+            warnings.append("No join candidates were found, so there is nothing to approve.")
         return {
             "proposals": [p.model_dump(by_alias=True) for p in outcome.proposals],
-            "warnings": outcome.warnings,
-            "status": "awaiting_approval",
+            "warnings": warnings,
         }
+
+    def await_approval(self, state: RunState) -> dict[str, Any]:
+        """Pause until a person decides; resume with a list of decisions.
+
+        LangGraph runs this step again on resume, and `interrupt` then returns the
+        decisions, so everything before it must be free of side effects.
+        """
+        raw = interrupt(
+            {
+                "run_id": state.get("run_id"),
+                "edge_ids": [p["edge_id"] for p in state.get("proposals", [])],
+            }
+        )
+        decisions = [Decision.model_validate(d) for d in raw]
+        proposals, warnings = apply_decisions(state.get("proposals", []), decisions)
+        approved = [p for p in proposals if p.get("status") == "approved"]
+        if not approved:
+            warnings.append("No join was approved, so no views will be built.")
+        return {
+            "proposals": proposals,
+            "decisions": [d.model_dump() for d in decisions],
+            "warnings": warnings,
+            "status": "generating" if approved else "completed",
+        }
+
+    def finish(self, state: RunState) -> dict[str, Any]:
+        """Close the run (M6 adds view generation and checks before this step)."""
+        return {"status": "completed"}
 
 
 def build_graph(
@@ -109,8 +141,16 @@ def build_graph(
     graph.add_node("profile", timed("profile", nodes.profile))
     graph.add_node("parse_requirement", timed("parse_requirement", nodes.parse_requirement))
     graph.add_node("rank_joins", timed("rank_joins", nodes.rank_joins))
+    graph.add_node("await_approval", timed("await_approval", nodes.await_approval))
     graph.add_edge(START, "profile")
     graph.add_edge("profile", "parse_requirement")
     graph.add_edge("parse_requirement", "rank_joins")
-    graph.add_edge("rank_joins", END)
+    graph.add_node("finish", timed("finish", nodes.finish))
+    graph.add_conditional_edges(
+        "rank_joins",
+        lambda state: "await_approval" if state.get("proposals") else "finish",
+        ["await_approval", "finish"],
+    )
+    graph.add_edge("await_approval", "finish")
+    graph.add_edge("finish", END)
     return graph.compile(checkpointer=checkpointer)

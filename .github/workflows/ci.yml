@@ -34,6 +34,40 @@ jobs:
       - name: Tests
         run: uv run pytest -q
 
+  integration:
+    name: Integration (Postgres, Redis)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.7-pg18
+        env:
+          POSTGRES_USER: joinpilot
+          POSTGRES_PASSWORD: joinpilot
+          POSTGRES_DB: joinpilot
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U joinpilot -d joinpilot"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+      redis:
+        image: redis:8.8-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://joinpilot:joinpilot@localhost:5432/joinpilot
+      TEST_REDIS_URL: redis://localhost:6379/0
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.4.0
+        with:
+          enable-cache: true
+      - name: Install
+        run: uv sync --locked
+      - name: Integration tests
+        run: uv run pytest -q -m integration
+
   web:
     name: Web (oxlint, tsc, vitest, build)
     runs-on: ubuntu-latest

@@ -1,0 +1,202 @@
+[
+  {
+    "edge_id": "e1",
+    "from": "MAKT.MATNR",
+    "to": "MARA.MATNR",
+    "cardinality": "N:1",
+    "normalization": "none",
+    "fan_out_risk": true,
+    "filter": {
+      "column": "MAKT.SPRAS",
+      "value": "E",
+      "choices": [
+        "D",
+        "E"
+      ]
+    },
+    "score": 1.0,
+    "evidence_ids": [
+      "ov_014",
+      "ov_016",
+      "uk_019",
+      "uk_015",
+      "uk_016"
+    ],
+    "explanation": "100.0% of MAKT.MATNR values appear in MARA.MATNR (ov_014), and MARA.MATNR is unique (uk_019). Each MAKT key has 2 rows, one per MAKT.SPRAS value, so the join keeps only MAKT.SPRAS = 'E' (uk_016).",
+    "explanation_source": "template",
+    "relevance": "required",
+    "recommended": true,
+    "rescued": false,
+    "status": "proposed",
+    "rejection_reason": null,
+    "decision_reason": null
+  },
+  {
+    "edge_id": "e2",
+    "from": "VBAP.VBELN",
+    "to": "VBAK.VBELN",
+    "cardinality": "N:1",
+    "normalization": "none",
+    "fan_out_risk": false,
+    "filter": null,
+    "score": 1.0,
+    "evidence_ids": [
+      "ov_029",
+      "ov_020",
+      "uk_024",
+      "uk_030"
+    ],
+    "explanation": "100.0% of VBAP.VBELN values appear in VBAK.VBELN (ov_029), and VBAK.VBELN is unique (uk_024).",
+    "explanation_source": "template",
+    "relevance": "required",
+    "recommended": true,
+    "rescued": false,
+    "status": "proposed",
+    "rejection_reason": null,
+    "decision_reason": null
+  },
+  {
+    "edge_id": "e3",
+    "from": "VBAK.KUNNR",
+    "to": "KNA1.KUNNR",
+    "cardinality": "N:1",
+    "normalization": "none",
+    "fan_out_risk": false,
+    "filter": null,
+    "score": 0.9728,
+    "evidence_ids": [
+      "ov_019",
+      "ov_013",
+      "uk_010",
+      "uk_023"
+    ],
+    "explanation": "100.0% of VBAK.KUNNR values appear in KNA1.KUNNR (ov_019), and KNA1.KUNNR is unique (uk_010).",
+    "explanation_source": "template",
+    "relevance": "required",
+    "recommended": true,
+    "rescued": false,
+    "status": "proposed",
+    "rejection_reason": null,
+    "decision_reason": null
+  },
+  {
+    "edge_id": "e4",
+    "from": "VBAP.MATNR",
+    "to": "MARA.MATNR",
+    "cardinality": "N:1",
+    "normalization": "none",
+    "fan_out_risk": false,
+    "filter": null,
+    "score": 0.9655,
+    "evidence_ids": [
+      "ov_026",
+      "ov_017",
+      "uk_019",
+      "uk_028"
+    ],
+    "explanation": "94.7% of VBAP.MATNR values appear in MARA.MATNR (ov_026), and MARA.MATNR is unique (uk_019).",
+    "explanation_source": "template",
+    "relevance": "required",
+    "recommended": true,
+    "rescued": false,
+    "status": "proposed",
+    "rejection_reason": null,
+    "decision_reason": null
+  },
+  {
+    "edge_id": "e5",
+    "from": "BSID.KUNNR",
+    "to": "KNA1.KUNNR",
+    "cardinality": "N:1",
+    "normalization": "lpad_zeros:10",
+    "fan_out_risk": false,
+    "filter": null,
+    "score": 0.9316,
+    "evidence_ids": [
+      "ov_005",
+      "ov_012",
+      "uk_010",
+      "uk_006"
+    ],
+    "explanation": "97.0% of BSID.KUNNR values appear in KNA1.KUNNR after padding them with zeros to 10 characters (ov_005), and KNA1.KUNNR is unique (uk_010).",
+    "explanation_source": "template",
+    "relevance": "required",
+    "recommended": true,
+    "rescued": false,
+    "status": "proposed",
+    "rejection_reason": null,
+    "decision_reason": null
+  },
+  {
+    "edge_id": "e6",
+    "from": "MARA.MATNR",
+    "to": "MAKT.MATNR",
+    "cardinality": "1:N",
+    "normalization": "none",
+    "fan_out_risk": false,
+    "filter": null,
+    "score": 0.5,
+    "evidence_ids": [
+      "ov_016",
+      "ov_014",
+      "uk_015",
+      "uk_019"
+    ],
+    "explanation": "100.0% of MARA.MATNR values appear in MAKT.MATNR (ov_016), but MAKT.MATNR is only 50.0% unique, so the join would repeat rows (uk_015). Not proposed: only the source side is unique; the join runs the other way (many to one).",
+    "explanation_source": "template",
+    "relevance": "not_needed",
+    "recommended": false,
+    "rescued": false,
+    "status": "proposed",
+    "rejection_reason": "only the source side is unique; the join runs the other way (many to one)",
+    "decision_reason": null
+  },
+  {
+    "edge_id": "e7",
+    "from": "VBAK.VBELN",
+    "to": "VBAP.VBELN",
+    "cardinality": "1:N",
+    "normalization": "none",
+    "fan_out_risk": false,
+    "filter": null,
+    "score": 0.5,
+    "evidence_ids": [
+      "ov_020",
+      "ov_029",
+      "uk_030",
+      "uk_024"
+    ],
+    "explanation": "100.0% of VBAK.VBELN values appear in VBAP.VBELN (ov_020), but VBAP.VBELN is only 33.2% unique, so the join would repeat rows (uk_030). Not proposed: only the source side is unique; the join runs the other way (many to one).",
+    "explanation_source": "template",
+    "relevance": "not_needed",
+    "recommended": false,
+    "rescued": false,
+    "status": "proposed",
+    "rejection_reason": "only the source side is unique; the join runs the other way (many to one)",
+    "decision_reason": null
+  },
+  {
+    "edge_id": "e8",
+    "from": "VBAP.MATNR",
+    "to": "MAKT.MATNR",
+    "cardinality": "N:M",
+    "normalization": "none",
+    "fan_out_risk": false,
+    "filter": null,
+    "score": 0.4827,
+    "evidence_ids": [
+      "ov_025",
+      "ov_015",
+      "uk_015",
+      "uk_028"
+    ],
+    "explanation": "94.7% of VBAP.MATNR values appear in MAKT.MATNR (ov_025), but MAKT.MATNR is only 50.0% unique, so the join would repeat rows (uk_015). Not proposed: neither side is unique, so the join would duplicate rows.",
+    "explanation_source": "template",
+    "relevance": "not_needed",
+    "recommended": false,
+    "rescued": false,
+    "status": "proposed",
+    "rejection_reason": "neither side is unique, so the join would duplicate rows",
+    "decision_reason": null
+  }
+]

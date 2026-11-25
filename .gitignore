@@ -23,6 +23,11 @@ CLAUDE.local.md
 data/generated/
 *.duckdb
 *.duckdb.wal
+*.db
+*.db-journal
+*.db-wal
+data/projects/
+data/llm_cache/
 eval/results/tmp/
 
 # OS and editors

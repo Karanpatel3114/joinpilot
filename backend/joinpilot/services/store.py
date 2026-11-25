@@ -1,12 +1,10 @@
-"""Project records stored as one JSON file per project folder.
+"""Project records in the application database (Postgres, or SQLite locally).
 
-A deliberately small store for M2; M5 moves project state to Postgres behind the
-same methods.
+Each project also has a folder for its DuckDB warehouse and cached profile.
 """
 
 from __future__ import annotations
 
-import json
 import os
 import tempfile
 import threading
@@ -15,10 +13,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from pydantic import BaseModel, Field
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
+from joinpilot.db.models import ProjectRow, TableRow
+from joinpilot.db.session import ensure_migrated, session_scope
 from joinpilot.errors import NotFoundError
-
-RECORD_FILE = "project.json"
 
 _LOCKS: dict[str, threading.RLock] = {}
 _LOCKS_GUARD = threading.Lock()
@@ -64,44 +64,85 @@ class ProjectRecord(BaseModel):
     tables: list[TableRecord] = Field(default_factory=list)
 
 
-class ProjectStore:
-    """Create, list and update projects under `root/<project_id>/project.json`."""
+def to_record(row: ProjectRow) -> ProjectRecord:
+    """Map a database row to the service's record."""
+    created = row.created_at if row.created_at.tzinfo else row.created_at.replace(tzinfo=UTC)
+    return ProjectRecord(
+        id=row.id,
+        name=row.name,
+        created_at=created,
+        tables=[
+            TableRecord(
+                table_id=t.id, name=t.name, row_count=t.row_count, column_count=t.column_count
+            )
+            for t in row.tables
+        ],
+    )
 
-    def __init__(self, root: Path) -> None:
+
+def parse_id(project_id: str) -> str:
+    """The canonical form of a project id, or NotFoundError for anything that is not a UUID."""
+    try:
+        return str(uuid.UUID(project_id))
+    except ValueError as error:
+        raise NotFoundError("Project not found.", {"project_id": project_id}) from error
+
+
+class ProjectStore:
+    """Create, list and update projects; their folders live under `root`."""
+
+    def __init__(self, root: Path, db_url: str) -> None:
         self.root = root
+        self.db_url = db_url
+        ensure_migrated(db_url)
 
     def project_dir(self, project_id: str) -> Path:
         """The project's folder; the id must be a UUID, which also blocks path tricks."""
-        return self.root / str(uuid.UUID(project_id))
+        return self.root / parse_id(project_id)
 
     def create(self, name: str) -> ProjectRecord:
         """Create and save a new, empty project."""
-        record = ProjectRecord(id=str(uuid.uuid4()), name=name, created_at=datetime.now(UTC))
-        self.save(record)
-        return record
+        row = ProjectRow(id=str(uuid.uuid4()), name=name, created_at=datetime.now(UTC))
+        with session_scope(self.db_url) as session:
+            session.add(row)
+            session.flush()
+            return to_record(row)
 
     def get(self, project_id: str) -> ProjectRecord:
         """Load one project, or raise NotFoundError."""
-        try:
-            path = self.project_dir(project_id) / RECORD_FILE
-        except ValueError as error:
-            raise NotFoundError("Project not found.", {"project_id": project_id}) from error
-        if not path.exists():
-            raise NotFoundError("Project not found.", {"project_id": project_id})
-        return ProjectRecord.model_validate_json(path.read_text())
+        key = parse_id(project_id)
+        with session_scope(self.db_url) as session:
+            row = session.get(ProjectRow, key, options=[selectinload(ProjectRow.tables)])
+            if row is None:
+                raise NotFoundError("Project not found.", {"project_id": project_id})
+            return to_record(row)
 
     def list_projects(self) -> list[ProjectRecord]:
         """All projects, newest first."""
-        if not self.root.exists():
-            return []
-        records = [
-            ProjectRecord.model_validate_json(p.read_text())
-            for p in self.root.glob(f"*/{RECORD_FILE}")
-        ]
-        return sorted(records, key=lambda r: r.created_at, reverse=True)
+        query = (
+            select(ProjectRow)
+            .options(selectinload(ProjectRow.tables))
+            .order_by(ProjectRow.created_at.desc(), ProjectRow.id)
+        )
+        with session_scope(self.db_url) as session:
+            return [to_record(row) for row in session.scalars(query)]
 
     def save(self, record: ProjectRecord) -> None:
-        """Write the record atomically, so readers never see a half-written file."""
-        folder = self.project_dir(record.id)
-        folder.mkdir(parents=True, exist_ok=True)
-        write_atomic(folder / RECORD_FILE, json.dumps(record.model_dump(mode="json"), indent=2))
+        """Write the project's name and table list in one transaction."""
+        with session_scope(self.db_url) as session:
+            row = session.get(ProjectRow, record.id, options=[selectinload(ProjectRow.tables)])
+            if row is None:
+                raise NotFoundError("Project not found.", {"project_id": record.id})
+            row.name = record.name
+            wanted = {t.table_id: t for t in record.tables}
+            for stale in [t for t in row.tables if t.id not in wanted]:
+                row.tables.remove(stale)
+            session.flush()  # deletes first, so a freed name can be reused below
+            existing = {t.id: t for t in row.tables}
+            for table_id, table in wanted.items():
+                current = existing.get(table_id)
+                if current is None:
+                    current = TableRow(id=table_id)
+                    row.tables.append(current)
+                current.name, current.row_count = table.name, table.row_count
+                current.column_count = table.column_count

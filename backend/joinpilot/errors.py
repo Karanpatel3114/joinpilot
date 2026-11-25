@@ -49,6 +49,13 @@ class LLMUnavailableError(JoinPilotError):
     http_status = 503
 
 
+class JobQueueUnavailableError(JoinPilotError):
+    """A background job could not be queued (for example, Redis is down)."""
+
+    code = "QUEUE_UNAVAILABLE"
+    http_status = 503
+
+
 class PayloadTooLargeError(JoinPilotError):
     """An upload or request body is larger than the configured limit."""
 
