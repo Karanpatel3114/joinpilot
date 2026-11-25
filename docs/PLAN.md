@@ -28,7 +28,7 @@ Done when: the generator produces deterministic datasets in both naming modes, w
 - [x] M1.2 `feat(synth): generate sales order headers and items`
 - [x] M1.3 `feat(synth): generate customer open items with due dates`
 - [x] M1.4 `feat(synth): add SAP-style and friendly naming modes`
-- [ ] M1.5 `feat(synth): plant data-quality issues with configurable rates`
+- [x] M1.5 `feat(synth): plant data-quality issues with configurable rates`
 - [ ] M1.6 `feat(synth): write gold join graph, KPI values and question answers`
 - [ ] M1.7 `test(synth): add determinism and gold consistency tests`
 - [ ] M1.8 `feat(data): add TPC-H loader with its gold foreign-key graph`

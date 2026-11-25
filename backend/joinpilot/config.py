@@ -26,6 +26,16 @@ class SizeSpec(BaseModel):
     open_items: int
 
 
+class IssueRates(BaseModel):
+    """Share of rows affected by each planted data-quality issue."""
+
+    orphan_order_items: float = 0.01
+    orphan_open_items: float = 0.005
+    duplicate_customers: float = 0.005
+    null_key_open_items: float = 0.003
+    stripped_zeros_open_items: float = 1.0
+
+
 class SynthSettings(BaseModel):
     """Tunables for the synthetic ERP generator. Override with SYNTH__<NAME>."""
 
@@ -43,6 +53,7 @@ class SynthSettings(BaseModel):
     max_items_per_order: int = 5
     max_lines_per_document: int = 3
     eur_share: float = 0.10
+    issues: IssueRates = Field(default_factory=IssueRates)
 
 
 class Settings(BaseSettings):
