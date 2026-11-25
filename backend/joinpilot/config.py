@@ -83,6 +83,9 @@ class Settings(BaseSettings):
     # Limits
     max_upload_mb: float = 50
     max_tables_per_project: int = 30
+    max_columns_per_table: int = 200
+    duckdb_memory_limit: str = "1GB"
+    duckdb_threads: int = 2
     sample_sizes: list[str] = Field(default_factory=lambda: ["S", "M"])
 
     # Synthetic data generator

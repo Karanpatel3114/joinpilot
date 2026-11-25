@@ -8,6 +8,8 @@ import uuid
 from pathlib import Path
 from typing import BinaryIO
 
+import duckdb
+
 from joinpilot.config import Settings
 from joinpilot.errors import InvalidInputError, PayloadTooLargeError
 from joinpilot.profiling.loader import (
@@ -75,8 +77,14 @@ class ProjectService:
         path = folder / f"{uuid.uuid4()}{suffix}"
         try:
             self._copy_limited(stream, path)
-            with connect(self.store.project_dir(project_id)) as con:
-                loaded = load_file(con, path, table)
+            with self._connect(project_id) as con:
+                loaded = load_file(
+                    con,
+                    path,
+                    table,
+                    display_name=filename,
+                    max_columns=self.settings.max_columns_per_table,
+                )
         finally:
             path.unlink(missing_ok=True)
         return self._register(record, [loaded])
@@ -97,7 +105,7 @@ class ProjectService:
         ).output_tables()
         names = {name: existing_name(record, name) for name in tables}
         self._check_capacity(record, list(names.values()))
-        with connect(self.store.project_dir(project_id)) as con:
+        with self._connect(project_id) as con:
             loaded = [load_arrow(con, names[name], data) for name, data in tables.items()]
         return self._register(record, loaded)
 
@@ -108,7 +116,7 @@ class ProjectService:
         if cache.exists():
             return ProjectProfile.model_validate_json(cache.read_text())
         tables = {t.table_id: t.name for t in record.tables}
-        with connect(self.store.project_dir(project_id)) as con:
+        with self._connect(project_id) as con:
             profile = profile_project(con, tables, self.settings.profiling)
         cache.write_text(profile.model_dump_json(by_alias=True))
         return profile
@@ -131,6 +139,14 @@ class ProjectService:
         self.store.save(record)
         (self.store.project_dir(record.id) / PROFILE_FILE).unlink(missing_ok=True)
         return added
+
+    def _connect(self, project_id: str) -> duckdb.DuckDBPyConnection:
+        """Open the project's warehouse with the configured memory and thread limits."""
+        return connect(
+            self.store.project_dir(project_id),
+            memory_limit=self.settings.duckdb_memory_limit,
+            threads=self.settings.duckdb_threads,
+        )
 
     def _check_capacity(self, record: ProjectRecord, new_tables: list[str]) -> None:
         """Refuse loads that would push the project past the table limit."""
