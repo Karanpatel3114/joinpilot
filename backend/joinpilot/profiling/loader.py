@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import duckdb
+import pyarrow as pa
 
 from joinpilot.errors import InvalidInputError
 from joinpilot.profiling.sql import ident
@@ -82,6 +83,16 @@ def load_file(con: duckdb.DuckDBPyConnection, path: Path, table: str) -> LoadedT
         "loaded table %s: %d rows, %d columns", table, loaded.row_count, loaded.column_count
     )
     return loaded
+
+
+def load_arrow(con: duckdb.DuckDBPyConnection, table: str, data: pa.Table) -> LoadedTable:
+    """Create (or replace) `table` from an in-memory Arrow table, such as the sample data."""
+    con.register("__jp_arrow", data)
+    try:
+        con.execute(f"CREATE OR REPLACE TABLE {ident(table)} AS SELECT * FROM __jp_arrow")
+    finally:
+        con.unregister("__jp_arrow")
+    return LoadedTable(table, data.num_rows, data.num_columns)
 
 
 def infer_csv_type(con: duckdb.DuckDBPyConnection, staging: str, column: str) -> str:

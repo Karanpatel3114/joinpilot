@@ -81,7 +81,9 @@ class Settings(BaseSettings):
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
 
     # Limits
-    max_upload_mb: int = 50
+    max_upload_mb: float = 50
+    max_tables_per_project: int = 30
+    sample_sizes: list[str] = Field(default_factory=lambda: ["S", "M"])
 
     # Synthetic data generator
     synth: SynthSettings = Field(default_factory=SynthSettings)
@@ -96,7 +98,7 @@ class Settings(BaseSettings):
 
     @property
     def max_upload_bytes(self) -> int:
-        return self.max_upload_mb * 1024 * 1024
+        return int(self.max_upload_mb * 1024 * 1024)
 
 
 @lru_cache

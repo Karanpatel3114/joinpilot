@@ -42,7 +42,7 @@ Owner: Karan Patel. This is a portfolio project for AI, data and software engine
 ## Repo map
 
 ```
-backend/joinpilot/  Python package: api, agent, profiling, joins, sqlgen, checks, kpi, qa, llm, db, jobs, synth, config
+backend/joinpilot/  Python package: api, services (the one service layer), agent, profiling, joins, sqlgen, checks, kpi, qa, llm, db, jobs, synth, config
 backend/tests/      pytest, one test file per module
 web/                React + TypeScript + Vite + Tailwind console
 mcp/                MCP server exposing JoinPilot tools
