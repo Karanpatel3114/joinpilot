@@ -49,7 +49,7 @@ Done when: any uploaded table gets column statistics, candidate keys and overlap
 ## M3: Join candidates and baseline evaluation (branch `m3-join-candidates`)
 Done when: deterministic join candidates are scored and evaluated against gold, with baselines.
 
-- [ ] M3.1 `feat(joins): generate candidate joins from names, types and overlap`
+- [x] M3.1 `feat(joins): generate candidate joins from names, types and overlap`
 - [ ] M3.2 `feat(joins): score candidates and infer cardinality and fan-out risk`
 - [ ] M3.3 `feat(eval): measure join discovery precision, recall and F1 against gold`
 - [ ] M3.4 `feat(eval): add name-only and overlap-only baselines and a results writer`

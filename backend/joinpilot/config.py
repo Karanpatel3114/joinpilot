@@ -70,6 +70,13 @@ class ProfilingSettings(BaseModel):
     normalization_min_gain: float = 0.1
 
 
+class JoinSettings(BaseModel):
+    """Tunables for join candidates and their scores (tuned on the dev split only)."""
+
+    candidate_min_inclusion: float = 0.5
+    unique_min: float = 0.999
+
+
 class Settings(BaseSettings):
     """Typed settings loaded from the environment (prefix-free) and `.env`."""
 
@@ -96,6 +103,9 @@ class Settings(BaseSettings):
 
     # Profiling
     profiling: ProfilingSettings = Field(default_factory=ProfilingSettings)
+
+    # Join candidates
+    joins: JoinSettings = Field(default_factory=JoinSettings)
 
     @property
     def projects_dir(self) -> Path:
