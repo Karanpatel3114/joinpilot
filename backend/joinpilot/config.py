@@ -152,6 +152,12 @@ class Settings(BaseSettings):
     llm: LLMSettings = Field(default_factory=LLMSettings)
     gemini_api_key: SecretStr = SecretStr("")
 
+    # Tracing (optional)
+    langfuse_public_key: SecretStr = SecretStr("")
+    langfuse_secret_key: SecretStr = SecretStr("")
+    langfuse_host: str = "https://cloud.langfuse.com"
+    langfuse_capture_prompts: bool = False
+
     @property
     def llm_cache_dir(self) -> Path:
         """Folder for cached model answers (saves free-tier quota on reruns)."""

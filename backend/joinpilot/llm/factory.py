@@ -9,6 +9,7 @@ from joinpilot.errors import LLMUnavailableError
 from joinpilot.llm.fake import FakeProvider
 from joinpilot.llm.observed import ObservedProvider, ResponseCache, UsageLog
 from joinpilot.llm.provider import LLMProvider, LLMResult, Prompt
+from joinpilot.obs.tracing import make_tracer
 
 
 class UnavailableProvider:
@@ -44,4 +45,10 @@ def make_base_provider(settings: Settings) -> LLMProvider:
 def make_provider(settings: Settings, log: UsageLog | None = None) -> ObservedProvider:
     """The configured provider wrapped with caching, retries and usage logging."""
     cache = ResponseCache(settings.llm_cache_dir) if settings.llm.cache_responses else None
-    return ObservedProvider(make_base_provider(settings), settings.llm, log=log, cache=cache)
+    return ObservedProvider(
+        make_base_provider(settings),
+        settings.llm,
+        log=log,
+        cache=cache,
+        tracer=make_tracer(settings),
+    )

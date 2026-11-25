@@ -16,6 +16,7 @@ from pydantic import BaseModel, ValidationError
 from joinpilot.config import LLMSettings
 from joinpilot.errors import LLMUnavailableError
 from joinpilot.llm.provider import LLMProvider, LLMResult, Prompt, Usage
+from joinpilot.obs.tracing import NoopTracer, Tracer
 
 logger = logging.getLogger(__name__)
 # Rate limits, timeouts and server errors are worth retrying; a missing key is not.
@@ -96,6 +97,7 @@ class ObservedProvider:
         log: UsageLog | None = None,
         cache: ResponseCache | None = None,
         sleep: Callable[[float], None] = time.sleep,
+        tracer: Tracer | None = None,
     ) -> None:
         self.inner = inner
         self.name = inner.name
@@ -104,6 +106,7 @@ class ObservedProvider:
         self.log = log or UsageLog()
         self.cache = cache
         self.sleep = sleep
+        self.tracer: Tracer = tracer or NoopTracer()
 
     def generate[T: BaseModel](self, prompt: Prompt, schema: type[T]) -> LLMResult[T]:
         """Return a validated answer, from the cache or the model."""
@@ -113,7 +116,13 @@ class ObservedProvider:
             usage = Usage(provider=self.name, model=self.model, purpose=prompt.purpose, cached=True)
             self.log.add(usage)
             return LLMResult(value=schema.model_validate_json(cached), usage=usage)
-        result = self._call_with_retries(prompt, schema)
+        try:
+            result = self._call_with_retries(prompt, schema)
+        except LLMUnavailableError as error:
+            failed = Usage(provider=self.name, model=self.model, purpose=prompt.purpose)
+            self.tracer.generation(failed, prompt, None, error.message)
+            raise
+        self.tracer.generation(result.usage, prompt, result.value.model_dump_json(), None)
         if self.cache:
             self.cache.put(key, result.value.model_dump_json())
         return result

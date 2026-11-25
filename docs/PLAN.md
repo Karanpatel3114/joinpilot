@@ -65,7 +65,7 @@ Done when: the agent turns a requirement and candidates into a ranked, explained
 - [x] M4.5 `feat(agent): rank and explain joins with evidence citations`
 - [x] M4.6 `feat(agent): reject explanations with unknown or contradicting evidence`
 - [x] M4.7 `feat(eval): compare the agent with baselines and an LLM-only ablation`
-- [ ] M4.8 `feat(obs): add optional Langfuse tracing`
+- [x] M4.8 `feat(obs): add optional Langfuse tracing`
 
 ## M5: Persistence and human approval (branch `m5-approval`)
 Done when: runs persist in Postgres, pause for approval, and resume in a background worker.
