@@ -72,10 +72,11 @@ Done when: runs persist in Postgres, pause for approval, and resume in a backgro
 
 - [ ] M5.1 `feat(db): add Postgres models and Alembic migrations`
 - [ ] M5.2 `build(infra): add docker-compose with Postgres, pgvector and Redis`
-- [ ] M5.3 `feat(agent): add Postgres checkpointer and approval interrupt`
-- [ ] M5.4 `feat(api): add run, proposal, approval and resume endpoints`
-- [ ] M5.5 `feat(jobs): run agent steps in an arq worker with status polling`
-- [ ] M5.6 `feat(db): add pgvector glossary search from business terms to columns`
+- [ ] M5.3 `refactor(services): store projects in the database instead of JSON files`
+- [ ] M5.4 `feat(agent): add Postgres checkpointer and approval interrupt`
+- [ ] M5.5 `feat(api): add run, proposal, approval and resume endpoints`
+- [ ] M5.6 `feat(jobs): run agent steps in an arq worker with status polling`
+- [ ] M5.7 `feat(db): add pgvector glossary search from business terms to columns`
 
 ## M6: View generation and automated SIT (branch `m6-views-checks`)
 Done when: approved joins become guarded SQL views that pass SIT checks, and evaluation reports view validity and KPI correctness. **MVP gate: add JoinPilot to the resumes now.**
