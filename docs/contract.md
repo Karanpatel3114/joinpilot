@@ -20,7 +20,7 @@ Error codes: `NOT_FOUND` (404), `INVALID_INPUT` (422, also for malformed request
 
 `GET /projects` returns `[Project]`, newest first.
 
-`POST /projects/{project_id}/tables` takes either a multipart upload (field `files`, one or more CSV or Parquet files; maximum size `MAX_UPLOAD_MB` per file) or JSON `{"sample": "erp_s1_sap"}` (sample ids are `erp_<size><seed>_<naming>` with size `s` or `m` and naming `sap` or `friendly`). Returns 201 and `[TableSummary {table_id, name, row_count, column_count}]`. Uploading a file whose table name already exists replaces that table and keeps its `table_id`. CSV columns are typed so zero-padded ids stay text.
+`POST /projects/{project_id}/tables` takes either a multipart upload (field `files`, one or more CSV or Parquet files; maximum size `MAX_UPLOAD_MB` per file) or JSON `{"sample": "erp_s1_sap"}` (sample ids are `erp_<size><seed>_<naming>` with size `s` or `m` and naming `sap` or `friendly`). Returns 201 and `[TableSummary {table_id, name, row_count, column_count}]`. Uploading a file whose table name already exists (ignoring case) replaces that table and keeps its `table_id`. File types are checked for the whole batch before anything loads; files then load in order, so if a later file fails to parse, earlier files in the same request stay loaded and the error names the failed file. CSV columns are typed so zero-padded ids stay text.
 
 `GET /projects/{project_id}/profile` returns (computed on first request after any table change, then cached):
 ```json

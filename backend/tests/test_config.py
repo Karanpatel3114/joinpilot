@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from joinpilot.config import Settings
+from joinpilot.config import REPO_ROOT, ProfilingSettings, Settings
 
 
 def test_defaults_are_safe_for_local_development() -> None:
@@ -22,3 +22,17 @@ def test_environment_variables_override_defaults(
     assert settings.max_upload_bytes == 5 * 1024 * 1024
     assert settings.projects_dir == tmp_path / "projects"
     assert settings.cors_origins == ["https://joinpilot.example"]
+
+
+def test_env_example_documents_every_setting() -> None:
+    text = (REPO_ROOT / ".env.example").read_text()
+    keys = {
+        line.lstrip("# ").split("=", 1)[0]
+        for line in text.splitlines()
+        if "=" in line and line.lstrip("# ").split("=", 1)[0].isupper()
+    }
+    expected = {
+        name.upper() for name in Settings.model_fields if name not in {"synth", "profiling"}
+    }
+    expected |= {f"PROFILING__{name.upper()}" for name in ProfilingSettings.model_fields}
+    assert expected <= keys, sorted(expected - keys)

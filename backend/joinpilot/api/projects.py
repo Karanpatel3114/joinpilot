@@ -71,18 +71,21 @@ async def list_projects(service: Service) -> list[Project]:
     openapi_extra=UPLOAD_DOC,
 )
 async def add_tables(project_id: UUID, request: Request, service: Service) -> list[TableSummary]:
-    """Upload CSV or Parquet files (multipart field `files`), or load `{"sample": "erp_s1_sap"}`."""
+    """Upload CSV or Parquet files (multipart field `files`), or load `{"sample": "erp_s1_sap"}`.
+
+    File types are checked for the whole batch first; files then load in order.
+    """
     pid = str(project_id)
     if request.headers.get("content-type", "").startswith("multipart/form-data"):
-        form = await request.form()
-        uploads = [f for f in form.getlist("files") if isinstance(f, UploadFile)]
-        if not uploads:
-            raise InvalidInputError("Attach at least one file in the `files` field.")
-        added: list[TableRecord] = []
-        for upload in uploads:
-            added += await run_in_threadpool(
-                service.add_upload, pid, upload.filename or "upload.csv", upload.file
-            )
+        async with request.form() as form:
+            uploads = [f for f in form.getlist("files") if isinstance(f, UploadFile)]
+            if not uploads:
+                raise InvalidInputError("Attach at least one file in the `files` field.")
+            names = [upload.filename or "upload.csv" for upload in uploads]
+            service.check_upload_names(names)
+            added: list[TableRecord] = []
+            for name, upload in zip(names, uploads, strict=True):
+                added += await run_in_threadpool(service.add_upload, pid, name, upload.file)
     else:
         try:
             body = SampleRequest.model_validate_json(await request.body())

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 import re
 import uuid
 from pathlib import Path
@@ -31,8 +30,6 @@ from joinpilot.services.store import (
 )
 from joinpilot.synth.dataset import build_dataset
 from joinpilot.synth.naming import Naming
-
-logger = logging.getLogger(__name__)
 
 PROFILE_FILE = "profile.json"
 SAMPLE_PATTERN = re.compile(r"^erp_(?P<size>[a-z])(?P<seed>\d{1,4})_(?P<naming>sap|friendly)$")
@@ -70,11 +67,18 @@ class ProjectService:
         """One project, or NotFoundError."""
         return self.store.get(project_id)
 
+    def check_upload_names(self, filenames: list[str]) -> None:
+        """Refuse a batch up front if any file has an unsupported type."""
+        for filename in filenames:
+            if Path(filename).suffix.lower() not in SUPPORTED_SUFFIXES:
+                raise InvalidInputError(
+                    "Only CSV and Parquet files are supported.", {"file": filename}
+                )
+
     def add_upload(self, project_id: str, filename: str, stream: BinaryIO) -> list[TableRecord]:
         """Save one uploaded file (within the size limit), load it, and drop the copy."""
+        self.check_upload_names([filename])
         suffix = Path(filename).suffix.lower()
-        if suffix not in SUPPORTED_SUFFIXES:
-            raise InvalidInputError("Only CSV and Parquet files are supported.", {"file": filename})
         self.store.get(project_id)
         folder = self.store.project_dir(project_id) / "uploads"
         folder.mkdir(parents=True, exist_ok=True)

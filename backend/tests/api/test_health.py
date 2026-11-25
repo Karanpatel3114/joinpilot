@@ -25,3 +25,16 @@ def test_cors_allows_only_configured_origins() -> None:
 
 def test_unknown_route_returns_404() -> None:
     assert make_client().get("/nope").status_code == 404
+
+
+def test_unexpected_errors_return_the_contract_error_shape() -> None:
+    app = create_app(Settings(_env_file=None))
+
+    @app.get("/boom")
+    async def boom() -> None:
+        raise RuntimeError("secret internal detail")
+
+    response = TestClient(app, raise_server_exceptions=False).get("/boom")
+    assert response.status_code == 500
+    assert response.json()["error"]["code"] == "INTERNAL_ERROR"
+    assert "secret" not in response.text
