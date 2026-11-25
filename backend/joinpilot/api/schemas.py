@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from joinpilot.agent.approval import Decision
 from joinpilot.agent.ranking import Proposal
+from joinpilot.glossary.service import GlossaryMatch
 from joinpilot.profiling.models import (
     ColumnProfile,
     KeyEvidence,
@@ -25,6 +26,7 @@ __all__ = [
     "Decision",
     "ErrorDetail",
     "ErrorResponse",
+    "GlossaryMatch",
     "HealthResponse",
     "KeyEvidence",
     "Overlap",

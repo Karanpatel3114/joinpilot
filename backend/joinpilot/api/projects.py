@@ -5,12 +5,12 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, Query, Request, status
 from fastapi.concurrency import run_in_threadpool
 from pydantic import ValidationError
 from starlette.datastructures import UploadFile
 
-from joinpilot.api.deps import get_project_service
+from joinpilot.api.deps import get_glossary_service, get_project_service
 from joinpilot.api.schemas import (
     CreateProjectRequest,
     Project,
@@ -19,6 +19,7 @@ from joinpilot.api.schemas import (
     TableSummary,
 )
 from joinpilot.errors import InvalidInputError
+from joinpilot.glossary.service import GlossaryMatch, GlossaryService
 from joinpilot.services.projects import ProjectService
 from joinpilot.services.store import ProjectRecord, TableRecord
 
@@ -93,6 +94,17 @@ async def add_tables(project_id: UUID, request: Request, service: Service) -> li
             raise InvalidInputError("Send files as multipart or a JSON sample request.") from error
         added = await run_in_threadpool(service.add_sample, pid, body.sample)
     return [TableSummary.model_validate(t.model_dump()) for t in added]
+
+
+@router.get("/projects/{project_id}/glossary", response_model=list[GlossaryMatch])
+async def search_glossary(
+    project_id: UUID,
+    glossary: Annotated[GlossaryService, Depends(get_glossary_service)],
+    q: Annotated[str, Query(min_length=1, max_length=200)],
+    k: Annotated[int, Query(ge=1, le=20)] = 5,
+) -> list[GlossaryMatch]:
+    """Columns whose business description best matches the words in `q`."""
+    return await run_in_threadpool(glossary.search, str(project_id), q, k)
 
 
 @router.get("/projects/{project_id}/profile", response_model=ProjectProfile)

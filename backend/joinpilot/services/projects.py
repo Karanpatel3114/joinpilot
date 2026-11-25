@@ -8,8 +8,11 @@ from pathlib import Path
 from typing import BinaryIO
 
 import duckdb
+from sqlalchemy import delete
 
 from joinpilot.config import Settings
+from joinpilot.db.models import GlossaryRow
+from joinpilot.db.session import session_scope
 from joinpilot.errors import InvalidInputError, PayloadTooLargeError
 from joinpilot.profiling.loader import (
     SUPPORTED_SUFFIXES,
@@ -153,6 +156,8 @@ class ProjectService:
         record.tables = sorted(existing.values(), key=lambda t: t.name)
         self.store.save(record)
         (self.store.project_dir(record.id) / PROFILE_FILE).unlink(missing_ok=True)
+        with session_scope(self.settings.db_url) as session:
+            session.execute(delete(GlossaryRow).where(GlossaryRow.project_id == record.id))
         return added
 
     def _connect(self, project_id: str) -> duckdb.DuckDBPyConnection:

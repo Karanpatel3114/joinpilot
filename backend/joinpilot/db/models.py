@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any, ClassVar
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     JSON,
     Boolean,
@@ -24,6 +25,9 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 JSONValue = JSON().with_variant(JSONB(), "postgresql")
+EMBEDDING_DIMENSIONS = 256
+# pgvector on Postgres; a JSON list on SQLite (searched in Python there).
+EmbeddingValue = JSON().with_variant(Vector(EMBEDDING_DIMENSIONS), "postgresql")
 
 
 def utc_now() -> datetime:
@@ -129,3 +133,17 @@ class LLMCallRow(Base):
     attempts: Mapped[int] = mapped_column(Integer, default=1)
     cached: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class GlossaryRow(Base):
+    """A column described in business words, with its embedding for similarity search."""
+
+    __tablename__ = "glossary_terms"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    project_id: Mapped[str] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), index=True
+    )
+    column_ref: Mapped[str] = mapped_column(String(130))
+    description: Mapped[str] = mapped_column(Text)
+    embedding: Mapped[list[float]] = mapped_column(EmbeddingValue)

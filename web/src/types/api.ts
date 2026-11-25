@@ -1,4 +1,4 @@
-// Types for the JoinPilot API. They mirror docs/contract.md (version 0.4) exactly.
+// Types for the JoinPilot API. They mirror docs/contract.md (version 0.5) exactly.
 // Change them only together with the contract, the Pydantic schemas and the fixtures.
 
 export type ErrorCode =
@@ -185,4 +185,10 @@ export interface Decision {
 
 export interface ApprovalRequest {
   decisions: Decision[]
+}
+
+export interface GlossaryMatch {
+  column: string
+  description: string
+  score: number
 }

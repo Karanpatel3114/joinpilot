@@ -80,3 +80,18 @@ def test_names_differing_only_by_case_replace_the_same_table(client: TestClient)
     profile = client.get(f"/projects/{project['id']}/profile").json()
     [table] = profile["tables"]
     assert (table["name"], table["row_count"], len(table["columns"])) == ("VBAK", 2, 2)
+
+
+def test_glossary_search_finds_columns_by_business_words(client: TestClient) -> None:
+    project = create(client)
+    client.post(f"/projects/{project['id']}/tables", json={"sample": "erp_s1_sap"})
+    matches = client.get(
+        f"/projects/{project['id']}/glossary", params={"q": "customer name", "k": 3}
+    )
+    assert matches.status_code == 200
+    assert "KNA1.NAME1" in [m["column"] for m in matches.json()]
+    assert client.get(f"/projects/{project['id']}/glossary", params={"q": ""}).status_code == 422
+    assert (
+        client.get(f"/projects/{project['id']}/glossary", params={"q": "x", "k": 99}).status_code
+        == 422
+    )

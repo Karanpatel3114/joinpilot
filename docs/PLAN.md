@@ -76,7 +76,7 @@ Done when: runs persist in Postgres, pause for approval, and resume in a backgro
 - [x] M5.4 `feat(agent): add Postgres checkpointer and approval interrupt`
 - [x] M5.5 `feat(api): add run, proposal, approval and resume endpoints`
 - [x] M5.6 `feat(jobs): run agent steps in an arq worker with status polling`
-- [ ] M5.7 `feat(db): add pgvector glossary search from business terms to columns`
+- [x] M5.7 `feat(db): add pgvector glossary search from business terms to columns`
 
 ## M6: View generation and automated SIT (branch `m6-views-checks`)
 Done when: approved joins become guarded SQL views that pass SIT checks, and evaluation reports view validity and KPI correctness. **MVP gate: add JoinPilot to the resumes now.**

@@ -1,0 +1,27 @@
+[
+  {
+    "column": "KNA1.NAME1",
+    "description": "name of customer master (KNA1.NAME1)",
+    "score": 0.7187
+  },
+  {
+    "column": "KNA1.KUNNR",
+    "description": "customer number of customer master (KNA1.KUNNR)",
+    "score": 0.6302
+  },
+  {
+    "column": "KNA1.KTOKD",
+    "description": "customer account group of customer master (KNA1.KTOKD)",
+    "score": 0.6
+  },
+  {
+    "column": "BSID.KUNNR",
+    "description": "customer number of customer open items accounts receivable (BSID.KUNNR)",
+    "score": 0.5082
+  },
+  {
+    "column": "KNA1.ORT01",
+    "description": "city of customer master (KNA1.ORT01)",
+    "score": 0.4312
+  }
+]

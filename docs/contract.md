@@ -1,6 +1,8 @@
 # JoinPilot API contract
 
-Version: 0.4. Change it only with the `contract-sync` skill, and bump the version.
+Version: 0.5. Change it only with the `contract-sync` skill, and bump the version.
+
+Changes in 0.5 (additive): `GET /projects/{project_id}/glossary` searches columns by business words.
 
 Changes in 0.4 (additive): the run endpoints are implemented; `Run` gains `project_id`, `warnings`, `created_at` and `updated_at`; proposals gain `filter`, `explanation_source`, `relevance`, `recommended`, `rescued`, `rejection_reason` and `decision_reason`; `GET /projects/{project_id}/runs` lists runs. The views and checks endpoints arrive in M6.
 
@@ -43,6 +45,12 @@ Error codes: `NOT_FOUND` (404), `INVALID_INPUT` (422, also for malformed request
 - `keys` holds the uniqueness (distinct ÷ non-null rows) of every integer or text column and of every composite candidate key.
 - `overlaps` holds, for ordered column pairs in different tables, the share of distinct `from` values found in `to` (only pairs at or above `overlap_min_ratio`). `normalization` is `none`, `lpad_zeros:<width>` (pad the `from` side), `strip_leading_zeros` or `trim_upper` (both sides); `raw_inclusion_ratio` is the ratio before normalization. `sampled` is true when the `from` column had more distinct values than `overlap_sample_size`.
 - Evidence ids are assigned in sorted order and are stable for the same data.
+
+`GET /projects/{project_id}/glossary?q=customer%20name&k=5` returns the `k` (1–20, default 5) columns whose business description best matches `q` (1–200 characters):
+```json
+[{"column": "KNA1.NAME1", "description": "name of customer master (KNA1.NAME1)", "score": 0.6123}]
+```
+Descriptions use plain words for SAP-style names (KUNNR is "customer number") and the column name otherwise; `score` is the cosine similarity of local text embeddings (pgvector on Postgres). The glossary is rebuilt after any table change.
 
 ## Runs (agent)
 `POST /projects/{project_id}/runs` with `{"requirement": "Open receivables by customer and aging bucket"}` (3–2000 characters) returns 202 and a `Run`. The run continues in the background: it profiles, parses the requirement, ranks and explains joins, then waits for approval. A project without tables gives 409.
