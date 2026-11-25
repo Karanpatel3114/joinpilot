@@ -81,7 +81,7 @@ Done when: runs persist in Postgres, pause for approval, and resume in a backgro
 ## M6: View generation and automated SIT (branch `m6-views-checks`)
 Done when: approved joins become guarded SQL views that pass SIT checks, and evaluation reports view validity and SIT pass rates (KPI correctness is measured in M8, once metrics exist). **MVP gate: add JoinPilot to the resumes now.**
 
-- [ ] M6.1 `feat(sqlgen): add sqlglot guard with statement and identifier allowlists`
+- [x] M6.1 `feat(sqlgen): add sqlglot guard with statement and identifier allowlists`
 - [ ] M6.2 `feat(sqlgen): generate views from approved joins and the requirement`
 - [ ] M6.3 `feat(checks): add SIT suite for counts, fan-out, orphans, null keys, buckets and totals`
 - [ ] M6.4 `feat(agent): repair failing views using check results`
