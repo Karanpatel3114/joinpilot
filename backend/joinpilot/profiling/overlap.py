@@ -14,8 +14,16 @@ import duckdb
 from joinpilot.profiling.models import ColumnProfile, is_key_like_type
 from joinpilot.profiling.sql import ident
 
-# Ways to compare values. M2.5 adds normalizing variants.
-VARIANTS: dict[str, str] = {"none": "v"}
+NONE = "none"
+STRIP_ZEROS = "strip_leading_zeros"
+TRIM_UPPER = "trim_upper"
+
+# Ways to compare values: raw, without leading zeros, and trimmed and upper-cased.
+VARIANTS: dict[str, str] = {
+    NONE: "v",
+    STRIP_ZEROS: "ltrim(v, '0')",
+    TRIM_UPPER: "upper(trim(v))",
+}
 
 
 @dataclass(frozen=True)
