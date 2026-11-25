@@ -62,7 +62,7 @@ Every number below comes from a file in [`eval/results/`](eval/results/), which 
 
 | System | Precision | Recall | F1 | Normalization accuracy | Fan-out recall | Decoy rejection |
 |---|---|---|---|---|---|---|
-| Name-only baseline | 0.370 | 1.000 | 0.541 | 0.800 | 0.000 | 0.800 |
+| Name-only baseline | 0.370 | 1.000 | 0.540 | 0.800 | 0.000 | 0.800 |
 | Overlap-only baseline | 0.274 | 0.850 | 0.415 | 1.000 | 0.000 | 0.600 |
 | JoinPilot, deterministic (no LLM) | **1.000** | **1.000** | **1.000** | **1.000** | **1.000** | **1.000** |
 
