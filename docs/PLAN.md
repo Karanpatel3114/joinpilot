@@ -71,7 +71,7 @@ Done when: the agent turns a requirement and candidates into a ranked, explained
 Done when: runs persist in Postgres, pause for approval, and resume in a background worker.
 
 - [x] M5.1 `feat(db): add Postgres models and Alembic migrations`
-- [ ] M5.2 `build(infra): add docker-compose with Postgres, pgvector and Redis`
+- [x] M5.2 `build(infra): add docker-compose with Postgres, pgvector and Redis`
 - [ ] M5.3 `refactor(services): store projects in the database instead of JSON files`
 - [ ] M5.4 `feat(agent): add Postgres checkpointer and approval interrupt`
 - [ ] M5.5 `feat(api): add run, proposal, approval and resume endpoints`

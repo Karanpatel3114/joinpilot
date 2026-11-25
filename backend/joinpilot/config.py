@@ -129,6 +129,8 @@ class Settings(BaseSettings):
     data_dir: Path = REPO_ROOT / "data"
     # Postgres in Docker and production; empty means a SQLite file in DATA_DIR
     database_url: str = ""
+    # Redis for background jobs; empty means jobs run in a thread in the API process
+    redis_url: str = ""
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
 
     # Limits
