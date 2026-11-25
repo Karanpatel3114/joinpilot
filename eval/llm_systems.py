@@ -11,11 +11,11 @@ from __future__ import annotations
 from pydantic import BaseModel, ConfigDict, Field
 
 from eval.join_metrics import PredictedEdge
-from joinpilot.agent.prompts import load_prompt
 from joinpilot.agent.ranking import rank_joins
 from joinpilot.agent.requirement import parse_requirement
 from joinpilot.config import Settings
 from joinpilot.joins.scoring import score_candidates
+from joinpilot.llm.prompts import load_prompt
 from joinpilot.llm.provider import LLMProvider
 from joinpilot.profiling.models import ProjectProfile
 

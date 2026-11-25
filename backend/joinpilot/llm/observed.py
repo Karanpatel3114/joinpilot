@@ -15,6 +15,7 @@ from pydantic import BaseModel, ValidationError
 
 from joinpilot.config import LLMSettings
 from joinpilot.errors import LLMUnavailableError
+from joinpilot.llm.prompts import snippet
 from joinpilot.llm.provider import LLMProvider, LLMResult, Prompt, Usage
 from joinpilot.obs.tracing import NoopTracer, Tracer
 
@@ -141,10 +142,9 @@ class ObservedProvider:
                         {"reason_code": "INVALID_OUTPUT", "purpose": prompt.purpose},
                     ) from error
                 fixed_once = True
+                problems = str(error.errors(include_url=False)[:3])
                 current = replace(
-                    prompt,
-                    user=f"{prompt.user}\n\nYour previous reply did not match the schema: "
-                    f"{error.errors(include_url=False)[:3]}. Reply again with valid JSON only.",
+                    prompt, user=f"{prompt.user}\n\n{snippet('fix_schema', errors=problems)}"
                 )
             except LLMUnavailableError as error:
                 status = error.details.get("status")

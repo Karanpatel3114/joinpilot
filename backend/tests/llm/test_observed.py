@@ -61,7 +61,7 @@ def test_invalid_output_gets_one_corrective_retry_then_fails_cleanly() -> None:
     inner = flaky([{"value": "x"}])
     wrapper, _ = observed(inner)
     assert wrapper.generate(PROMPT, Answer).value.value == 1
-    assert "did not match the schema" in inner.calls[1].user
+    assert "did not match the required JSON schema" in inner.calls[1].user
     wrapper, _ = observed(flaky([{"value": "x"}, {"value": "y"}]))
     with pytest.raises(LLMUnavailableError) as error:
         wrapper.generate(PROMPT, Answer)

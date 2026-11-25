@@ -12,8 +12,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from joinpilot.agent.prompts import load_prompt
 from joinpilot.errors import LLMUnavailableError
+from joinpilot.llm.prompts import load_prompt
 from joinpilot.llm.provider import LLMProvider
 from joinpilot.profiling.models import ProjectProfile
 

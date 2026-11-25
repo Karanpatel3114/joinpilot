@@ -8,12 +8,12 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from joinpilot.agent.prompts import load_prompt
 from joinpilot.agent.requirement import ParsedRequirement
 from joinpilot.agent.validator import check_explanation
 from joinpilot.config import AgentSettings
 from joinpilot.errors import LLMUnavailableError
 from joinpilot.joins.models import Cardinality, JoinCandidate, JoinFilter
+from joinpilot.llm.prompts import load_prompt, snippet
 from joinpilot.llm.provider import LLMProvider
 from joinpilot.profiling.normalize import LPAD_PREFIX
 
@@ -222,9 +222,7 @@ def rank_joins(
         if problems:
             feedback = "\n".join(f"- {e}: {'; '.join(p)}" for e, p in sorted(problems.items()))
             retry = replace(
-                prompt,
-                user=f"{prompt.user}\n\nThese explanations failed the evidence check; "
-                f"fix them and return every candidate again:\n{feedback}",
+                prompt, user=f"{prompt.user}\n\n{snippet('fix_evidence', problems=feedback)}"
             )
             retried = llm.generate(retry, RankingDraft).value
             ranked |= {r.edge_id: r for r in retried.joins if r.edge_id in problems}

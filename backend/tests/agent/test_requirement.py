@@ -1,4 +1,3 @@
-from joinpilot.agent.prompts import load_prompt
 from joinpilot.agent.requirement import (
     describe_tables,
     fallback_parse,
@@ -6,6 +5,7 @@ from joinpilot.agent.requirement import (
 )
 from joinpilot.llm.factory import UnavailableProvider
 from joinpilot.llm.fake import FakeProvider
+from joinpilot.llm.prompts import load_prompt
 from joinpilot.profiling.models import ProjectProfile
 
 REQUIREMENT = "Open receivables by customer and aging bucket, plus 2026 revenue by product group."

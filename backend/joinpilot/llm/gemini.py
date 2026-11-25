@@ -19,6 +19,7 @@ from pydantic import BaseModel
 
 from joinpilot.config import LLMSettings
 from joinpilot.errors import LLMUnavailableError
+from joinpilot.llm.prompts import snippet
 from joinpilot.llm.provider import LLMResult, Prompt, Usage
 
 # The SDK talks HTTP through httpx or its fork httpx2; network failures from either
@@ -27,10 +28,6 @@ TRANSPORT_ERRORS: tuple[type[Exception], ...] = tuple(
     importlib.import_module(name).TransportError
     for name in ("httpx", "httpx2")
     if importlib.util.find_spec(name) is not None
-)
-
-JSON_INSTRUCTION = (
-    "Reply with one JSON object only, no prose and no code fences, matching this JSON schema:\n"
 )
 
 
@@ -63,7 +60,7 @@ class GeminiProvider:
             config.response_json_schema = schema.model_json_schema()
         else:
             schema_text = json.dumps(schema.model_json_schema())
-            user = f"{system}\n\n{JSON_INSTRUCTION}{schema_text}\n\n{user}"
+            user = f"{system}\n\n{snippet('json_only', schema=schema_text)}\n\n{user}"
         started = time.perf_counter()
         try:
             response = self.client.models.generate_content(
