@@ -59,7 +59,7 @@ Done when: deterministic join candidates are scored and evaluated against gold, 
 Done when: the agent turns a requirement and candidates into a ranked, explained join graph that cites evidence, and is evaluated against baselines.
 
 - [x] M4.1 `feat(llm): add provider interface with Gemini and fake providers`
-- [ ] M4.2 `feat(llm): log tokens, latency and cost with retries and backoff`
+- [x] M4.2 `feat(llm): log tokens, latency and cost with retries and backoff`
 - [ ] M4.3 `feat(agent): add LangGraph state and graph skeleton`
 - [ ] M4.4 `feat(agent): parse requirements into entities, measures and filters`
 - [ ] M4.5 `feat(agent): rank and explain joins with evidence citations`
