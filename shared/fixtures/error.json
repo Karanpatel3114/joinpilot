@@ -1,0 +1,9 @@
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Project not found.",
+    "details": {
+      "project_id": "8a5b2c3e-0000-4000-8000-000000000000"
+    }
+  }
+}

@@ -1,30 +1,46 @@
 # JoinPilot API contract
 
-Version: 0.1 (draft). Change it only with the `contract-sync` skill, and bump the version.
+Version: 0.3. Change it only with the `contract-sync` skill, and bump the version.
+
+Changes in 0.3 (additive): profile columns gain `non_null_count` (exact count, used for uniqueness evidence); table names that differ only by case refer to the same table.
+
+Changes in 0.2 (additive, no breaking changes): `POST /projects` and `POST /projects/{project_id}/tables` return 201; the profile gains a top-level `keys` list (uniqueness evidence, `uk_` ids), extra column statistics, and extra overlap fields; error codes are listed.
+
+Example responses live in `shared/fixtures/` and are validated against the backend schemas by `backend/tests/api/test_contract.py`.
 
 All responses are JSON. Errors use `{"error": {"code": "STRING_CODE", "message": "plain-language message", "details": {}}}`. IDs are UUID strings. Times are ISO 8601 in UTC.
+
+Error codes: `NOT_FOUND` (404), `INVALID_INPUT` (422, also for malformed requests, with `details.fields`), `CONFLICT` (409), `PAYLOAD_TOO_LARGE` (413), `INTERNAL_ERROR` (500).
 
 ## Health
 `GET /health` returns `{"status": "ok", "version": "0.1.0"}`
 
 ## Projects and tables
-`POST /projects` with `{"name": "Demo ERP"}` returns `Project {id, name, created_at, table_count}`
+`POST /projects` with `{"name": "Demo ERP"}` (1–100 characters, trimmed) returns 201 and `Project {id, name, created_at, table_count}`
 
-`GET /projects` returns `[Project]`
+`GET /projects` returns `[Project]`, newest first.
 
-`POST /projects/{project_id}/tables` takes a multipart upload (CSV or Parquet; maximum size from config), or `{"sample": "erp_s1_sap"}`. Returns `[TableSummary {table_id, name, row_count, column_count}]`
+`POST /projects/{project_id}/tables` takes either a multipart upload (field `files`, one or more CSV or Parquet files; maximum size `MAX_UPLOAD_MB` per file) or JSON `{"sample": "erp_s1_sap"}` (sample ids are `erp_<size><seed>_<naming>` with size `s` or `m` and naming `sap` or `friendly`). Returns 201 and `[TableSummary {table_id, name, row_count, column_count}]`. Uploading a file whose table name already exists (ignoring case) replaces that table and keeps its `table_id`. File types are checked for the whole batch before anything loads; files then load in order, so if a later file fails to parse, earlier files in the same request stay loaded and the error names the failed file. CSV columns are typed so zero-padded ids stay text.
 
-`GET /projects/{project_id}/profile` returns:
+`GET /projects/{project_id}/profile` returns (computed on first request after any table change, then cached):
 ```json
 {
-  "tables": [{"table_id": "...", "name": "VBAK", "row_count": 5000,
-    "columns": [{"name": "KUNNR", "type": "VARCHAR", "null_pct": 0.0,
-      "distinct_count": 812, "sample_values": ["0000012345"], "is_key_candidate": false}],
+  "tables": [{"table_id": "...", "name": "VBAK", "row_count": 10000,
+    "columns": [{"name": "KUNNR", "type": "VARCHAR", "null_pct": 0.0, "non_null_count": 10000,
+      "distinct_count": 819, "sample_values": ["0000100094"], "is_key_candidate": false,
+      "min_value": "0000100094", "max_value": "0000999162", "max_length": 10,
+      "fixed_length": 10, "digits_only": true}],
     "candidate_keys": [["VBELN"]]}],
-  "overlaps": [{"evidence_id": "ov_001", "from": "VBAK.KUNNR", "to": "KNA1.KUNNR",
-    "inclusion_ratio": 0.998, "normalization": "none"}]
+  "keys": [{"evidence_id": "uk_010", "table": "KNA1", "columns": ["KUNNR"],
+    "distinct_count": 1000, "non_null_count": 1000, "uniqueness": 1.0}],
+  "overlaps": [{"evidence_id": "ov_005", "from": "BSID.KUNNR", "to": "KNA1.KUNNR",
+    "inclusion_ratio": 0.969984, "raw_inclusion_ratio": 0.0, "normalization": "lpad_zeros:10",
+    "checked_values": 633, "matched_values": 614, "sampled": false}]
 }
 ```
+- `keys` holds the uniqueness (distinct ÷ non-null rows) of every integer or text column and of every composite candidate key.
+- `overlaps` holds, for ordered column pairs in different tables, the share of distinct `from` values found in `to` (only pairs at or above `overlap_min_ratio`). `normalization` is `none`, `lpad_zeros:<width>` (pad the `from` side), `strip_leading_zeros` or `trim_upper` (both sides); `raw_inclusion_ratio` is the ratio before normalization. `sampled` is true when the `from` column had more distinct values than `overlap_sample_size`.
+- Evidence ids are assigned in sorted order and are stable for the same data.
 
 ## Runs (agent)
 `POST /projects/{project_id}/runs` with `{"requirement": "Open receivables by customer and aging bucket"}` returns `Run {run_id, status}`
@@ -33,7 +49,7 @@ Run status values: `queued`, `profiling`, `ranking`, `awaiting_approval`, `gener
 
 `GET /runs/{run_id}` returns `Run {run_id, status, requirement, parsed_requirement, error, timings_ms}`
 
-`GET /runs/{run_id}/proposals` returns:
+`GET /runs/{run_id}/proposals` returns (planned; finalized in M4):
 ```json
 [{"edge_id": "e1", "from": "VBAK.KUNNR", "to": "KNA1.KUNNR",
   "cardinality": "N:1", "normalization": "none", "fan_out_risk": false,

@@ -73,3 +73,21 @@ One entry per design choice that had real alternatives. Newest at the bottom. Fo
 - **Decision:** the planted-issue rates, sizes, dates and currency mix are in `SynthSettings`, because experiments vary them. Shape constants stay as named module constants, because changing any of them changes every dataset and must go together with regenerated gold and a new pinned fingerprint.
 - **Alternatives:** everything in config (makes it easy to change the data without noticing that gold is now stale).
 - **Consequences:** the data's realism lives in a few readable constants; the fingerprint test guards them.
+
+## D-014: Type CSV columns ourselves, keeping zero-padded ids as text
+- **Context:** DuckDB's CSV sniffer, like most tools, reads `0000100023` as the number 100023, which destroys exactly the leading-zero evidence that join discovery depends on.
+- **Decision:** read CSV files as all-text, then cast each column: integers only when no value has a leading zero, decimals, ISO dates, and text otherwise. Parquet keeps its own types.
+- **Alternatives:** trust the sniffer (silently corrupts ERP keys); keep everything as text (loses numeric statistics).
+- **Consequences:** uploads keep ERP keys intact; the rule is explicit and tested.
+
+## D-015: All pairwise overlaps from one self-join over distinct values
+- **Context:** inclusion scores are needed for every ordered pair of key-like columns in different tables, which is hundreds of pairs (about 650 for the ERP sample, more for TPC-H).
+- **Decision:** stack the distinct values of every integer or short text column into one temporary "long" table `(column, table, value)`, sample each source column deterministically (ordered by `hash(value)`) to a configured size, and count matches for all pairs with a single hash join that skips same-table pairs.
+- **Alternatives:** one `IN` query per pair (hundreds of scans); MinHash sketches (approximate, harder to explain as evidence).
+- **Consequences:** exact counts for unsampled columns, about 0.03 s on the ERP sample and 0.12 s on TPC-H SF 0.1. Decimal, float, date and long text columns are never compared, which also rejects several decoys by construction.
+
+## D-016: One process owns the warehouses; a lock per project inside it
+- **Context:** concurrent uploads to one project lost table records, and DuckDB allows only one process to open a database file for writing.
+- **Decision:** a single API process owns every project's DuckDB file. Inside it, each project has a re-entrant lock held for every read-change-write of the project's state (record, warehouse tables, cached profile), and JSON files are written atomically through unique temporary files. Background jobs (M5) must run in, or hand their warehouse work to, that same process.
+- **Alternatives:** file locks across processes (more moving parts); one DuckDB writer service (an extra service for a portfolio-scale app).
+- **Consequences:** no lost writes within a process; uvicorn runs with one worker, which is plenty for this workload.

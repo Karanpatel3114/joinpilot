@@ -1,0 +1,38 @@
+[
+  {
+    "table_id": "00000000-0000-0000-0000-000000000001",
+    "name": "BSID",
+    "row_count": 8000,
+    "column_count": 10
+  },
+  {
+    "table_id": "00000000-0000-0000-0000-000000000002",
+    "name": "KNA1",
+    "row_count": 1000,
+    "column_count": 6
+  },
+  {
+    "table_id": "00000000-0000-0000-0000-000000000003",
+    "name": "MAKT",
+    "row_count": 4000,
+    "column_count": 3
+  },
+  {
+    "table_id": "00000000-0000-0000-0000-000000000004",
+    "name": "MARA",
+    "row_count": 2000,
+    "column_count": 5
+  },
+  {
+    "table_id": "00000000-0000-0000-0000-000000000005",
+    "name": "VBAK",
+    "row_count": 10000,
+    "column_count": 6
+  },
+  {
+    "table_id": "00000000-0000-0000-0000-000000000006",
+    "name": "VBAP",
+    "row_count": 30116,
+    "column_count": 5
+  }
+]

@@ -1,0 +1,1390 @@
+{
+  "tables": [
+    {
+      "table_id": "00000000-0000-0000-0000-000000000001",
+      "name": "BSID",
+      "row_count": 8000,
+      "columns": [
+        {
+          "name": "BUKRS",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 8000,
+          "distinct_count": 1,
+          "sample_values": [
+            "1000"
+          ],
+          "is_key_candidate": false,
+          "min_value": "1000",
+          "max_value": "1000",
+          "max_length": 4,
+          "fixed_length": 4,
+          "digits_only": true
+        },
+        {
+          "name": "KUNNR",
+          "type": "VARCHAR",
+          "null_pct": 0.003,
+          "non_null_count": 7976,
+          "distinct_count": 633,
+          "sample_values": [
+            "106530",
+            "109926",
+            "110997",
+            "111236",
+            "111305"
+          ],
+          "is_key_candidate": false,
+          "min_value": "106530",
+          "max_value": "999162",
+          "max_length": 6,
+          "fixed_length": 6,
+          "digits_only": true
+        },
+        {
+          "name": "GJAHR",
+          "type": "INTEGER",
+          "null_pct": 0.0,
+          "non_null_count": 8000,
+          "distinct_count": 2,
+          "sample_values": [
+            "2025",
+            "2026"
+          ],
+          "is_key_candidate": false,
+          "min_value": "2025",
+          "max_value": "2026",
+          "max_length": 4,
+          "fixed_length": 4,
+          "digits_only": true
+        },
+        {
+          "name": "BELNR",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 8000,
+          "distinct_count": 4004,
+          "sample_values": [
+            "1400000000",
+            "1400000001",
+            "1400000002",
+            "1400000003",
+            "1400000004"
+          ],
+          "is_key_candidate": false,
+          "min_value": "1400000000",
+          "max_value": "1400004003",
+          "max_length": 10,
+          "fixed_length": 10,
+          "digits_only": true
+        },
+        {
+          "name": "BUZEI",
+          "type": "INTEGER",
+          "null_pct": 0.0,
+          "non_null_count": 8000,
+          "distinct_count": 3,
+          "sample_values": [
+            "1",
+            "2",
+            "3"
+          ],
+          "is_key_candidate": false,
+          "min_value": "1",
+          "max_value": "3",
+          "max_length": 1,
+          "fixed_length": 1,
+          "digits_only": true
+        },
+        {
+          "name": "BLDAT",
+          "type": "DATE",
+          "null_pct": 0.0,
+          "non_null_count": 8000,
+          "distinct_count": 314,
+          "sample_values": [
+            "2025-07-01",
+            "2025-07-04",
+            "2025-07-05",
+            "2025-07-06",
+            "2025-07-10"
+          ],
+          "is_key_candidate": false,
+          "min_value": "2025-07-01",
+          "max_value": "2026-06-30",
+          "max_length": 10,
+          "fixed_length": 10,
+          "digits_only": false
+        },
+        {
+          "name": "ZFBDT",
+          "type": "DATE",
+          "null_pct": 0.0,
+          "non_null_count": 8000,
+          "distinct_count": 331,
+          "sample_values": [
+            "2025-07-01",
+            "2025-07-02",
+            "2025-07-03",
+            "2025-07-04",
+            "2025-07-05"
+          ],
+          "is_key_candidate": false,
+          "min_value": "2025-07-01",
+          "max_value": "2026-07-05",
+          "max_length": 10,
+          "fixed_length": 10,
+          "digits_only": false
+        },
+        {
+          "name": "ZBD1T",
+          "type": "INTEGER",
+          "null_pct": 0.0,
+          "non_null_count": 8000,
+          "distinct_count": 6,
+          "sample_values": [
+            "0",
+            "14",
+            "30",
+            "45",
+            "60"
+          ],
+          "is_key_candidate": false,
+          "min_value": "0",
+          "max_value": "90",
+          "max_length": 2,
+          "fixed_length": null,
+          "digits_only": true
+        },
+        {
+          "name": "DMBTR",
+          "type": "DECIMAL(15,2)",
+          "null_pct": 0.0,
+          "non_null_count": 8000,
+          "distinct_count": 7955,
+          "sample_values": [
+            "1000.07",
+            "1000.15",
+            "1000.18",
+            "1000.25",
+            "1000.74"
+          ],
+          "is_key_candidate": false,
+          "min_value": "61.42",
+          "max_value": "112711.46",
+          "max_length": 9,
+          "fixed_length": null,
+          "digits_only": false
+        },
+        {
+          "name": "WAERS",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 8000,
+          "distinct_count": 2,
+          "sample_values": [
+            "EUR",
+            "USD"
+          ],
+          "is_key_candidate": false,
+          "min_value": "EUR",
+          "max_value": "USD",
+          "max_length": 3,
+          "fixed_length": 3,
+          "digits_only": false
+        }
+      ],
+      "candidate_keys": [
+        [
+          "BELNR",
+          "BUZEI"
+        ]
+      ]
+    },
+    {
+      "table_id": "00000000-0000-0000-0000-000000000002",
+      "name": "KNA1",
+      "row_count": 1000,
+      "columns": [
+        {
+          "name": "KUNNR",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 1000,
+          "distinct_count": 1000,
+          "sample_values": [
+            "0000100094",
+            "0000101489",
+            "0000104379",
+            "0000106530",
+            "0000109926"
+          ],
+          "is_key_candidate": true,
+          "min_value": "0000100094",
+          "max_value": "0000999162",
+          "max_length": 10,
+          "fixed_length": 10,
+          "digits_only": true
+        },
+        {
+          "name": "NAME1",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 1000,
+          "distinct_count": 995,
+          "sample_values": [
+            "Algate Distribution Inc.",
+            "Algate Supply LLC",
+            "Alpine Albrook Trading Inc.",
+            "Alpine Algate Systems GmbH",
+            "Alpine Almont Technologies Inc."
+          ],
+          "is_key_candidate": false,
+          "min_value": "Algate Distribution Inc.",
+          "max_value": "Zenstone Industrial AG",
+          "max_length": 39,
+          "fixed_length": null,
+          "digits_only": false
+        },
+        {
+          "name": "LAND1",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 1000,
+          "distinct_count": 5,
+          "sample_values": [
+            "DE",
+            "FR",
+            "GB",
+            "IN",
+            "US"
+          ],
+          "is_key_candidate": false,
+          "min_value": "DE",
+          "max_value": "US",
+          "max_length": 2,
+          "fixed_length": 2,
+          "digits_only": false
+        },
+        {
+          "name": "ORT01",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 1000,
+          "distinct_count": 23,
+          "sample_values": [
+            "Atlanta",
+            "Bengaluru",
+            "Berlin",
+            "Boston",
+            "Bristol"
+          ],
+          "is_key_candidate": false,
+          "min_value": "Atlanta",
+          "max_value": "Seattle",
+          "max_length": 10,
+          "fixed_length": null,
+          "digits_only": false
+        },
+        {
+          "name": "KTOKD",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 1000,
+          "distinct_count": 3,
+          "sample_values": [
+            "0001",
+            "0002",
+            "0003"
+          ],
+          "is_key_candidate": false,
+          "min_value": "0001",
+          "max_value": "0003",
+          "max_length": 4,
+          "fixed_length": 4,
+          "digits_only": true
+        },
+        {
+          "name": "ERDAT",
+          "type": "DATE",
+          "null_pct": 0.0,
+          "non_null_count": 1000,
+          "distinct_count": 870,
+          "sample_values": [
+            "2015-01-01",
+            "2015-01-08",
+            "2015-01-13",
+            "2015-01-16",
+            "2015-01-21"
+          ],
+          "is_key_candidate": false,
+          "min_value": "2015-01-01",
+          "max_value": "2024-12-29",
+          "max_length": 10,
+          "fixed_length": 10,
+          "digits_only": false
+        }
+      ],
+      "candidate_keys": [
+        [
+          "KUNNR"
+        ]
+      ]
+    },
+    {
+      "table_id": "00000000-0000-0000-0000-000000000003",
+      "name": "MAKT",
+      "row_count": 4000,
+      "columns": [
+        {
+          "name": "MATNR",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 4000,
+          "distinct_count": 2000,
+          "sample_values": [
+            "000000000010171947",
+            "000000000010208550",
+            "000000000010255930",
+            "000000000010281267",
+            "000000000010317202"
+          ],
+          "is_key_candidate": false,
+          "min_value": "000000000010171947",
+          "max_value": "000000000099946403",
+          "max_length": 18,
+          "fixed_length": 18,
+          "digits_only": true
+        },
+        {
+          "name": "SPRAS",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 4000,
+          "distinct_count": 2,
+          "sample_values": [
+            "D",
+            "E"
+          ],
+          "is_key_candidate": false,
+          "min_value": "D",
+          "max_value": "E",
+          "max_length": 1,
+          "fixed_length": 1,
+          "digits_only": false
+        },
+        {
+          "name": "MAKTX",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 4000,
+          "distinct_count": 3797,
+          "sample_values": [
+            "Compact Bearing BE-140",
+            "Compact Bearing BE-153",
+            "Compact Bearing BE-213",
+            "Compact Bearing BE-243",
+            "Compact Bearing BE-261"
+          ],
+          "is_key_candidate": false,
+          "min_value": "Compact Bearing BE-140",
+          "max_value": "Tragbar Ventil VA-982",
+          "max_length": 36,
+          "fixed_length": null,
+          "digits_only": false
+        }
+      ],
+      "candidate_keys": [
+        [
+          "MATNR",
+          "SPRAS"
+        ]
+      ]
+    },
+    {
+      "table_id": "00000000-0000-0000-0000-000000000004",
+      "name": "MARA",
+      "row_count": 2000,
+      "columns": [
+        {
+          "name": "MATNR",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 2000,
+          "distinct_count": 2000,
+          "sample_values": [
+            "000000000010171947",
+            "000000000010208550",
+            "000000000010255930",
+            "000000000010281267",
+            "000000000010317202"
+          ],
+          "is_key_candidate": true,
+          "min_value": "000000000010171947",
+          "max_value": "000000000099946403",
+          "max_length": 18,
+          "fixed_length": 18,
+          "digits_only": true
+        },
+        {
+          "name": "MTART",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 2000,
+          "distinct_count": 3,
+          "sample_values": [
+            "DIEN",
+            "FERT",
+            "HAWA"
+          ],
+          "is_key_candidate": false,
+          "min_value": "DIEN",
+          "max_value": "HAWA",
+          "max_length": 4,
+          "fixed_length": 4,
+          "digits_only": false
+        },
+        {
+          "name": "MATKL",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 2000,
+          "distinct_count": 10,
+          "sample_values": [
+            "BEAR",
+            "CABL",
+            "ELEC",
+            "FILT",
+            "MOTR"
+          ],
+          "is_key_candidate": false,
+          "min_value": "BEAR",
+          "max_value": "VALV",
+          "max_length": 4,
+          "fixed_length": 4,
+          "digits_only": false
+        },
+        {
+          "name": "MEINS",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 2000,
+          "distinct_count": 5,
+          "sample_values": [
+            "BOX",
+            "EA",
+            "KG",
+            "L",
+            "M"
+          ],
+          "is_key_candidate": false,
+          "min_value": "BOX",
+          "max_value": "M",
+          "max_length": 3,
+          "fixed_length": null,
+          "digits_only": false
+        },
+        {
+          "name": "ERSDA",
+          "type": "DATE",
+          "null_pct": 0.0,
+          "non_null_count": 2000,
+          "distinct_count": 1626,
+          "sample_values": [
+            "2012-01-01",
+            "2012-01-03",
+            "2012-01-04",
+            "2012-01-08",
+            "2012-01-11"
+          ],
+          "is_key_candidate": false,
+          "min_value": "2012-01-01",
+          "max_value": "2024-12-30",
+          "max_length": 10,
+          "fixed_length": 10,
+          "digits_only": false
+        }
+      ],
+      "candidate_keys": [
+        [
+          "MATNR"
+        ]
+      ]
+    },
+    {
+      "table_id": "00000000-0000-0000-0000-000000000005",
+      "name": "VBAK",
+      "row_count": 10000,
+      "columns": [
+        {
+          "name": "VBELN",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 10000,
+          "distinct_count": 10000,
+          "sample_values": [
+            "0005000000",
+            "0005000001",
+            "0005000002",
+            "0005000003",
+            "0005000004"
+          ],
+          "is_key_candidate": true,
+          "min_value": "0005000000",
+          "max_value": "0005009999",
+          "max_length": 10,
+          "fixed_length": 10,
+          "digits_only": true
+        },
+        {
+          "name": "ERDAT",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 10000,
+          "distinct_count": 546,
+          "sample_values": [
+            "20250101",
+            "20250102",
+            "20250103",
+            "20250104",
+            "20250105"
+          ],
+          "is_key_candidate": false,
+          "min_value": "20250101",
+          "max_value": "20260630",
+          "max_length": 8,
+          "fixed_length": 8,
+          "digits_only": true
+        },
+        {
+          "name": "KUNNR",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 10000,
+          "distinct_count": 819,
+          "sample_values": [
+            "0000100094",
+            "0000101489",
+            "0000104379",
+            "0000106530",
+            "0000109926"
+          ],
+          "is_key_candidate": false,
+          "min_value": "0000100094",
+          "max_value": "0000999162",
+          "max_length": 10,
+          "fixed_length": 10,
+          "digits_only": true
+        },
+        {
+          "name": "VKORG",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 10000,
+          "distinct_count": 2,
+          "sample_values": [
+            "1000",
+            "2000"
+          ],
+          "is_key_candidate": false,
+          "min_value": "1000",
+          "max_value": "2000",
+          "max_length": 4,
+          "fixed_length": 4,
+          "digits_only": true
+        },
+        {
+          "name": "WAERK",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 10000,
+          "distinct_count": 2,
+          "sample_values": [
+            "EUR",
+            "USD"
+          ],
+          "is_key_candidate": false,
+          "min_value": "EUR",
+          "max_value": "USD",
+          "max_length": 3,
+          "fixed_length": 3,
+          "digits_only": false
+        },
+        {
+          "name": "NETWR",
+          "type": "DECIMAL(15,2)",
+          "null_pct": 0.0,
+          "non_null_count": 10000,
+          "distinct_count": 9442,
+          "sample_values": [
+            "10.47",
+            "100.64",
+            "10001.07",
+            "1001.05",
+            "10010.94"
+          ],
+          "is_key_candidate": false,
+          "min_value": "10.47",
+          "max_value": "32531.27",
+          "max_length": 8,
+          "fixed_length": null,
+          "digits_only": false
+        }
+      ],
+      "candidate_keys": [
+        [
+          "VBELN"
+        ]
+      ]
+    },
+    {
+      "table_id": "00000000-0000-0000-0000-000000000006",
+      "name": "VBAP",
+      "row_count": 30116,
+      "columns": [
+        {
+          "name": "VBELN",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 30116,
+          "distinct_count": 10000,
+          "sample_values": [
+            "0005000000",
+            "0005000001",
+            "0005000002",
+            "0005000003",
+            "0005000004"
+          ],
+          "is_key_candidate": false,
+          "min_value": "0005000000",
+          "max_value": "0005009999",
+          "max_length": 10,
+          "fixed_length": 10,
+          "digits_only": true
+        },
+        {
+          "name": "POSNR",
+          "type": "INTEGER",
+          "null_pct": 0.0,
+          "non_null_count": 30116,
+          "distinct_count": 5,
+          "sample_values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "is_key_candidate": false,
+          "min_value": "1",
+          "max_value": "5",
+          "max_length": 1,
+          "fixed_length": 1,
+          "digits_only": true
+        },
+        {
+          "name": "MATNR",
+          "type": "VARCHAR",
+          "null_pct": 0.0,
+          "non_null_count": 30116,
+          "distinct_count": 1884,
+          "sample_values": [
+            "000000000010171947",
+            "000000000010173549",
+            "000000000010208550",
+            "000000000010237907",
+            "000000000010255930"
+          ],
+          "is_key_candidate": false,
+          "min_value": "000000000010171947",
+          "max_value": "000000000099946403",
+          "max_length": 18,
+          "fixed_length": 18,
+          "digits_only": true
+        },
+        {
+          "name": "KWMENG",
+          "type": "INTEGER",
+          "null_pct": 0.0,
+          "non_null_count": 30116,
+          "distinct_count": 20,
+          "sample_values": [
+            "1",
+            "10",
+            "11",
+            "12",
+            "13"
+          ],
+          "is_key_candidate": false,
+          "min_value": "1",
+          "max_value": "20",
+          "max_length": 2,
+          "fixed_length": null,
+          "digits_only": true
+        },
+        {
+          "name": "NETWR",
+          "type": "DECIMAL(15,2)",
+          "null_pct": 0.0,
+          "non_null_count": 30116,
+          "distinct_count": 12045,
+          "sample_values": [
+            "10.21",
+            "10.47",
+            "10.66",
+            "100.11",
+            "100.12"
+          ],
+          "is_key_candidate": false,
+          "min_value": "6.69",
+          "max_value": "27617.76",
+          "max_length": 8,
+          "fixed_length": null,
+          "digits_only": false
+        }
+      ],
+      "candidate_keys": [
+        [
+          "VBELN",
+          "POSNR"
+        ]
+      ]
+    }
+  ],
+  "keys": [
+    {
+      "evidence_id": "uk_001",
+      "table": "BSID",
+      "columns": [
+        "BELNR"
+      ],
+      "distinct_count": 4004,
+      "non_null_count": 8000,
+      "uniqueness": 0.5005
+    },
+    {
+      "evidence_id": "uk_002",
+      "table": "BSID",
+      "columns": [
+        "BELNR",
+        "BUZEI"
+      ],
+      "distinct_count": 8000,
+      "non_null_count": 8000,
+      "uniqueness": 1.0
+    },
+    {
+      "evidence_id": "uk_003",
+      "table": "BSID",
+      "columns": [
+        "BUKRS"
+      ],
+      "distinct_count": 1,
+      "non_null_count": 8000,
+      "uniqueness": 0.000125
+    },
+    {
+      "evidence_id": "uk_004",
+      "table": "BSID",
+      "columns": [
+        "BUZEI"
+      ],
+      "distinct_count": 3,
+      "non_null_count": 8000,
+      "uniqueness": 0.000375
+    },
+    {
+      "evidence_id": "uk_005",
+      "table": "BSID",
+      "columns": [
+        "GJAHR"
+      ],
+      "distinct_count": 2,
+      "non_null_count": 8000,
+      "uniqueness": 0.00025
+    },
+    {
+      "evidence_id": "uk_006",
+      "table": "BSID",
+      "columns": [
+        "KUNNR"
+      ],
+      "distinct_count": 633,
+      "non_null_count": 7976,
+      "uniqueness": 0.079363
+    },
+    {
+      "evidence_id": "uk_007",
+      "table": "BSID",
+      "columns": [
+        "WAERS"
+      ],
+      "distinct_count": 2,
+      "non_null_count": 8000,
+      "uniqueness": 0.00025
+    },
+    {
+      "evidence_id": "uk_008",
+      "table": "BSID",
+      "columns": [
+        "ZBD1T"
+      ],
+      "distinct_count": 6,
+      "non_null_count": 8000,
+      "uniqueness": 0.00075
+    },
+    {
+      "evidence_id": "uk_009",
+      "table": "KNA1",
+      "columns": [
+        "KTOKD"
+      ],
+      "distinct_count": 3,
+      "non_null_count": 1000,
+      "uniqueness": 0.003
+    },
+    {
+      "evidence_id": "uk_010",
+      "table": "KNA1",
+      "columns": [
+        "KUNNR"
+      ],
+      "distinct_count": 1000,
+      "non_null_count": 1000,
+      "uniqueness": 1.0
+    },
+    {
+      "evidence_id": "uk_011",
+      "table": "KNA1",
+      "columns": [
+        "LAND1"
+      ],
+      "distinct_count": 5,
+      "non_null_count": 1000,
+      "uniqueness": 0.005
+    },
+    {
+      "evidence_id": "uk_012",
+      "table": "KNA1",
+      "columns": [
+        "NAME1"
+      ],
+      "distinct_count": 995,
+      "non_null_count": 1000,
+      "uniqueness": 0.995
+    },
+    {
+      "evidence_id": "uk_013",
+      "table": "KNA1",
+      "columns": [
+        "ORT01"
+      ],
+      "distinct_count": 23,
+      "non_null_count": 1000,
+      "uniqueness": 0.023
+    },
+    {
+      "evidence_id": "uk_014",
+      "table": "MAKT",
+      "columns": [
+        "MAKTX"
+      ],
+      "distinct_count": 3797,
+      "non_null_count": 4000,
+      "uniqueness": 0.94925
+    },
+    {
+      "evidence_id": "uk_015",
+      "table": "MAKT",
+      "columns": [
+        "MATNR"
+      ],
+      "distinct_count": 2000,
+      "non_null_count": 4000,
+      "uniqueness": 0.5
+    },
+    {
+      "evidence_id": "uk_016",
+      "table": "MAKT",
+      "columns": [
+        "MATNR",
+        "SPRAS"
+      ],
+      "distinct_count": 4000,
+      "non_null_count": 4000,
+      "uniqueness": 1.0
+    },
+    {
+      "evidence_id": "uk_017",
+      "table": "MAKT",
+      "columns": [
+        "SPRAS"
+      ],
+      "distinct_count": 2,
+      "non_null_count": 4000,
+      "uniqueness": 0.0005
+    },
+    {
+      "evidence_id": "uk_018",
+      "table": "MARA",
+      "columns": [
+        "MATKL"
+      ],
+      "distinct_count": 10,
+      "non_null_count": 2000,
+      "uniqueness": 0.005
+    },
+    {
+      "evidence_id": "uk_019",
+      "table": "MARA",
+      "columns": [
+        "MATNR"
+      ],
+      "distinct_count": 2000,
+      "non_null_count": 2000,
+      "uniqueness": 1.0
+    },
+    {
+      "evidence_id": "uk_020",
+      "table": "MARA",
+      "columns": [
+        "MEINS"
+      ],
+      "distinct_count": 5,
+      "non_null_count": 2000,
+      "uniqueness": 0.0025
+    },
+    {
+      "evidence_id": "uk_021",
+      "table": "MARA",
+      "columns": [
+        "MTART"
+      ],
+      "distinct_count": 3,
+      "non_null_count": 2000,
+      "uniqueness": 0.0015
+    },
+    {
+      "evidence_id": "uk_022",
+      "table": "VBAK",
+      "columns": [
+        "ERDAT"
+      ],
+      "distinct_count": 546,
+      "non_null_count": 10000,
+      "uniqueness": 0.0546
+    },
+    {
+      "evidence_id": "uk_023",
+      "table": "VBAK",
+      "columns": [
+        "KUNNR"
+      ],
+      "distinct_count": 819,
+      "non_null_count": 10000,
+      "uniqueness": 0.0819
+    },
+    {
+      "evidence_id": "uk_024",
+      "table": "VBAK",
+      "columns": [
+        "VBELN"
+      ],
+      "distinct_count": 10000,
+      "non_null_count": 10000,
+      "uniqueness": 1.0
+    },
+    {
+      "evidence_id": "uk_025",
+      "table": "VBAK",
+      "columns": [
+        "VKORG"
+      ],
+      "distinct_count": 2,
+      "non_null_count": 10000,
+      "uniqueness": 0.0002
+    },
+    {
+      "evidence_id": "uk_026",
+      "table": "VBAK",
+      "columns": [
+        "WAERK"
+      ],
+      "distinct_count": 2,
+      "non_null_count": 10000,
+      "uniqueness": 0.0002
+    },
+    {
+      "evidence_id": "uk_027",
+      "table": "VBAP",
+      "columns": [
+        "KWMENG"
+      ],
+      "distinct_count": 20,
+      "non_null_count": 30116,
+      "uniqueness": 0.000664
+    },
+    {
+      "evidence_id": "uk_028",
+      "table": "VBAP",
+      "columns": [
+        "MATNR"
+      ],
+      "distinct_count": 1884,
+      "non_null_count": 30116,
+      "uniqueness": 0.062558
+    },
+    {
+      "evidence_id": "uk_029",
+      "table": "VBAP",
+      "columns": [
+        "POSNR"
+      ],
+      "distinct_count": 5,
+      "non_null_count": 30116,
+      "uniqueness": 0.000166
+    },
+    {
+      "evidence_id": "uk_030",
+      "table": "VBAP",
+      "columns": [
+        "VBELN"
+      ],
+      "distinct_count": 10000,
+      "non_null_count": 30116,
+      "uniqueness": 0.332049
+    },
+    {
+      "evidence_id": "uk_031",
+      "table": "VBAP",
+      "columns": [
+        "VBELN",
+        "POSNR"
+      ],
+      "distinct_count": 30116,
+      "non_null_count": 30116,
+      "uniqueness": 1.0
+    }
+  ],
+  "overlaps": [
+    {
+      "evidence_id": "ov_001",
+      "from": "BSID.BUKRS",
+      "to": "VBAK.VKORG",
+      "inclusion_ratio": 1.0,
+      "raw_inclusion_ratio": 1.0,
+      "normalization": "none",
+      "checked_values": 1,
+      "matched_values": 1,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_002",
+      "from": "BSID.BUZEI",
+      "to": "KNA1.KTOKD",
+      "inclusion_ratio": 1.0,
+      "raw_inclusion_ratio": 0.0,
+      "normalization": "lpad_zeros:4",
+      "checked_values": 3,
+      "matched_values": 3,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_003",
+      "from": "BSID.BUZEI",
+      "to": "VBAP.KWMENG",
+      "inclusion_ratio": 1.0,
+      "raw_inclusion_ratio": 1.0,
+      "normalization": "none",
+      "checked_values": 3,
+      "matched_values": 3,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_004",
+      "from": "BSID.BUZEI",
+      "to": "VBAP.POSNR",
+      "inclusion_ratio": 1.0,
+      "raw_inclusion_ratio": 1.0,
+      "normalization": "none",
+      "checked_values": 3,
+      "matched_values": 3,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_005",
+      "from": "BSID.KUNNR",
+      "to": "KNA1.KUNNR",
+      "inclusion_ratio": 0.969984,
+      "raw_inclusion_ratio": 0.0,
+      "normalization": "lpad_zeros:10",
+      "checked_values": 633,
+      "matched_values": 614,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_006",
+      "from": "BSID.KUNNR",
+      "to": "VBAK.KUNNR",
+      "inclusion_ratio": 0.796209,
+      "raw_inclusion_ratio": 0.0,
+      "normalization": "lpad_zeros:10",
+      "checked_values": 633,
+      "matched_values": 504,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_007",
+      "from": "BSID.WAERS",
+      "to": "VBAK.WAERK",
+      "inclusion_ratio": 1.0,
+      "raw_inclusion_ratio": 1.0,
+      "normalization": "none",
+      "checked_values": 2,
+      "matched_values": 2,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_008",
+      "from": "BSID.ZBD1T",
+      "to": "VBAP.KWMENG",
+      "inclusion_ratio": 0.166667,
+      "raw_inclusion_ratio": 0.166667,
+      "normalization": "none",
+      "checked_values": 6,
+      "matched_values": 1,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_009",
+      "from": "KNA1.KTOKD",
+      "to": "BSID.BUZEI",
+      "inclusion_ratio": 1.0,
+      "raw_inclusion_ratio": 0.0,
+      "normalization": "strip_leading_zeros",
+      "checked_values": 3,
+      "matched_values": 3,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_010",
+      "from": "KNA1.KTOKD",
+      "to": "VBAP.KWMENG",
+      "inclusion_ratio": 1.0,
+      "raw_inclusion_ratio": 0.0,
+      "normalization": "strip_leading_zeros",
+      "checked_values": 3,
+      "matched_values": 3,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_011",
+      "from": "KNA1.KTOKD",
+      "to": "VBAP.POSNR",
+      "inclusion_ratio": 1.0,
+      "raw_inclusion_ratio": 0.0,
+      "normalization": "strip_leading_zeros",
+      "checked_values": 3,
+      "matched_values": 3,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_012",
+      "from": "KNA1.KUNNR",
+      "to": "BSID.KUNNR",
+      "inclusion_ratio": 0.614,
+      "raw_inclusion_ratio": 0.0,
+      "normalization": "strip_leading_zeros",
+      "checked_values": 1000,
+      "matched_values": 614,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_013",
+      "from": "KNA1.KUNNR",
+      "to": "VBAK.KUNNR",
+      "inclusion_ratio": 0.819,
+      "raw_inclusion_ratio": 0.819,
+      "normalization": "none",
+      "checked_values": 1000,
+      "matched_values": 819,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_014",
+      "from": "MAKT.MATNR",
+      "to": "MARA.MATNR",
+      "inclusion_ratio": 1.0,
+      "raw_inclusion_ratio": 1.0,
+      "normalization": "none",
+      "checked_values": 2000,
+      "matched_values": 2000,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_015",
+      "from": "MAKT.MATNR",
+      "to": "VBAP.MATNR",
+      "inclusion_ratio": 0.8925,
+      "raw_inclusion_ratio": 0.8925,
+      "normalization": "none",
+      "checked_values": 2000,
+      "matched_values": 1785,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_016",
+      "from": "MARA.MATNR",
+      "to": "MAKT.MATNR",
+      "inclusion_ratio": 1.0,
+      "raw_inclusion_ratio": 1.0,
+      "normalization": "none",
+      "checked_values": 2000,
+      "matched_values": 2000,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_017",
+      "from": "MARA.MATNR",
+      "to": "VBAP.MATNR",
+      "inclusion_ratio": 0.8925,
+      "raw_inclusion_ratio": 0.8925,
+      "normalization": "none",
+      "checked_values": 2000,
+      "matched_values": 1785,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_018",
+      "from": "VBAK.KUNNR",
+      "to": "BSID.KUNNR",
+      "inclusion_ratio": 0.615385,
+      "raw_inclusion_ratio": 0.0,
+      "normalization": "strip_leading_zeros",
+      "checked_values": 819,
+      "matched_values": 504,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_019",
+      "from": "VBAK.KUNNR",
+      "to": "KNA1.KUNNR",
+      "inclusion_ratio": 1.0,
+      "raw_inclusion_ratio": 1.0,
+      "normalization": "none",
+      "checked_values": 819,
+      "matched_values": 819,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_020",
+      "from": "VBAK.VBELN",
+      "to": "VBAP.VBELN",
+      "inclusion_ratio": 1.0,
+      "raw_inclusion_ratio": 1.0,
+      "normalization": "none",
+      "checked_values": 10000,
+      "matched_values": 10000,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_021",
+      "from": "VBAK.VKORG",
+      "to": "BSID.BUKRS",
+      "inclusion_ratio": 0.5,
+      "raw_inclusion_ratio": 0.5,
+      "normalization": "none",
+      "checked_values": 2,
+      "matched_values": 1,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_022",
+      "from": "VBAK.WAERK",
+      "to": "BSID.WAERS",
+      "inclusion_ratio": 1.0,
+      "raw_inclusion_ratio": 1.0,
+      "normalization": "none",
+      "checked_values": 2,
+      "matched_values": 2,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_023",
+      "from": "VBAP.KWMENG",
+      "to": "BSID.BUZEI",
+      "inclusion_ratio": 0.15,
+      "raw_inclusion_ratio": 0.15,
+      "normalization": "none",
+      "checked_values": 20,
+      "matched_values": 3,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_024",
+      "from": "VBAP.KWMENG",
+      "to": "KNA1.KTOKD",
+      "inclusion_ratio": 0.15,
+      "raw_inclusion_ratio": 0.0,
+      "normalization": "lpad_zeros:4",
+      "checked_values": 20,
+      "matched_values": 3,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_025",
+      "from": "VBAP.MATNR",
+      "to": "MAKT.MATNR",
+      "inclusion_ratio": 0.947452,
+      "raw_inclusion_ratio": 0.947452,
+      "normalization": "none",
+      "checked_values": 1884,
+      "matched_values": 1785,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_026",
+      "from": "VBAP.MATNR",
+      "to": "MARA.MATNR",
+      "inclusion_ratio": 0.947452,
+      "raw_inclusion_ratio": 0.947452,
+      "normalization": "none",
+      "checked_values": 1884,
+      "matched_values": 1785,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_027",
+      "from": "VBAP.POSNR",
+      "to": "BSID.BUZEI",
+      "inclusion_ratio": 0.6,
+      "raw_inclusion_ratio": 0.6,
+      "normalization": "none",
+      "checked_values": 5,
+      "matched_values": 3,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_028",
+      "from": "VBAP.POSNR",
+      "to": "KNA1.KTOKD",
+      "inclusion_ratio": 0.6,
+      "raw_inclusion_ratio": 0.0,
+      "normalization": "lpad_zeros:4",
+      "checked_values": 5,
+      "matched_values": 3,
+      "sampled": false
+    },
+    {
+      "evidence_id": "ov_029",
+      "from": "VBAP.VBELN",
+      "to": "VBAK.VBELN",
+      "inclusion_ratio": 1.0,
+      "raw_inclusion_ratio": 1.0,
+      "normalization": "none",
+      "checked_values": 10000,
+      "matched_values": 10000,
+      "sampled": false
+    }
+  ]
+}

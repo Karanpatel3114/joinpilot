@@ -13,6 +13,7 @@ dependencies = [
     "pydantic>=2.14.4",
     "pydantic-settings>=2.16.3",
     "python-multipart>=0.0.34",
+    "sqlglot>=30.35.0",
     "uvicorn[standard]>=0.54.0",
 ]
 
@@ -40,6 +41,12 @@ python_version = "3.12"
 strict = true
 mypy_path = "backend"
 warn_unreachable = true
+plugins = ["pydantic.mypy"]
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
 
 [tool.pytest.ini_options]
 testpaths = ["backend/tests"]
@@ -53,6 +60,7 @@ filterwarnings = [
 [dependency-groups]
 dev = [
     "httpx>=0.28.1",
+    "hypothesis>=6.170.17",
     "mypy>=2.4.1",
     "pyarrow-stubs>=20.0.0.20260819",
     "pytest>=9.2.0",

@@ -37,13 +37,14 @@ Done when: the generator produces deterministic datasets in both naming modes, w
 ## M2: Profiling (branch `m2-profiling`)
 Done when: any uploaded table gets column statistics, candidate keys and overlap scores through the API.
 
-- [ ] M2.1 `feat(profiling): load CSV and Parquet uploads into a per-project DuckDB file`
-- [ ] M2.2 `feat(profiling): compute column statistics`
-- [ ] M2.3 `feat(profiling): detect single and two-column candidate keys`
-- [ ] M2.4 `feat(profiling): compute inclusion scores between columns with sampling`
-- [ ] M2.5 `feat(profiling): normalize key values and record the normalization`
-- [ ] M2.6 `feat(api): add project, upload and profile endpoints`
-- [ ] M2.7 `test(profiling): add property-based tests for statistics and keys`
+- [x] M2.1 `feat(profiling): load CSV and Parquet uploads into a per-project DuckDB file`
+- [x] M2.2 `feat(profiling): compute column statistics`
+- [x] M2.3 `feat(profiling): detect single and two-column candidate keys`
+- [x] M2.4 `feat(profiling): compute inclusion scores between columns with sampling`
+- [x] M2.5 `feat(profiling): normalize key values and record the normalization`
+- [x] M2.6 `feat(profiling): profile a project and assign stable evidence ids`
+- [x] M2.7 `feat(api): add project, upload and profile endpoints`
+- [x] M2.8 `test(profiling): add property-based tests for statistics and keys`
 
 ## M3: Join candidates and baseline evaluation (branch `m3-join-candidates`)
 Done when: deterministic join candidates are scored and evaluated against gold, with baselines.

@@ -56,6 +56,20 @@ class SynthSettings(BaseModel):
     issues: IssueRates = Field(default_factory=IssueRates)
 
 
+class ProfilingSettings(BaseModel):
+    """Tunables for column statistics, candidate keys and overlap scores."""
+
+    sample_values: int = 5
+    max_pair_columns: int = 12
+    overlap_sample_size: int = 10_000
+    overlap_max_value_length: int = 40
+    overlap_min_ratio: float = 0.1
+    overlap_max_columns: int = 300
+    overlap_max_results: int = 5_000
+    stats_batch_columns: int = 50
+    normalization_min_gain: float = 0.1
+
+
 class Settings(BaseSettings):
     """Typed settings loaded from the environment (prefix-free) and `.env`."""
 
@@ -70,10 +84,18 @@ class Settings(BaseSettings):
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
 
     # Limits
-    max_upload_mb: int = 50
+    max_upload_mb: float = 50
+    max_tables_per_project: int = 30
+    max_columns_per_table: int = 200
+    duckdb_memory_limit: str = "1GB"
+    duckdb_threads: int = 2
+    sample_sizes: list[str] = Field(default_factory=lambda: ["S", "M"])
 
     # Synthetic data generator
     synth: SynthSettings = Field(default_factory=SynthSettings)
+
+    # Profiling
+    profiling: ProfilingSettings = Field(default_factory=ProfilingSettings)
 
     @property
     def projects_dir(self) -> Path:
@@ -82,7 +104,7 @@ class Settings(BaseSettings):
 
     @property
     def max_upload_bytes(self) -> int:
-        return self.max_upload_mb * 1024 * 1024
+        return int(self.max_upload_mb * 1024 * 1024)
 
 
 @lru_cache
