@@ -30,7 +30,7 @@ jobs:
       - name: Format
         run: uv run ruff format --check .
       - name: Type check
-        run: uv run mypy backend/joinpilot
+        run: uv run mypy backend/joinpilot eval
       - name: Tests
         run: uv run pytest -q
 

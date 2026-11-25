@@ -1,0 +1,298 @@
+{
+  "split": "dev",
+  "date": "2026-11-25T22:35:55+00:00",
+  "commit": "85cc117",
+  "dirty": false,
+  "datasets": [
+    {
+      "dataset_id": "erp_s1_sap",
+      "fingerprint": "sha256:c73fd3e7464a8ded4f8f3bb647b9320a9311cfdd23f7313d71318fe218405a17",
+      "profile_seconds": 0.18
+    },
+    {
+      "dataset_id": "erp_s2_sap",
+      "fingerprint": "sha256:d470653a11024d8d68218f25d2f26d12ff739c00abbc58b749abd7d6713897a4",
+      "profile_seconds": 0.176
+    },
+    {
+      "dataset_id": "erp_s3_sap",
+      "fingerprint": "sha256:6fae23ee8100597f19ac3da2289568fdca9095ab6d9e284405686d2c5e9a92d8",
+      "profile_seconds": 0.177
+    },
+    {
+      "dataset_id": "erp_s1_friendly",
+      "fingerprint": "sha256:450f4c9ad562216c6461372bb18cd32c642e6ad6ead49394a828f6e9b6bb1019",
+      "profile_seconds": 0.181
+    }
+  ],
+  "joins": {
+    "name_only": {
+      "aggregate": {
+        "precision": 0.3704,
+        "recall": 1.0,
+        "f1": 0.5405,
+        "predicted": 54,
+        "gold": 20,
+        "true_positives": 20,
+        "normalization_accuracy": 0.8,
+        "fan_out_recall": 0.0,
+        "decoy_rejection": 0.8
+      },
+      "per_dataset": {
+        "erp_s1_sap": {
+          "precision": 0.3571,
+          "recall": 1.0,
+          "f1": 0.5263,
+          "predicted": 14,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_accuracy": 0.8,
+          "fan_out_recall": 0.0,
+          "decoy_rejection": 0.8
+        },
+        "erp_s2_sap": {
+          "precision": 0.3571,
+          "recall": 1.0,
+          "f1": 0.5263,
+          "predicted": 14,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_accuracy": 0.8,
+          "fan_out_recall": 0.0,
+          "decoy_rejection": 0.8
+        },
+        "erp_s3_sap": {
+          "precision": 0.3571,
+          "recall": 1.0,
+          "f1": 0.5263,
+          "predicted": 14,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_accuracy": 0.8,
+          "fan_out_recall": 0.0,
+          "decoy_rejection": 0.8
+        },
+        "erp_s1_friendly": {
+          "precision": 0.4167,
+          "recall": 1.0,
+          "f1": 0.5882,
+          "predicted": 12,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_accuracy": 0.8,
+          "fan_out_recall": 0.0,
+          "decoy_rejection": 0.8
+        }
+      },
+      "false_positives": [
+        "erp_s1_sap: BSID.KUNNR -> VBAK.KUNNR",
+        "erp_s1_sap: BSID.BELNR -> VBAK.VBELN",
+        "erp_s1_sap: BSID.BELNR -> VBAP.VBELN",
+        "erp_s1_sap: BSID.WAERS -> VBAK.WAERK",
+        "erp_s1_sap: MARA.MATNR -> MAKT.MATNR",
+        "erp_s1_sap: VBAK.VBELN -> VBAP.VBELN",
+        "erp_s1_sap: VBAK.KUNNR -> BSID.KUNNR",
+        "erp_s1_sap: VBAK.WAERK -> BSID.WAERS",
+        "erp_s1_sap: VBAP.MATNR -> MAKT.MATNR",
+        "erp_s2_sap: BSID.KUNNR -> VBAK.KUNNR",
+        "erp_s2_sap: BSID.BELNR -> VBAK.VBELN",
+        "erp_s2_sap: BSID.BELNR -> VBAP.VBELN",
+        "erp_s2_sap: BSID.WAERS -> VBAK.WAERK",
+        "erp_s2_sap: MARA.MATNR -> MAKT.MATNR",
+        "erp_s2_sap: VBAK.VBELN -> VBAP.VBELN",
+        "erp_s2_sap: VBAK.KUNNR -> BSID.KUNNR",
+        "erp_s2_sap: VBAK.WAERK -> BSID.WAERS",
+        "erp_s2_sap: VBAP.MATNR -> MAKT.MATNR",
+        "erp_s3_sap: BSID.KUNNR -> VBAK.KUNNR",
+        "erp_s3_sap: BSID.BELNR -> VBAK.VBELN",
+        "erp_s3_sap: BSID.BELNR -> VBAP.VBELN",
+        "erp_s3_sap: BSID.WAERS -> VBAK.WAERK",
+        "erp_s3_sap: MARA.MATNR -> MAKT.MATNR",
+        "erp_s3_sap: VBAK.VBELN -> VBAP.VBELN",
+        "erp_s3_sap: VBAK.KUNNR -> BSID.KUNNR",
+        "erp_s3_sap: VBAK.WAERK -> BSID.WAERS",
+        "erp_s3_sap: VBAP.MATNR -> MAKT.MATNR",
+        "erp_s1_friendly: open_items.customer_id -> order_headers.customer_id",
+        "erp_s1_friendly: open_items.currency -> order_headers.currency",
+        "erp_s1_friendly: order_headers.order_id -> order_items.order_id",
+        "erp_s1_friendly: order_headers.customer_id -> open_items.customer_id",
+        "erp_s1_friendly: order_headers.currency -> open_items.currency",
+        "erp_s1_friendly: order_items.product_id -> product_texts.product_id",
+        "erp_s1_friendly: products.product_id -> product_texts.product_id"
+      ],
+      "false_negatives": []
+    },
+    "overlap_only": {
+      "aggregate": {
+        "precision": 0.2742,
+        "recall": 0.85,
+        "f1": 0.4146,
+        "predicted": 62,
+        "gold": 20,
+        "true_positives": 17,
+        "normalization_accuracy": 1.0,
+        "fan_out_recall": 0.0,
+        "decoy_rejection": 0.6
+      },
+      "per_dataset": {
+        "erp_s1_sap": {
+          "precision": 0.2667,
+          "recall": 0.8,
+          "f1": 0.4,
+          "predicted": 15,
+          "gold": 5,
+          "true_positives": 4,
+          "normalization_accuracy": 1.0,
+          "fan_out_recall": 0.0,
+          "decoy_rejection": 0.6
+        },
+        "erp_s2_sap": {
+          "precision": 0.2667,
+          "recall": 0.8,
+          "f1": 0.4,
+          "predicted": 15,
+          "gold": 5,
+          "true_positives": 4,
+          "normalization_accuracy": 1.0,
+          "fan_out_recall": 0.0,
+          "decoy_rejection": 0.6
+        },
+        "erp_s3_sap": {
+          "precision": 0.2941,
+          "recall": 1.0,
+          "f1": 0.4545,
+          "predicted": 17,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_accuracy": 1.0,
+          "fan_out_recall": 0.0,
+          "decoy_rejection": 0.6
+        },
+        "erp_s1_friendly": {
+          "precision": 0.2667,
+          "recall": 0.8,
+          "f1": 0.4,
+          "predicted": 15,
+          "gold": 5,
+          "true_positives": 4,
+          "normalization_accuracy": 1.0,
+          "fan_out_recall": 0.0,
+          "decoy_rejection": 0.6
+        }
+      },
+      "false_positives": [
+        "erp_s1_sap: BSID.BUKRS -> VBAK.VKORG",
+        "erp_s1_sap: BSID.BUZEI -> KNA1.KTOKD",
+        "erp_s1_sap: BSID.BUZEI -> VBAP.KWMENG",
+        "erp_s1_sap: BSID.BUZEI -> VBAP.POSNR",
+        "erp_s1_sap: BSID.WAERS -> VBAK.WAERK",
+        "erp_s1_sap: KNA1.KTOKD -> BSID.BUZEI",
+        "erp_s1_sap: KNA1.KTOKD -> VBAP.KWMENG",
+        "erp_s1_sap: KNA1.KTOKD -> VBAP.POSNR",
+        "erp_s1_sap: MARA.MATNR -> MAKT.MATNR",
+        "erp_s1_sap: VBAK.VBELN -> VBAP.VBELN",
+        "erp_s1_sap: VBAK.WAERK -> BSID.WAERS",
+        "erp_s2_sap: BSID.BUKRS -> VBAK.VKORG",
+        "erp_s2_sap: BSID.BUZEI -> KNA1.KTOKD",
+        "erp_s2_sap: BSID.BUZEI -> VBAP.KWMENG",
+        "erp_s2_sap: BSID.BUZEI -> VBAP.POSNR",
+        "erp_s2_sap: BSID.WAERS -> VBAK.WAERK",
+        "erp_s2_sap: KNA1.KTOKD -> BSID.BUZEI",
+        "erp_s2_sap: KNA1.KTOKD -> VBAP.KWMENG",
+        "erp_s2_sap: KNA1.KTOKD -> VBAP.POSNR",
+        "erp_s2_sap: MARA.MATNR -> MAKT.MATNR",
+        "erp_s2_sap: VBAK.VBELN -> VBAP.VBELN",
+        "erp_s2_sap: VBAK.WAERK -> BSID.WAERS",
+        "erp_s3_sap: BSID.BUKRS -> VBAK.VKORG",
+        "erp_s3_sap: BSID.BUZEI -> KNA1.KTOKD",
+        "erp_s3_sap: BSID.BUZEI -> VBAP.KWMENG",
+        "erp_s3_sap: BSID.BUZEI -> VBAP.POSNR",
+        "erp_s3_sap: BSID.WAERS -> VBAK.WAERK",
+        "erp_s3_sap: KNA1.KTOKD -> BSID.BUZEI",
+        "erp_s3_sap: KNA1.KTOKD -> VBAP.KWMENG",
+        "erp_s3_sap: KNA1.KTOKD -> VBAP.POSNR",
+        "erp_s3_sap: MARA.MATNR -> MAKT.MATNR",
+        "erp_s3_sap: VBAK.VBELN -> VBAP.VBELN",
+        "erp_s3_sap: VBAK.WAERK -> BSID.WAERS",
+        "erp_s3_sap: VBAP.MATNR -> MAKT.MATNR",
+        "erp_s1_friendly: customers.account_group -> open_items.line_no",
+        "erp_s1_friendly: customers.account_group -> order_items.item_no",
+        "erp_s1_friendly: customers.account_group -> order_items.quantity",
+        "erp_s1_friendly: open_items.company_code -> order_headers.sales_org",
+        "erp_s1_friendly: open_items.currency -> order_headers.currency",
+        "erp_s1_friendly: open_items.line_no -> customers.account_group",
+        "erp_s1_friendly: open_items.line_no -> order_items.item_no",
+        "erp_s1_friendly: open_items.line_no -> order_items.quantity",
+        "erp_s1_friendly: order_headers.currency -> open_items.currency",
+        "erp_s1_friendly: order_headers.order_id -> order_items.order_id",
+        "erp_s1_friendly: products.product_id -> product_texts.product_id"
+      ],
+      "false_negatives": [
+        "erp_s1_sap: VBAP.MATNR -> MARA.MATNR",
+        "erp_s2_sap: VBAP.MATNR -> MARA.MATNR",
+        "erp_s1_friendly: order_items.product_id -> products.product_id"
+      ]
+    },
+    "joinpilot_deterministic": {
+      "aggregate": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "predicted": 20,
+        "gold": 20,
+        "true_positives": 20,
+        "normalization_accuracy": 1.0,
+        "fan_out_recall": 1.0,
+        "decoy_rejection": 1.0
+      },
+      "per_dataset": {
+        "erp_s1_sap": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_accuracy": 1.0,
+          "fan_out_recall": 1.0,
+          "decoy_rejection": 1.0
+        },
+        "erp_s2_sap": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_accuracy": 1.0,
+          "fan_out_recall": 1.0,
+          "decoy_rejection": 1.0
+        },
+        "erp_s3_sap": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_accuracy": 1.0,
+          "fan_out_recall": 1.0,
+          "decoy_rejection": 1.0
+        },
+        "erp_s1_friendly": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_accuracy": 1.0,
+          "fan_out_recall": 1.0,
+          "decoy_rejection": 1.0
+        }
+      },
+      "false_positives": [],
+      "false_negatives": []
+    }
+  }
+}

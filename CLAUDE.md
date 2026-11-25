@@ -59,7 +59,7 @@ docs/               spec, plan, contract, data model, eval plan, decisions, work
 Fill these in as each tool is set up in M0, and keep them accurate afterwards.
 
 - Backend setup: `uv sync`
-- Backend checks: `uv run ruff check . && uv run ruff format --check . && uv run mypy backend/joinpilot && uv run pytest -q`
+- Backend checks: `uv run ruff check . && uv run ruff format --check . && uv run mypy backend/joinpilot eval && uv run pytest -q`
 - Web setup: `cd web && npm install`
 - Web checks: `cd web && npm run lint && npm run typecheck && npm test -- --run`
 - Run locally: `docker compose -f infra/docker-compose.yml up -d`, then `uv run uvicorn joinpilot.api.main:app --reload` and `cd web && npm run dev`
