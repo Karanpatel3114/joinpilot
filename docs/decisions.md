@@ -67,3 +67,9 @@ One entry per design choice that had real alternatives. Newest at the bottom. Fo
 - **Context:** the spec named buckets "0–30" and "not due", which overlap at day 0.
 - **Decision:** days overdue = reference date − (baseline date + payment days); `not_due` is ≤ 0 (due today or later), then `1-30`, `31-60`, `61-90` and `90+`.
 - **Consequences:** buckets are disjoint and cover every item; docs/data-model.md records the definition.
+
+## D-013: Distribution shapes stay in code; issue rates live in config
+- **Context:** the config rule says every tunable number lives in config, but the generator also has shape constants (payment terms, discount levels, the Zipf exponent, price and amount distributions, the average age of open items).
+- **Decision:** the planted-issue rates, sizes, dates and currency mix are in `SynthSettings`, because experiments vary them. Shape constants stay as named module constants, because changing any of them changes every dataset and must go together with regenerated gold and a new pinned fingerprint.
+- **Alternatives:** everything in config (makes it easy to change the data without noticing that gold is now stale).
+- **Consequences:** the data's realism lives in a few readable constants; the fingerprint test guards them.

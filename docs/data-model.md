@@ -55,16 +55,16 @@ Orphan keys look like real keys (same width and number range) but are missing fr
 
 ## Gold files (`data/gold/<dataset_id>/`)
 
-- `joins.json`: the true join edges (with cardinality, normalization and filters) and the list of decoys.
-- `joins.json`: also records orphan and null row counts per edge, the MAKT language filter (`SPRAS = 'E'`), and the planted duplicate-customer pairs.
+- `manifest.json`: provenance. The data fingerprint, generator version and generator settings this gold was computed from. Evaluation regenerates the data and refuses to score it if the fingerprint differs.
+- `joins.json`: the true join edges (with cardinality, normalization, the MAKT language filter `SPRAS = 'E'`, and orphan and null row counts), the decoys, and the planted duplicate-customer pairs.
 - `kpis.json`: true values as of the reference date 2026-06-30:
   - open receivables by aging bucket, overall and for the top 10 customers by open amount. Days overdue = reference date − (baseline date + payment days). Buckets: `not_due` (≤ 0, due today or later), `1-30`, `31-60`, `61-90`, `90+`. The overall buckets include orphan and null-key items; the per-customer view uses the normalized join to KNA1.
   - 2026 revenue by product group: item net value for orders dated in 2026, with a left join to MARA, so orphan items form a `null` group
   - monthly order counts
   - top 10 customers by revenue (header net value, all orders; ties broken by customer id)
-- `qa.jsonl`: 40 question and answer pairs from 24 templates. Each line has `id`, `template`, `question` (business words, never table names), `columns`, `rows`, `ordered` and `tags` (for example `normalization`, `orphans`).
+- `qa.jsonl`: 40 question and answer pairs from 25 templates. Each line has `id`, `template`, `question` (business words, never table names), `columns`, `rows`, `ordered` and `tags` (for example `normalization`, `orphans`, `null_keys`, `duplicates`). Money answers are exact two-decimal strings, as in kpis.json.
 
-Gold is computed in plain Python from the generated rows. `backend/tests/synth/test_gold_consistency.py` recomputes it with DuckDB SQL over the written Parquet files, and the two must match exactly.
+Gold is computed in plain Python from the generated rows. `backend/tests/synth/test_gold_consistency.py` recomputes the KPIs and 16 of the 25 templates with DuckDB SQL over the written Parquet files, and the two must match exactly. Split gold is always written with the default generator settings, and a test pins the fingerprint of `erp_s1_sap` so a library or platform change cannot silently invalidate the gold.
 
 ## Splits
 
