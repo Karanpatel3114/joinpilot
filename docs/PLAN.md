@@ -17,7 +17,7 @@ M0.1 is the repository's first commit, made directly on `main`. Create `m0-boots
 - [x] M0.2 `build: initialize uv project with Python 3.12, ruff, mypy and pytest`
 - [x] M0.3 `chore: add env example, settings module and domain errors`
 - [x] M0.4 `feat(api): add FastAPI app with health endpoint and test`
-- [ ] M0.5 `build(web): scaffold Vite React TypeScript Tailwind console with lint, typecheck and Vitest`
+- [x] M0.5 `build(web): scaffold Vite React TypeScript Tailwind console with lint, typecheck and Vitest`
 - [ ] M0.6 `ci: add GitHub Actions workflow for backend and web checks`
 - [ ] M0.7 `docs: add README skeleton and MIT license`
 
