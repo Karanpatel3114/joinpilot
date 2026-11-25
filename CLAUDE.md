@@ -63,6 +63,9 @@ Fill these in as each tool is set up in M0, and keep them accurate afterwards.
 - Web setup: `cd web && npm install`
 - Web checks: `cd web && npm run lint && npm run typecheck && npm test -- --run`
 - Run locally: `docker compose -f infra/docker-compose.yml up -d`, then `uv run uvicorn joinpilot.api.main:app --reload` and `cd web && npm run dev`
+- Generate data: `uv run python -m joinpilot.synth.generate --seed 1 --size S --naming sap --out data/generated/erp_s1_sap`
+- Regenerate gold (M1 only): `uv run python -m joinpilot.synth.splits --gold data/gold` and `uv run python -m joinpilot.synth.tpch --sf 0.1 --gold data/gold`
+- Integration tests (Postgres, Redis, network): `uv run pytest -m integration`
 - Evaluation: `uv run python -m eval.run_all --split dev`
 
 ## Git

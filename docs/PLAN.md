@@ -32,7 +32,7 @@ Done when: the generator produces deterministic datasets in both naming modes, w
 - [x] M1.6 `feat(synth): write gold join graph, KPI values and question answers`
 - [x] M1.7 `test(synth): add determinism and gold consistency tests`
 - [x] M1.8 `feat(data): add TPC-H loader with its gold foreign-key graph`
-- [ ] M1.9 `docs(data): document tables, planted issues and licenses`
+- [x] M1.9 `docs(data): document tables, planted issues and licenses`
 
 ## M2: Profiling (branch `m2-profiling`)
 Done when: any uploaded table gets column statistics, candidate keys and overlap scores through the API.
