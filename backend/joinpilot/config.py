@@ -60,6 +60,7 @@ class ProfilingSettings(BaseModel):
     """Tunables for column statistics, candidate keys and overlap scores."""
 
     sample_values: int = 5
+    max_pair_columns: int = 12
 
 
 class Settings(BaseSettings):
