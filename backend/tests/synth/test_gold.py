@@ -59,9 +59,12 @@ def test_revenue_by_group_keeps_orphan_items_as_a_null_group(dataset: ErpDataset
     assert len(groups) == 11
 
 
-def test_write_gold_writes_three_files(dataset: ErpDataset, tmp_path: Path) -> None:
+def test_write_gold_writes_manifest_and_three_answer_files(
+    dataset: ErpDataset, tmp_path: Path
+) -> None:
     write_gold(dataset, tmp_path, SETTINGS)
-    assert sorted(p.name for p in tmp_path.iterdir()) == ["joins.json", "kpis.json", "qa.jsonl"]
+    names = sorted(p.name for p in tmp_path.iterdir())
+    assert names == ["joins.json", "kpis.json", "manifest.json", "qa.jsonl"]
     questions = [json.loads(line) for line in (tmp_path / "qa.jsonl").read_text().splitlines()]
     assert len(questions) == 40
     assert len({q["id"] for q in questions}) == 40

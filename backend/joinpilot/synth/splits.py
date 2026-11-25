@@ -1,6 +1,7 @@
 """Dataset splits from docs/data-model.md, and a command that writes all their gold.
 
-Dev is for tuning; test is used only for the final run.
+Dev is for tuning; test is used only for the final run. Gold is always written with
+the default generator settings, so `.env` overrides can never leak into it.
 
 Usage:
     uv run python -m joinpilot.synth.splits --gold data/gold
@@ -13,7 +14,7 @@ import logging
 from pathlib import Path
 from typing import NamedTuple
 
-from joinpilot.config import get_settings
+from joinpilot.config import SynthSettings
 from joinpilot.synth.dataset import build_dataset, make_dataset_id
 from joinpilot.synth.gold import write_gold
 from joinpilot.synth.naming import Naming
@@ -55,7 +56,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--split", choices=["dev", "test", "all"], default="all")
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
-    settings = get_settings().synth
+    settings = SynthSettings()
     specs = DEV + TEST if args.split == "all" else SPLITS[args.split]
     for spec in specs:
         dataset = build_dataset(spec.seed, spec.size, spec.naming, settings)

@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from joinpilot.config import SynthSettings
-from joinpilot.synth.dataset import ErpDataset
+from joinpilot.synth.dataset import GENERATOR_VERSION, ErpDataset, fingerprint
 from joinpilot.synth.facts import AGING_BUCKETS, Facts, aging_bucket, money
 from joinpilot.synth.naming import qualified
 from joinpilot.synth.questions import gold_questions
@@ -127,10 +127,26 @@ def gold_kpis(facts: Facts) -> dict[str, Any]:
     }
 
 
+def gold_manifest(dataset: ErpDataset, settings: SynthSettings) -> dict[str, Any]:
+    """Provenance: which exact data (fingerprint) and settings this gold belongs to."""
+    return {
+        "dataset_id": dataset.dataset_id,
+        "seed": dataset.seed,
+        "size": dataset.size,
+        "naming": dataset.naming,
+        "generator_version": GENERATOR_VERSION,
+        "fingerprint": fingerprint(dataset.output_tables()),
+        "settings": settings.model_dump(mode="json"),
+    }
+
+
 def write_gold(dataset: ErpDataset, out_dir: Path, settings: SynthSettings) -> None:
-    """Write joins.json, kpis.json and qa.jsonl for one dataset."""
+    """Write manifest.json, joins.json, kpis.json and qa.jsonl for one dataset."""
     facts = Facts.from_dataset(dataset, settings)
     out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "manifest.json").write_text(
+        json.dumps(gold_manifest(dataset, settings), indent=2) + "\n", encoding="utf-8"
+    )
     (out_dir / "joins.json").write_text(
         json.dumps(gold_joins(dataset), indent=2) + "\n", encoding="utf-8"
     )

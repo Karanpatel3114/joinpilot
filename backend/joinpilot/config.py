@@ -29,11 +29,11 @@ class SizeSpec(BaseModel):
 class IssueRates(BaseModel):
     """Share of rows affected by each planted data-quality issue."""
 
-    orphan_order_items: float = 0.01
-    orphan_open_items: float = 0.005
-    duplicate_customers: float = 0.005
-    null_key_open_items: float = 0.003
-    stripped_zeros_open_items: float = 1.0
+    orphan_order_items: float = Field(default=0.01, ge=0, le=1)
+    orphan_open_items: float = Field(default=0.005, ge=0, le=1)
+    duplicate_customers: float = Field(default=0.005, ge=0, le=0.5)
+    null_key_open_items: float = Field(default=0.003, ge=0, le=1)
+    stripped_zeros_open_items: float = Field(default=1.0, ge=0, le=1)
 
 
 class SynthSettings(BaseModel):
