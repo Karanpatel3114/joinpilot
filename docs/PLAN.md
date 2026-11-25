@@ -18,7 +18,7 @@ M0.1 is the repository's first commit, made directly on `main`. Create `m0-boots
 - [x] M0.3 `chore: add env example, settings module and domain errors`
 - [x] M0.4 `feat(api): add FastAPI app with health endpoint and test`
 - [x] M0.5 `build(web): scaffold Vite React TypeScript Tailwind console with lint, typecheck and Vitest`
-- [ ] M0.6 `ci: add GitHub Actions workflow for backend and web checks`
+- [x] M0.6 `ci: add GitHub Actions workflow for backend and web checks`
 - [ ] M0.7 `docs: add README skeleton and MIT license`
 
 ## M1: Synthetic ERP data (branch `m1-erp-data`)
