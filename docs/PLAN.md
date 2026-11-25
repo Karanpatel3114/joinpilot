@@ -24,7 +24,7 @@ M0.1 is the repository's first commit, made directly on `main`. Create `m0-boots
 ## M1: Synthetic ERP data (branch `m1-erp-data`)
 Done when: the generator produces deterministic datasets in both naming modes, with gold answers and passing tests.
 
-- [ ] M1.1 `feat(synth): generate customer and product master tables from a seed`
+- [x] M1.1 `feat(synth): generate customer and product master tables from a seed`
 - [ ] M1.2 `feat(synth): generate sales order headers and items`
 - [ ] M1.3 `feat(synth): generate customer open items with due dates`
 - [ ] M1.4 `feat(synth): add SAP-style and friendly naming modes`
