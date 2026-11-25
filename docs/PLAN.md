@@ -74,7 +74,7 @@ Done when: runs persist in Postgres, pause for approval, and resume in a backgro
 - [x] M5.2 `build(infra): add docker-compose with Postgres, pgvector and Redis`
 - [x] M5.3 `refactor(services): store projects in the database instead of JSON files`
 - [x] M5.4 `feat(agent): add Postgres checkpointer and approval interrupt`
-- [ ] M5.5 `feat(api): add run, proposal, approval and resume endpoints`
+- [x] M5.5 `feat(api): add run, proposal, approval and resume endpoints`
 - [ ] M5.6 `feat(jobs): run agent steps in an arq worker with status polling`
 - [ ] M5.7 `feat(db): add pgvector glossary search from business terms to columns`
 

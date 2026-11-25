@@ -125,6 +125,10 @@ class AgentNodes:
             "status": "generating" if approved else "completed",
         }
 
+    def finish(self, state: RunState) -> dict[str, Any]:
+        """Close the run (M6 adds view generation and checks before this step)."""
+        return {"status": "completed"}
+
 
 def build_graph(
     ctx: AgentContext, checkpointer: BaseCheckpointSaver[Any] | None = None
@@ -139,6 +143,8 @@ def build_graph(
     graph.add_edge(START, "profile")
     graph.add_edge("profile", "parse_requirement")
     graph.add_edge("parse_requirement", "rank_joins")
+    graph.add_node("finish", timed("finish", nodes.finish))
     graph.add_edge("rank_joins", "await_approval")
-    graph.add_edge("await_approval", END)
+    graph.add_edge("await_approval", "finish")
+    graph.add_edge("finish", END)
     return graph.compile(checkpointer=checkpointer)

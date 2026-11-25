@@ -131,6 +131,8 @@ class Settings(BaseSettings):
     database_url: str = ""
     # Redis for background jobs; empty means jobs run in a thread in the API process
     redis_url: str = ""
+    # inline (run in the request, for tests), thread or arq (Redis)
+    jobs_mode: Literal["inline", "thread", "arq"] = "thread"
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
 
     # Limits

@@ -49,7 +49,8 @@ def test_a_new_process_resumes_from_the_saved_checkpoint(ctx: AgentContext, tmp_
         final = resume_with(build_graph(ctx, saver), "run-a", decisions)
     statuses = {p["edge_id"]: p["status"] for p in final["proposals"]}
     assert [statuses[e] for e in recommended] == ["approved"] * 3 + ["rejected", "proposed"]
-    assert final["status"] == "generating"
+    assert final["status"] == "completed"
+    assert "await_approval" in final["timings_ms"]
     assert final["decisions"][3]["reason"] == "not needed"
 
 
@@ -113,4 +114,4 @@ def test_runs_pause_and_resume_on_postgres(ctx: AgentContext, tmp_path: Path) ->
         final = resume_with(
             build_graph(ctx, saver), thread, [{"edge_id": first, "action": "approve"}]
         )
-    assert final["status"] == "generating"
+    assert final["status"] == "completed"
