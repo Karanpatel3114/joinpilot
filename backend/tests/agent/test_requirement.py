@@ -3,6 +3,7 @@ from joinpilot.agent.requirement import (
     fallback_parse,
     parse_requirement,
 )
+from joinpilot.config import AgentSettings
 from joinpilot.llm.factory import UnavailableProvider
 from joinpilot.llm.fake import FakeProvider
 from joinpilot.llm.prompts import load_prompt
@@ -21,7 +22,7 @@ def test_prompt_files_render_with_their_placeholders() -> None:
 def test_table_description_shows_at_most_two_examples_per_column(
     sap_profile: ProjectProfile,
 ) -> None:
-    text = describe_tables(sap_profile)
+    text = describe_tables(sap_profile, example_values=2)
     assert "KNA1 (1000 rows)" in text
     kunnr = next(line for line in text.splitlines() if line.startswith("- KNA1"))
     assert kunnr.count("'0000") == 2
@@ -39,7 +40,7 @@ def test_model_answer_is_validated_against_known_tables(sap_profile: ProjectProf
             "relevant_tables": ["bsid", "KNA1", "INVENTED"],
         },
     )
-    parsed, warnings = parse_requirement(REQUIREMENT, sap_profile, fake)
+    parsed, warnings = parse_requirement(REQUIREMENT, sap_profile, fake, AgentSettings())
     assert parsed.relevant_tables == ["BSID", "KNA1"]
     assert parsed.source == "llm"
     assert warnings == ["The model named a table that does not exist and it was ignored: INVENTED"]
@@ -47,7 +48,9 @@ def test_model_answer_is_validated_against_known_tables(sap_profile: ProjectProf
 
 
 def test_without_a_model_keywords_still_give_a_usable_parse(sap_profile: ProjectProfile) -> None:
-    parsed, warnings = parse_requirement(REQUIREMENT, sap_profile, UnavailableProvider("no key"))
+    parsed, warnings = parse_requirement(
+        REQUIREMENT, sap_profile, UnavailableProvider("no key"), AgentSettings()
+    )
     assert parsed.source == "fallback"
     assert {"customer", "receivable", "sales order"} <= set(parsed.entities)
     assert [f.value for f in parsed.filters] == ["2026"]

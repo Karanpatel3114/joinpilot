@@ -18,14 +18,14 @@ from eval.baselines import inclusion_dependency, name_only, overlap_only
 from eval.datasets import EvalDataset, load_dataset, split_ids
 from eval.gold import GOLD_ROOT, load_joins
 from eval.join_metrics import JoinCounts, PredictedEdge, score_dataset
-from eval.llm_systems import joinpilot_full, llm_only
+from eval.llm_systems import joinpilot_full, llm_only, requirement_for
 from eval.results import new_report, write_results
 from joinpilot.config import Settings, get_settings
 from joinpilot.errors import LLMUnavailableError
 from joinpilot.joins.scoring import score_candidates
 from joinpilot.llm.factory import make_base_provider
 from joinpilot.llm.observed import ObservedProvider, UsageLog
-from joinpilot.llm.provider import LLMProvider
+from joinpilot.llm.prompts import PROMPTS_DIR
 from joinpilot.profiling.models import ProjectProfile
 
 logger = logging.getLogger(__name__)
@@ -75,63 +75,73 @@ def evaluate_joins(datasets: list[EvalDataset], gold_root: Path = GOLD_ROOT) -> 
     return results
 
 
-def spread(values: list[float]) -> dict[str, float]:
-    """Mean and range of a metric over repeated runs (eval-plan: report both)."""
+def spread(values: list[float | None]) -> dict[str, float] | None:
+    """Mean and range over repeated runs (eval-plan: report both); None if never defined."""
+    known = [v for v in values if v is not None]
+    if not known:
+        return None
     return {
-        "mean": round(sum(values) / len(values), 4),
-        "min": round(min(values), 4),
-        "max": round(max(values), 4),
+        "mean": round(sum(known) / len(known), 4),
+        "min": round(min(known), 4),
+        "max": round(max(known), 4),
+    }
+
+
+SUMMARY_METRICS = (
+    "precision",
+    "recall",
+    "f1",
+    "normalization_recall",
+    "fan_out_recall",
+    "decoy_rejection",
+)
+
+
+def run_llm_system(
+    name: str, datasets: list[EvalDataset], settings: Settings, gold_root: Path
+) -> dict[str, Any]:
+    """One run of one LLM system over every dataset, with failures recorded, not hidden."""
+    log = UsageLog()
+    llm = ObservedProvider(make_base_provider(settings), settings.llm, log=log)
+    total = JoinCounts()
+    per_dataset: dict[str, Any] = {}
+    for dataset in datasets:
+        diagnostics: dict[str, Any] = {}
+        try:
+            if name == "llm_only":
+                predicted = llm_only(dataset.profile, llm)
+            else:
+                requirement = requirement_for(dataset.dataset_id)
+                predicted, diagnostics = joinpilot_full(dataset.profile, llm, settings, requirement)
+        except LLMUnavailableError as error:
+            predicted, diagnostics = [], {"failed": error.message}
+        counts = score_dataset(
+            dataset.dataset_id, predicted, load_joins(dataset.dataset_id, gold_root)
+        )
+        per_dataset[dataset.dataset_id] = {"metrics": counts.metrics(), "diagnostics": diagnostics}
+        total.add(counts)
+    return {
+        "aggregate": total.metrics(),
+        "per_dataset": per_dataset,
+        "usage": log.totals(),
+        "false_positives": total.false_positives,
+        "false_negatives": total.false_negatives,
     }
 
 
 def evaluate_llm_joins(
     datasets: list[EvalDataset], settings: Settings, runs: int, gold_root: Path = GOLD_ROOT
 ) -> dict[str, Any]:
-    """Run the LLM systems `runs` times each (no cache), with usage, mean and range."""
+    """Run each LLM system `runs` times without the cache; report every run, mean and range."""
     results: dict[str, Any] = {}
-
-    def full(profile: ProjectProfile, llm: LLMProvider) -> list[PredictedEdge]:
-        return joinpilot_full(profile, llm, settings)
-
-    systems: dict[str, Callable[[ProjectProfile, LLMProvider], list[PredictedEdge]]] = {
-        "llm_only": llm_only,
-        "joinpilot_full": full,
-    }
-    for name, system in systems.items():
-        per_run: list[dict[str, Any]] = []
-        for run in range(runs):
-            log = UsageLog()
-            llm = ObservedProvider(make_base_provider(settings), settings.llm, log=log)
-            total = JoinCounts()
-            for dataset in datasets:
-                predicted = system(dataset.profile, llm)
-                total.add(
-                    score_dataset(
-                        dataset.dataset_id, predicted, load_joins(dataset.dataset_id, gold_root)
-                    )
-                )
-            per_run.append(
-                {
-                    "run": run + 1,
-                    "aggregate": total.metrics(),
-                    "usage": log.totals(),
-                    "false_positives": total.false_positives,
-                    "false_negatives": total.false_negatives,
-                }
-            )
-        keys = (
-            "precision",
-            "recall",
-            "f1",
-            "normalization_recall",
-            "fan_out_recall",
-            "decoy_rejection",
-        )
+    for name in ("llm_only", "joinpilot_full"):
+        per_run = [
+            {"run": i + 1, **run_llm_system(name, datasets, settings, gold_root)}
+            for i in range(runs)
+        ]
         results[name] = {
             "runs": per_run,
-            "summary": {
-                k: spread([float(r["aggregate"][k] or 0.0) for r in per_run]) for k in keys
-            },
+            "summary": {k: spread([r["aggregate"][k] for r in per_run]) for k in SUMMARY_METRICS},
         }
     return results
 
@@ -165,6 +175,9 @@ def main(argv: list[str] | None = None) -> None:
     report["joins"] = evaluate_joins(datasets)
     if args.llm:
         report["settings"]["llm"] = settings.llm.model_dump(mode="json")
+        report["settings"]["agent"] = settings.agent.model_dump(mode="json")
+        report["prompts"] = sorted(p.name for p in PROMPTS_DIR.glob("*.md"))
+        report["requirements"] = {d.dataset_id: requirement_for(d.dataset_id) for d in datasets}
         try:
             report["llm_joins"] = evaluate_llm_joins(datasets, settings, args.runs)
         except LLMUnavailableError as error:

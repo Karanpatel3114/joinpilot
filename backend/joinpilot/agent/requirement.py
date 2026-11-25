@@ -12,12 +12,12 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, ValidationError
 
+from joinpilot.config import AgentSettings
 from joinpilot.errors import LLMUnavailableError
 from joinpilot.llm.prompts import load_prompt
 from joinpilot.llm.provider import LLMProvider
 from joinpilot.profiling.models import ProjectProfile
 
-EXAMPLE_VALUES = 2
 YEAR = re.compile(r"\b(?:19|20)\d{2}\b")
 ENTITY_WORDS = {
     "customer": ("customer", "client", "debtor"),
@@ -71,12 +71,12 @@ class ParsedRequirement(RequirementDraft):
     source: Literal["llm", "fallback"] = "llm"
 
 
-def describe_tables(profile: ProjectProfile) -> str:
-    """One line per table: columns with type and a couple of example values."""
+def describe_tables(profile: ProjectProfile, example_values: int) -> str:
+    """One line per table: columns with type and a few example values."""
     lines = []
     for table in profile.tables:
         columns = ", ".join(
-            f"{c.name} {c.type} {c.sample_values[:EXAMPLE_VALUES]}" for c in table.columns
+            f"{c.name} {c.type} {c.sample_values[:example_values]}" for c in table.columns
         )
         lines.append(f"- {table.name} ({table.row_count} rows): {columns}")
     return "\n".join(lines)
@@ -101,11 +101,12 @@ def fallback_parse(requirement: str, profile: ProjectProfile) -> ParsedRequireme
 
 
 def parse_requirement(
-    requirement: str, profile: ProjectProfile, llm: LLMProvider
+    requirement: str, profile: ProjectProfile, llm: LLMProvider, settings: AgentSettings
 ) -> tuple[ParsedRequirement, list[str]]:
     """Parse with the model, validating table names; fall back to keywords if it is down."""
     prompt = load_prompt("parse_requirement").render(
-        requirement=requirement.strip(), tables=describe_tables(profile)
+        requirement=requirement.strip(),
+        tables=describe_tables(profile, settings.prompt_example_values),
     )
     try:
         draft = llm.generate(prompt, RequirementDraft).value

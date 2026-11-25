@@ -8,6 +8,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from eval.join_metrics import PredictedEdge
@@ -19,11 +21,20 @@ from joinpilot.llm.prompts import load_prompt
 from joinpilot.llm.provider import LLMProvider
 from joinpilot.profiling.models import ProjectProfile
 
-# One requirement that needs every true join of the ERP sample, so recall is comparable.
-EVAL_REQUIREMENT = (
+# One requirement per schema that needs every true join, so recall is comparable.
+ERP_REQUIREMENT = (
     "Open receivables by customer and aging bucket, 2026 revenue by product group with "
     "product descriptions, monthly order counts, and the top customers by revenue."
 )
+TPCH_REQUIREMENT = (
+    "Revenue from order line items by customer nation and region, by part and by supplier "
+    "nation, using the parts each supplier stocks."
+)
+
+
+def requirement_for(dataset_id: str) -> str:
+    """The evaluation requirement for a dataset's schema."""
+    return TPCH_REQUIREMENT if dataset_id.startswith("tpch") else ERP_REQUIREMENT
 
 
 class ProposedJoin(BaseModel):
@@ -49,7 +60,11 @@ def schema_text(profile: ProjectProfile) -> str:
 
 
 def llm_only(profile: ProjectProfile, llm: LLMProvider) -> list[PredictedEdge]:
-    """Joins the model lists from the schema alone; unknown columns are dropped."""
+    """Joins the model lists from the schema alone; unknown columns are dropped.
+
+    Raises LLMUnavailableError when the model fails; the caller scores that dataset
+    as an empty prediction, so its gold joins stay in the denominator.
+    """
     prompt = load_prompt("llm_only_joins").render(tables=schema_text(profile))
     known = {
         f"{t.name}.{c.name}".casefold(): f"{t.name}.{c.name}"
@@ -65,15 +80,18 @@ def llm_only(profile: ProjectProfile, llm: LLMProvider) -> list[PredictedEdge]:
 
 
 def joinpilot_full(
-    profile: ProjectProfile, llm: LLMProvider, settings: Settings
-) -> list[PredictedEdge]:
-    """The agent's recommended joins for the evaluation requirement."""
-    parsed, _ = parse_requirement(EVAL_REQUIREMENT, profile, llm)
+    profile: ProjectProfile, llm: LLMProvider, settings: Settings, requirement: str
+) -> tuple[list[PredictedEdge], dict[str, Any]]:
+    """The agent's recommended joins, plus what the model actually did.
+
+    The diagnostics show whether parsing fell back to keywords and how many
+    explanations were grounded, templated, failed, omitted or rescued, so a model
+    failure can never pass as the scorer's numbers.
+    """
+    parsed, parse_warnings = parse_requirement(requirement, profile, llm, settings.agent)
     candidates = score_candidates(profile, settings.joins)
-    proposals = rank_joins(
-        parsed, candidates, llm, settings.agent, settings.joins.unique_min
-    ).proposals
-    return [
+    outcome = rank_joins(parsed, candidates, llm, settings.agent, settings.joins.unique_min)
+    edges = [
         PredictedEdge(
             p.from_,
             p.to,
@@ -81,6 +99,12 @@ def joinpilot_full(
             p.fan_out_risk,
             (p.filter.column, p.filter.value) if p.filter else None,
         )
-        for p in proposals
+        for p in outcome.proposals
         if p.recommended
     ]
+    diagnostics = {
+        "parse_source": parsed.source,
+        **outcome.stats,
+        "warnings": len(parse_warnings) + len(outcome.warnings),
+    }
+    return edges, diagnostics

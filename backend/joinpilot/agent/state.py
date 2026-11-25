@@ -6,7 +6,6 @@ and a run can resume in another process.
 
 from __future__ import annotations
 
-import operator
 from typing import Annotated, Any, Literal, TypedDict
 
 RunStatus = Literal[
@@ -20,6 +19,11 @@ RunStatus = Literal[
     "completed",
     "failed",
 ]
+
+
+def add_unique(left: list[str], right: list[str]) -> list[str]:
+    """Reducer: append new warnings, skipping ones already recorded (steps may rerun)."""
+    return left + [w for w in right if w not in left]
 
 
 def merge_dicts(left: dict[str, float], right: dict[str, float]) -> dict[str, float]:
@@ -43,4 +47,4 @@ class RunState(TypedDict, total=False):
     repair_attempts: int
     error: str | None
     timings_ms: Annotated[dict[str, float], merge_dicts]
-    warnings: Annotated[list[str], operator.add]
+    warnings: Annotated[list[str], add_unique]

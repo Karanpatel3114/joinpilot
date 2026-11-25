@@ -63,10 +63,17 @@ class AgentNodes:
 
     def __init__(self, ctx: AgentContext) -> None:
         self.ctx = ctx
+        self._profile: ProjectProfile | None = None
+
+    def profile_data(self) -> ProjectProfile:
+        """The project's profile, loaded once per graph."""
+        if self._profile is None:
+            self._profile = self.ctx.load_profile()
+        return self._profile
 
     def profile(self, state: RunState) -> dict[str, Any]:
         """Score every join candidate from the project's profile (deterministic)."""
-        candidates = score_candidates(self.ctx.load_profile(), self.ctx.settings.joins)
+        candidates = score_candidates(self.profile_data(), self.ctx.settings.joins)
         return {
             "status": "ranking",
             "candidates": [c.model_dump(by_alias=True) for c in candidates],
@@ -75,7 +82,7 @@ class AgentNodes:
     def parse_requirement(self, state: RunState) -> dict[str, Any]:
         """Turn the requirement into entities, measures, dimensions, filters and tables."""
         parsed, warnings = parse_requirement(
-            state["requirement"], self.ctx.load_profile(), self.ctx.llm
+            state["requirement"], self.profile_data(), self.ctx.llm, self.ctx.settings.agent
         )
         return {"parsed_requirement": parsed.model_dump(), "warnings": warnings}
 

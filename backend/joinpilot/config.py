@@ -110,6 +110,7 @@ class LLMSettings(BaseModel):
 class AgentSettings(BaseModel):
     """Tunables for the agent's ranking and its evidence checks."""
 
+    prompt_example_values: int = 2
     ranking_max_candidates: int = 25
     rescue_min_score: float = 0.5
     explanation_tolerance_points: float = 0.6
