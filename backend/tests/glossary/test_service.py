@@ -68,3 +68,19 @@ def test_pgvector_search_matches_the_python_search(
         py = py_glossary.search(py_project, query, 3)
         assert [m.column for m in pg] == [m.column for m in py]
         assert all(abs(a.score - b.score) < 1e-3 for a, b in zip(pg, py, strict=True))
+
+
+def test_queries_without_words_match_nothing(sqlite_settings: Settings) -> None:
+    glossary, project = service_with(sqlite_settings, "erp_s1_sap")
+    assert glossary.search(project, "!!!", 3) == []
+
+
+def test_concurrent_searches_build_the_glossary_once(sqlite_settings: Settings) -> None:
+    from concurrent.futures import ThreadPoolExecutor
+
+    glossary, project = service_with(sqlite_settings, "erp_s1_sap")
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        results = list(pool.map(lambda _: top(glossary, project, "customer name"), range(6)))
+    assert all(r == results[0] for r in results)
+    assert len(set(results[0])) == len(results[0]) == 3
+    assert glossary._count(project) == 35

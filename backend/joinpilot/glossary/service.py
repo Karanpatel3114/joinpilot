@@ -15,6 +15,7 @@ from joinpilot.glossary.embed import cosine, embed
 from joinpilot.glossary.hints import FIELD_HINTS, TABLE_HINTS
 from joinpilot.profiling.models import ProjectProfile
 from joinpilot.services.projects import ProjectService
+from joinpilot.services.store import project_lock
 
 
 class GlossaryMatch(BaseModel):
@@ -48,7 +49,11 @@ class GlossaryService:
         ensure_migrated(settings.db_url)
 
     def rebuild(self, project_id: str, profile: ProjectProfile) -> int:
-        """Replace the project's glossary with one entry per column; returns the count."""
+        """Replace the project's glossary with one entry per column; returns the count.
+
+        Callers hold the project's lock, so a rebuild never races an upload or another
+        rebuild.
+        """
         rows = [
             GlossaryRow(
                 project_id=project_id,
@@ -67,9 +72,12 @@ class GlossaryService:
     def search(self, project_id: str, query: str, k: int) -> list[GlossaryMatch]:
         """The `k` columns whose descriptions are most similar to `query`."""
         project = self.projects.get(project_id)
-        if not self._count(project.id):
-            self.rebuild(project.id, self.projects.profile(project.id))
+        with project_lock(project.id):
+            if not self._count(project.id):
+                self.rebuild(project.id, self.projects.profile(project.id))
         vector = embed(query)
+        if not any(vector):
+            return []
         if self.settings.db_url.startswith("postgresql"):
             return self._search_pgvector(project.id, vector, k)
         with session_scope(self.settings.db_url) as session:

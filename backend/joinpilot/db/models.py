@@ -139,6 +139,11 @@ class GlossaryRow(Base):
     """A column described in business words, with its embedding for similarity search."""
 
     __tablename__ = "glossary_terms"
+    __table_args__ = (
+        UniqueConstraint(
+            "project_id", "column_ref", name="uq_glossary_terms_project_id_column_ref"
+        ),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     project_id: Mapped[str] = mapped_column(
