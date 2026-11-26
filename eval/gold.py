@@ -91,3 +91,12 @@ def load_manifest(dataset_id: str, root: Path = GOLD_ROOT) -> dict[str, Any] | N
         return None
     manifest: dict[str, Any] = json.loads(path.read_text())
     return manifest
+
+
+def load_kpis(dataset_id: str, root: Path = GOLD_ROOT) -> dict[str, Any] | None:
+    """The true KPI values of an ERP dataset (TPC-H has none)."""
+    path = gold_dir(dataset_id, root) / "kpis.json"
+    if not path.exists():
+        return None
+    kpis: dict[str, Any] = json.loads(path.read_text())
+    return kpis
