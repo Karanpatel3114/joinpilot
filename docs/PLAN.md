@@ -105,7 +105,7 @@ Done when: the whole flow, from upload to approved views, works in the browser.
 Done when: a dashboard is generated from metric definitions, and KPI values match gold in evaluation.
 
 - [x] M8.1 `feat(kpi): define metrics from the requirement and model`
-- [ ] M8.2 `feat(kpi): compute metrics on approved views`
+- [x] M8.2 `feat(kpi): compute metrics on approved views`
 - [ ] M8.3 `feat(api): add dashboard endpoint`
 - [ ] M8.4 `feat(web): add generated dashboard page`
 - [ ] M8.5 `feat(eval): measure KPI correctness against gold`
