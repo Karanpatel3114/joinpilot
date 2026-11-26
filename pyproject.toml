@@ -31,6 +31,7 @@ dependencies = [
 
 [project.scripts]
 joinpilot-mcp = "joinpilot.mcp_server.__main__:main"
+
 [project.optional-dependencies]
 tracing = [
     "langfuse>=5.2.0",

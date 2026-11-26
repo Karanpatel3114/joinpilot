@@ -122,7 +122,7 @@ Done when: plain-English questions get guarded, read-only SQL answers with the q
 Done when: Claude Desktop or Claude Code can list projects, profile tables, propose joins, run checks and ask questions through JoinPilot.
 
 - [x] M10.1 `feat(mcp): add MCP server with JoinPilot tools`
-- [ ] M10.2 `test(mcp): add tool contract tests`
+- [x] M10.2 `test(mcp): add tool contract tests`
 - [ ] M10.3 `docs(mcp): add setup guide and demo GIF`
 
 ## M11: Ship it (branch `m11-deploy`)
