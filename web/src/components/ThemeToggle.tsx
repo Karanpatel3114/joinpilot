@@ -1,14 +1,13 @@
 import { Moon, Sun } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+/** Day mode unless this browser chose night mode before. */
 function initialDark(): boolean {
   try {
-    const saved = localStorage.getItem('joinpilot-theme')
-    if (saved) return saved === 'dark'
+    return localStorage.getItem('joinpilot-theme') === 'dark'
   } catch {
-    // storage can be unavailable (private mode); fall back to the system setting
+    return false // storage can be unavailable (private mode)
   }
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
 }
 
 /** Switches between light and dark themes and remembers the choice. */
