@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from joinpilot.agent.approval import Decision
 from joinpilot.agent.ranking import Proposal
 from joinpilot.agent.requirement import ParsedRequirement
+from joinpilot.checks.sit import CheckResult
 from joinpilot.glossary.service import GlossaryMatch
 from joinpilot.profiling.models import (
     ColumnProfile,
@@ -18,9 +19,11 @@ from joinpilot.profiling.models import (
     ProjectProfile,
     TableProfile,
 )
+from joinpilot.sqlgen.views import View
 
 __all__ = [
     "ApprovalRequest",
+    "CheckResult",
     "ColumnProfile",
     "CreateProjectRequest",
     "CreateRunRequest",
@@ -38,6 +41,7 @@ __all__ = [
     "SampleRequest",
     "TableProfile",
     "TableSummary",
+    "View",
 ]
 
 

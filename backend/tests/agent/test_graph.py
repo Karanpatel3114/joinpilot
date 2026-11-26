@@ -51,6 +51,8 @@ def test_a_new_process_resumes_from_the_saved_checkpoint(ctx: AgentContext, tmp_
     assert [statuses[e] for e in recommended] == ["approved"] * 3 + ["rejected", "proposed"]
     assert final["status"] == "completed"
     assert "await_approval" in final["timings_ms"]
+    assert {v["status"] for v in final["views"]} == {"created"}
+    assert final["checks"] and {"generate_views", "check_views"} <= set(final["timings_ms"])
     assert final["decisions"][3]["reason"] == "not needed"
 
 

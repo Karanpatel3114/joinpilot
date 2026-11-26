@@ -1,0 +1,137 @@
+[
+  {
+    "check_id": "v_bsid:row_count",
+    "view": "v_bsid",
+    "kind": "row_count",
+    "passed": true,
+    "observed": 8000,
+    "expected": 8000,
+    "message": "The view keeps all 8000 BSID rows."
+  },
+  {
+    "check_id": "v_bsid:fan_out:BELNR+BUZEI",
+    "view": "v_bsid",
+    "kind": "fan_out",
+    "passed": true,
+    "observed": 0,
+    "expected": 0,
+    "message": "Every fact key appears once."
+  },
+  {
+    "check_id": "v_bsid:orphan_keys:BSID.KUNNR",
+    "view": "v_bsid",
+    "kind": "orphan_keys",
+    "passed": true,
+    "observed": 40,
+    "expected": 400,
+    "message": "40 BSID.KUNNR values (0.50%) have no match in KNA1.KUNNR."
+  },
+  {
+    "check_id": "v_bsid:null_keys:BSID.KUNNR",
+    "view": "v_bsid",
+    "kind": "null_keys",
+    "passed": true,
+    "observed": 24,
+    "expected": 400,
+    "message": "24 BSID.KUNNR values (0.30%) are empty."
+  },
+  {
+    "check_id": "v_bsid:bucket_coverage",
+    "view": "v_bsid",
+    "kind": "bucket_coverage",
+    "passed": true,
+    "observed": 0,
+    "expected": 0,
+    "message": "Every open item with a due date is in an aging bucket."
+  },
+  {
+    "check_id": "v_bsid:reconciliation:DMBTR",
+    "view": "v_bsid",
+    "kind": "reconciliation",
+    "passed": true,
+    "observed": 32939507.11,
+    "expected": 32939507.11,
+    "message": "DMBTR totals agree (32939507.11)."
+  },
+  {
+    "check_id": "v_vbap:row_count",
+    "view": "v_vbap",
+    "kind": "row_count",
+    "passed": true,
+    "observed": 30116,
+    "expected": 30116,
+    "message": "The view keeps all 30116 VBAP rows."
+  },
+  {
+    "check_id": "v_vbap:fan_out:VBELN+POSNR",
+    "view": "v_vbap",
+    "kind": "fan_out",
+    "passed": true,
+    "observed": 0,
+    "expected": 0,
+    "message": "Every fact key appears once."
+  },
+  {
+    "check_id": "v_vbap:orphan_keys:VBAP.VBELN",
+    "view": "v_vbap",
+    "kind": "orphan_keys",
+    "passed": true,
+    "observed": 0,
+    "expected": 1506,
+    "message": "0 VBAP.VBELN values (0.00%) have no match in VBAK.VBELN."
+  },
+  {
+    "check_id": "v_vbap:null_keys:VBAP.VBELN",
+    "view": "v_vbap",
+    "kind": "null_keys",
+    "passed": true,
+    "observed": 0,
+    "expected": 1506,
+    "message": "0 VBAP.VBELN values (0.00%) are empty."
+  },
+  {
+    "check_id": "v_vbap:orphan_keys:VBAP.MATNR",
+    "view": "v_vbap",
+    "kind": "orphan_keys",
+    "passed": true,
+    "observed": 301,
+    "expected": 1506,
+    "message": "301 VBAP.MATNR values (1.00%) have no match in MARA.MATNR."
+  },
+  {
+    "check_id": "v_vbap:null_keys:VBAP.MATNR",
+    "view": "v_vbap",
+    "kind": "null_keys",
+    "passed": true,
+    "observed": 0,
+    "expected": 1506,
+    "message": "0 VBAP.MATNR values (0.00%) are empty."
+  },
+  {
+    "check_id": "v_vbap:orphan_keys:VBAK.KUNNR",
+    "view": "v_vbap",
+    "kind": "orphan_keys",
+    "passed": true,
+    "observed": 0,
+    "expected": 500,
+    "message": "0 VBAK.KUNNR values (0.00%) have no match in KNA1.KUNNR."
+  },
+  {
+    "check_id": "v_vbap:null_keys:VBAK.KUNNR",
+    "view": "v_vbap",
+    "kind": "null_keys",
+    "passed": true,
+    "observed": 0,
+    "expected": 500,
+    "message": "0 VBAK.KUNNR values (0.00%) are empty."
+  },
+  {
+    "check_id": "v_vbap:reconciliation:NETWR",
+    "view": "v_vbap",
+    "kind": "reconciliation",
+    "passed": true,
+    "observed": 48505834.9,
+    "expected": 48505834.9,
+    "message": "NETWR totals agree (48505834.9)."
+  }
+]

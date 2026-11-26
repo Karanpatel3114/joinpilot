@@ -1,0 +1,35 @@
+[
+  {
+    "name": "v_bsid",
+    "sql": "CREATE OR REPLACE VIEW model.\"v_bsid\" AS SELECT t0.\"BUKRS\" AS \"BUKRS\", t0.\"KUNNR\" AS \"KUNNR\", t0.\"GJAHR\" AS \"GJAHR\", t0.\"BELNR\" AS \"BELNR\", t0.\"BUZEI\" AS \"BUZEI\", t0.\"BLDAT\" AS \"BLDAT\", t0.\"ZFBDT\" AS \"ZFBDT\", t0.\"ZBD1T\" AS \"ZBD1T\", t0.\"DMBTR\" AS \"DMBTR\", t0.\"WAERS\" AS \"WAERS\", t1.\"KUNNR\" AS \"KNA1__KUNNR\", t1.\"NAME1\" AS \"KNA1__NAME1\", t1.\"LAND1\" AS \"KNA1__LAND1\", t1.\"ORT01\" AS \"KNA1__ORT01\", t1.\"KTOKD\" AS \"KNA1__KTOKD\", t1.\"ERDAT\" AS \"KNA1__ERDAT\", CAST(t0.\"ZFBDT\" + t0.\"ZBD1T\" * INTERVAL '1' DAY AS DATE) AS \"due_date\", DATE_DIFF('DAY', CAST(t0.\"ZFBDT\" + t0.\"ZBD1T\" * INTERVAL '1' DAY AS DATE), CAST('2026-06-30' AS DATE)) AS \"days_overdue\", CASE WHEN CAST(t0.\"ZFBDT\" + t0.\"ZBD1T\" * INTERVAL '1' DAY AS DATE) IS NULL THEN NULL WHEN DATE_DIFF('DAY', CAST(t0.\"ZFBDT\" + t0.\"ZBD1T\" * INTERVAL '1' DAY AS DATE), CAST('2026-06-30' AS DATE)) <= 0 THEN 'not_due' WHEN DATE_DIFF('DAY', CAST(t0.\"ZFBDT\" + t0.\"ZBD1T\" * INTERVAL '1' DAY AS DATE), CAST('2026-06-30' AS DATE)) <= 30 THEN '1-30' WHEN DATE_DIFF('DAY', CAST(t0.\"ZFBDT\" + t0.\"ZBD1T\" * INTERVAL '1' DAY AS DATE), CAST('2026-06-30' AS DATE)) <= 60 THEN '31-60' WHEN DATE_DIFF('DAY', CAST(t0.\"ZFBDT\" + t0.\"ZBD1T\" * INTERVAL '1' DAY AS DATE), CAST('2026-06-30' AS DATE)) <= 90 THEN '61-90' ELSE '90+' END AS \"aging_bucket\" FROM \"BSID\" AS t0 LEFT JOIN \"KNA1\" AS t1 ON LPAD(CAST(t0.\"KUNNR\" AS TEXT), 10, '0') = t1.\"KUNNR\"",
+    "dialect": "duckdb",
+    "status": "created",
+    "fact_table": "BSID",
+    "joins": [
+      "e5"
+    ],
+    "derived_columns": [
+      "due_date",
+      "days_overdue",
+      "aging_bucket"
+    ],
+    "message": null
+  },
+  {
+    "name": "v_vbap",
+    "sql": "CREATE OR REPLACE VIEW model.\"v_vbap\" AS SELECT t0.\"VBELN\" AS \"VBELN\", t0.\"POSNR\" AS \"POSNR\", t0.\"MATNR\" AS \"MATNR\", t0.\"KWMENG\" AS \"KWMENG\", t0.\"NETWR\" AS \"NETWR\", t1.\"VBELN\" AS \"VBAK__VBELN\", t1.\"ERDAT\" AS \"VBAK__ERDAT\", t1.\"KUNNR\" AS \"VBAK__KUNNR\", t1.\"VKORG\" AS \"VBAK__VKORG\", t1.\"WAERK\" AS \"VBAK__WAERK\", t1.\"NETWR\" AS \"VBAK__NETWR\", t2.\"MATNR\" AS \"MARA__MATNR\", t2.\"MTART\" AS \"MARA__MTART\", t2.\"MATKL\" AS \"MARA__MATKL\", t2.\"MEINS\" AS \"MARA__MEINS\", t2.\"ERSDA\" AS \"MARA__ERSDA\", t3.\"KUNNR\" AS \"KNA1__KUNNR\", t3.\"NAME1\" AS \"KNA1__NAME1\", t3.\"LAND1\" AS \"KNA1__LAND1\", t3.\"ORT01\" AS \"KNA1__ORT01\", t3.\"KTOKD\" AS \"KNA1__KTOKD\", t3.\"ERDAT\" AS \"KNA1__ERDAT\", t4.\"MATNR\" AS \"MAKT__MATNR\", t4.\"SPRAS\" AS \"MAKT__SPRAS\", t4.\"MAKTX\" AS \"MAKT__MAKTX\", CAST(TRY_STRPTIME(t1.\"ERDAT\", '%Y%m%d') AS DATE) AS \"VBAK__ERDAT_date\" FROM \"VBAP\" AS t0 LEFT JOIN \"VBAK\" AS t1 ON t0.\"VBELN\" = t1.\"VBELN\" LEFT JOIN \"MARA\" AS t2 ON t0.\"MATNR\" = t2.\"MATNR\" LEFT JOIN \"KNA1\" AS t3 ON t1.\"KUNNR\" = t3.\"KUNNR\" LEFT JOIN \"MAKT\" AS t4 ON t4.\"MATNR\" = t2.\"MATNR\" AND t4.\"SPRAS\" = 'E'",
+    "dialect": "duckdb",
+    "status": "created",
+    "fact_table": "VBAP",
+    "joins": [
+      "e2",
+      "e4",
+      "e3",
+      "e1"
+    ],
+    "derived_columns": [
+      "VBAK__ERDAT_date"
+    ],
+    "message": null
+  }
+]

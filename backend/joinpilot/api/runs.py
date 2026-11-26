@@ -9,7 +9,14 @@ from fastapi import APIRouter, Depends, status
 from fastapi.concurrency import run_in_threadpool
 
 from joinpilot.api.deps import get_run_service
-from joinpilot.api.schemas import ApprovalRequest, CreateRunRequest, Run, RunProposal
+from joinpilot.api.schemas import (
+    ApprovalRequest,
+    CheckResult,
+    CreateRunRequest,
+    Run,
+    RunProposal,
+    View,
+)
 from joinpilot.services.runs import RunService
 
 router = APIRouter(tags=["runs"])
@@ -50,3 +57,16 @@ async def approve(run_id: UUID, body: ApprovalRequest, runs: Runs) -> Run:
     """Approve or reject joins on a waiting run; the run then resumes in the background."""
     record = await run_in_threadpool(runs.approve, str(run_id), body.decisions)
     return Run.model_validate(record.model_dump())
+
+
+@router.get("/runs/{run_id}/views", response_model=list[View])
+async def get_views(run_id: UUID, runs: Runs) -> list[View]:
+    """The views the run generated (after approval), with their SQL and status."""
+    return [View.model_validate(v) for v in await run_in_threadpool(runs.views, str(run_id))]
+
+
+@router.get("/runs/{run_id}/checks", response_model=list[CheckResult])
+async def get_checks(run_id: UUID, runs: Runs) -> list[CheckResult]:
+    """The latest SIT check results of the run's views."""
+    rows = await run_in_threadpool(runs.checks, str(run_id))
+    return [CheckResult.model_validate(c) for c in rows]

@@ -43,6 +43,7 @@ class RunState(TypedDict, total=False):
     proposals: list[dict[str, Any]]
     decisions: list[dict[str, Any]]
     views: list[dict[str, Any]]
+    view_specs: list[dict[str, Any]]
     checks: list[dict[str, Any]]
     repair_attempts: int
     error: str | None

@@ -17,14 +17,14 @@ from typing import Any
 
 from langgraph.types import Command
 from pydantic import BaseModel
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 
 from joinpilot.agent.approval import Decision
 from joinpilot.agent.checkpoints import open_checkpointer
 from joinpilot.agent.graph import AgentContext, build_graph
 from joinpilot.agent.requirement import ParsedRequirement
 from joinpilot.config import Settings
-from joinpilot.db.models import LLMCallRow, ProposalRow, RunRow
+from joinpilot.db.models import CheckResultRow, LLMCallRow, ProposalRow, RunRow, RunViewRow
 from joinpilot.db.session import ensure_migrated, session_scope
 from joinpilot.errors import (
     ConflictError,
@@ -227,6 +227,7 @@ class RunService:
             load_profile=lambda: self.projects.profile(run.project_id),
             llm=make_provider(self.settings, log),
             settings=self.settings,
+            warehouse=lambda: self.projects.warehouse(run.project_id),
         )
         with open_checkpointer(self.settings) as saver:
             graph = build_graph(ctx, saver)
@@ -326,6 +327,7 @@ class RunService:
             row.parsed_requirement = values.get("parsed_requirement", row.parsed_requirement)
             row.warnings = list(values.get("warnings", row.warnings))
             row.timings_ms = dict(values.get("timings_ms", row.timings_ms))
+            self._mirror_outputs(session, row.id, values)
             existing = {p.edge_id for p in row.proposals}
             for position, proposal in enumerate(values.get("proposals", [])):
                 if proposal["edge_id"] not in existing:
@@ -337,6 +339,39 @@ class RunService:
                             status="proposed",
                         )
                     )
+
+    @staticmethod
+    def _mirror_outputs(session: Any, run_id: str, values: dict[str, Any]) -> None:
+        """Replace the run's stored views and check results with the latest ones."""
+        if "views" in values:
+            session.execute(delete(RunViewRow).where(RunViewRow.run_id == run_id))
+            session.add_all(
+                RunViewRow(run_id=run_id, name=v["name"], position=i, payload=v)
+                for i, v in enumerate(values["views"])
+            )
+        if "checks" in values:
+            session.execute(delete(CheckResultRow).where(CheckResultRow.run_id == run_id))
+            session.add_all(
+                CheckResultRow(
+                    run_id=run_id, check_id=c["check_id"], position=i, passed=c["passed"], payload=c
+                )
+                for i, c in enumerate(values["checks"])
+            )
+
+    def views(self, run_id: str) -> list[dict[str, Any]]:
+        """The views the run generated, in order."""
+        with session_scope(self.settings.db_url) as session:
+            row = self._row(session, run_id)
+            query = select(RunViewRow).where(RunViewRow.run_id == row.id)
+            return [dict(v.payload) for v in session.scalars(query.order_by(RunViewRow.position))]
+
+    def checks(self, run_id: str) -> list[dict[str, Any]]:
+        """The latest check results of the run's views, in order."""
+        with session_scope(self.settings.db_url) as session:
+            row = self._row(session, run_id)
+            query = select(CheckResultRow).where(CheckResultRow.run_id == row.id)
+            ordered = query.order_by(CheckResultRow.position)
+            return [dict(c.payload) for c in session.scalars(ordered)]
 
     def _save_usage(self, run_id: str, log: UsageLog) -> None:
         """Persist the model calls made so far, once each."""

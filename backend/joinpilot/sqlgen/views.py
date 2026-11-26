@@ -12,7 +12,7 @@ when the requirement asks for aging.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import date
 from typing import Any, Literal
 
@@ -282,3 +282,15 @@ def create_views(con: duckdb.DuckDBPyConnection, specs: list[ViewSpec]) -> list[
             )
         )
     return views
+
+
+def spec_to_dict(spec: ViewSpec) -> dict[str, Any]:
+    """A JSON-friendly form of a view spec, for the run's checkpointed state."""
+    return asdict(spec)
+
+
+def spec_from_dict(data: dict[str, Any]) -> ViewSpec:
+    """Rebuild a view spec saved with `spec_to_dict`."""
+    joins = [ApprovedJoin(**j) for j in data.get("joins", [])]
+    return ViewSpec(name=data["name"], fact=data["fact"], joins=joins,
+                    derived=list(data.get("derived", [])), sql=data.get("sql", ""))  # fmt: skip
