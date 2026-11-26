@@ -138,7 +138,7 @@ Done when: JoinPilot runs at a public URL with CI building Docker images and run
 - [x] M11.3d `feat(web): recolour charts, join graph and status badges`
 - [x] M11.3e `docs: refresh console screenshots after the redesign`
 - [x] M11.4 `build(infra): add Render and Vercel deployment config`
-- [ ] M11.5 `docs: add the deployment guide`
+- [x] M11.5 `docs: add the deployment guide`
 
 ## M12: Auth and polish (branch `m12-polish`)
 Done when: the public demo is safe, the final evaluation is in the README, and v1.0.0 is tagged.

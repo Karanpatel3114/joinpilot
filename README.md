@@ -88,6 +88,16 @@ uv run uvicorn joinpilot.api.main:app --reload # API on http://localhost:8000
 cd web && npm install && npm run dev           # console on http://localhost:5173
 ```
 
+Or run the whole stack (Postgres, Redis, worker, API and console) in containers:
+
+```bash
+docker compose -f infra/docker-compose.yml --profile app up -d --build --wait   # console on http://localhost:8080
+```
+
+## Deploy for free
+
+The API runs on Render's free plan and the console on Vercel's, with no payment method on either account. The step-by-step guide is [infra/DEPLOY.md](infra/DEPLOY.md).
+
 ## Evaluation
 
 Every number below comes from a file in [`eval/results/`](eval/results/), which records the split, dataset fingerprints, commit and date. Gold answers are written by the data generator and read only by `eval/`.
