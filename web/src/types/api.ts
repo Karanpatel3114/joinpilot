@@ -28,6 +28,8 @@ export interface Project {
   name: string
   created_at: string
   table_count: number
+  /** True for the shared demo project, which this workspace can read but not change. */
+  read_only: boolean
 }
 
 export interface CreateProjectRequest {

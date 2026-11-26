@@ -78,6 +78,8 @@ class Project(BaseModel):
     name: str
     created_at: datetime
     table_count: int
+    # True for the shared demo project, which other workspaces can read but not change
+    read_only: bool = False
 
 
 class SampleRequest(BaseModel):

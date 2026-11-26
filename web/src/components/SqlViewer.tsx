@@ -1,6 +1,6 @@
 import { Check, Copy, Download } from 'lucide-react'
 import { useState } from 'react'
-import { API_URL } from '../api/client'
+import { downloadUrl } from '../api/client'
 import { useViews } from '../api/hooks'
 import type { SqlDialect } from '../types/api'
 import { ErrorNote } from './ErrorNote'
@@ -57,7 +57,7 @@ export function SqlViewer({ runId }: { runId: string }) {
           </select>
         </label>
         <a
-          href={`${API_URL}/runs/${runId}/export?dialect=${dialect}`}
+          href={downloadUrl(`/runs/${runId}/export?dialect=${dialect}`)}
           className="btn-primary"
         >
           <Download className="h-4 w-4" /> Download SQL

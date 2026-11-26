@@ -51,6 +51,10 @@ class ProjectRow(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     name: Mapped[str] = mapped_column(String(100))
+    # The private workspace that owns the project (D-037)
+    workspace_id: Mapped[str] = mapped_column(
+        String(64), default="local", server_default="local", index=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     tables: Mapped[list[TableRow]] = relationship(
         back_populates="project", cascade="all, delete-orphan", order_by="TableRow.name"

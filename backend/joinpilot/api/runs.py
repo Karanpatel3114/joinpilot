@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, status
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import PlainTextResponse
 
-from joinpilot.api.deps import get_run_service
+from joinpilot.api.deps import get_run_service, guard_project_access
 from joinpilot.api.schemas import (
     ApprovalRequest,
     CheckResult,
@@ -23,7 +23,7 @@ from joinpilot.api.schemas import (
 from joinpilot.services.runs import RunService
 from joinpilot.sqlgen.export import Dialect, export_script, export_views
 
-router = APIRouter(tags=["runs"])
+router = APIRouter(tags=["runs"], dependencies=[Depends(guard_project_access)])
 Runs = Annotated[RunService, Depends(get_run_service)]
 
 
