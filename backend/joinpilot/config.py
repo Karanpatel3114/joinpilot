@@ -114,6 +114,7 @@ class AgentSettings(BaseModel):
     ranking_max_candidates: int = 25
     rescue_min_score: float = 0.5
     explanation_tolerance_points: float = 0.6
+    max_repairs: int = 2
 
 
 class KPISettings(BaseModel):

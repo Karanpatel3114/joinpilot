@@ -47,6 +47,9 @@ class ApprovedJoin:
     normalization: str = "none"
     filter_column: str | None = None
     filter_value: str | None = None
+    # "from": the source is an attribute table filtered to one row per key (texts per
+    # language); "to": a repair filtered the target to one row per key.
+    filter_on: Literal["from", "to"] = "from"
 
     @classmethod
     def from_proposal(cls, proposal: dict[str, Any]) -> ApprovedJoin:
@@ -69,7 +72,7 @@ class ApprovedJoin:
     @property
     def is_attribute(self) -> bool:
         """Attribute tables (filtered fan-out) enrich their target instead of being facts."""
-        return self.filter_column is not None
+        return self.filter_column is not None and self.filter_on == "from"
 
 
 @dataclass
@@ -192,7 +195,8 @@ def join_condition(join: ApprovedJoin, from_alias: str, to_alias: str) -> str:
     right = normalized_sql(f"{to_alias}.{ident(join.to_column)}", join.normalization, "to")
     condition = f"{left} = {right}"
     if join.filter_column and join.filter_value is not None:
-        condition += f" AND {from_alias}.{ident(join.filter_column)} = {literal(join.filter_value)}"
+        alias = from_alias if join.filter_on == "from" else to_alias
+        condition += f" AND {alias}.{ident(join.filter_column)} = {literal(join.filter_value)}"
     return condition
 
 
@@ -203,8 +207,20 @@ def build_view(
     requirement: str,
     settings: KPISettings,
 ) -> ViewSpec:
-    """One view: the fact, left-joined along the chosen joins, plus derived columns."""
-    chosen = reachable(fact, joins)
+    """One view: the fact, left-joined along the joins reachable from it, plus derived columns."""
+    return render_view(
+        ViewSpec(name=f"v_{fact.lower()}", fact=fact, joins=reachable(fact, joins)),
+        columns,
+        requirement,
+        settings,
+    )
+
+
+def render_view(
+    spec: ViewSpec, columns: dict[str, list[ColumnProfile]], requirement: str, settings: KPISettings
+) -> ViewSpec:
+    """Write the SQL for a view whose joins are already chosen (used again by repair)."""
+    fact, chosen = spec.fact, spec.joins
     aliases = {fact: "t0"}
     select = [f"t0.{ident(c.name)} AS {ident(c.name)}" for c in columns[fact]]
     sources = [f"{ident(fact)} AS t0"]
@@ -234,12 +250,11 @@ def build_view(
         aging = aging_columns("t0", columns[fact], reference, settings.aging_bucket_edges)
         select += aging
         derived += ["due_date", "days_overdue", "aging_bucket"] if aging else []
-    name = f"v_{fact.lower()}"
     sql = (
-        f"CREATE OR REPLACE VIEW {SANDBOX_SCHEMA}.{ident(name)} AS SELECT {', '.join(select)} "
+        f"CREATE OR REPLACE VIEW {SANDBOX_SCHEMA}.{ident(spec.name)} AS SELECT {', '.join(select)} "
         f"FROM {' '.join(sources)}"
     )
-    return ViewSpec(name=name, fact=fact, joins=chosen, derived=derived, sql=sql)
+    return ViewSpec(name=spec.name, fact=fact, joins=chosen, derived=derived, sql=sql)
 
 
 def plan_views(
@@ -256,25 +271,29 @@ def plan_views(
     return [build_view(fact, joins, columns, requirement, settings) for fact in fact_tables(joins)]
 
 
-def create_views(con: duckdb.DuckDBPyConnection, specs: list[ViewSpec]) -> list[View]:
+def create_views(
+    con: duckdb.DuckDBPyConnection,
+    specs: list[ViewSpec],
+    status: Literal["created", "repaired"] = "created",
+) -> list[View]:
     """Create each view through the guard; a view that fails is reported, not raised."""
     con.execute(f"CREATE SCHEMA IF NOT EXISTS {SANDBOX_SCHEMA}")
     catalog = catalog_from_connection(con, ("main",))
     views = []
     for spec in specs:
-        status: Literal["created", "failed"] = "created"
+        outcome: Literal["created", "repaired", "failed"] = status
         message = None
         try:
             spec.sql = guard_sql(spec.sql, catalog, "create_view")
             con.execute(spec.sql)
         except (UnsafeSQLError, duckdb.Error) as error:
-            status = "failed"
+            outcome = "failed"
             message = error.message if isinstance(error, UnsafeSQLError) else type(error).__name__
         views.append(
             View(
                 name=spec.name,
                 sql=spec.sql,
-                status=status,
+                status=outcome,
                 fact_table=spec.fact,
                 joins=[j.edge_id for j in spec.joins],
                 derived_columns=spec.derived,
@@ -292,5 +311,10 @@ def spec_to_dict(spec: ViewSpec) -> dict[str, Any]:
 def spec_from_dict(data: dict[str, Any]) -> ViewSpec:
     """Rebuild a view spec saved with `spec_to_dict`."""
     joins = [ApprovedJoin(**j) for j in data.get("joins", [])]
-    return ViewSpec(name=data["name"], fact=data["fact"], joins=joins,
-                    derived=list(data.get("derived", [])), sql=data.get("sql", ""))  # fmt: skip
+    return ViewSpec(
+        name=data["name"],
+        fact=data["fact"],
+        joins=joins,
+        derived=list(data.get("derived", [])),
+        sql=data.get("sql", ""),
+    )

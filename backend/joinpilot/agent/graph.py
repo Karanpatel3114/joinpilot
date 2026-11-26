@@ -2,8 +2,9 @@
 through `AgentContext`, so tests swap in fakes.
 
 Flow: profile -> parse_requirement -> rank_joins -> await_approval (a pause until a
-person decides) -> generate_views -> check_views -> finish. Runs with no candidates
-or no approved joins go straight to finish.
+person decides) -> generate_views -> check_views -> [repair_views -> check_views, at
+most AGENT__MAX_REPAIRS times] -> finish. Runs with no candidates or no approved
+joins go straight to finish.
 """
 
 from __future__ import annotations
@@ -22,6 +23,7 @@ from langgraph.types import interrupt
 
 from joinpilot.agent.approval import Decision, apply_decisions
 from joinpilot.agent.ranking import rank_joins
+from joinpilot.agent.repair import STRUCTURAL, repair_spec
 from joinpilot.agent.requirement import ParsedRequirement, parse_requirement
 from joinpilot.agent.state import RunState
 from joinpilot.checks.sit import run_checks
@@ -30,7 +32,13 @@ from joinpilot.joins.models import JoinCandidate
 from joinpilot.joins.scoring import score_candidates
 from joinpilot.llm.provider import LLMProvider
 from joinpilot.profiling.models import ProjectProfile
-from joinpilot.sqlgen.views import create_views, plan_views, spec_from_dict, spec_to_dict
+from joinpilot.sqlgen.views import (
+    create_views,
+    plan_views,
+    render_view,
+    spec_from_dict,
+    spec_to_dict,
+)
 
 
 class Node(Protocol):
@@ -159,7 +167,56 @@ class AgentNodes:
             results = run_checks(con, specs, self.profile_data(), self.ctx.settings.checks)
         failed = [r for r in results if not r.passed]
         warnings = [f"{len(failed)} of {len(results)} checks failed."] if failed else []
-        return {"checks": [r.model_dump() for r in results], "warnings": warnings}
+        return {
+            "checks": [r.model_dump() for r in results],
+            "warnings": warnings,
+            "status": "checking",
+        }
+
+    def repair_views(self, state: RunState) -> dict[str, Any]:
+        """Fix views whose checks show duplicated or lost rows, then let them be checked again."""
+        failing = {
+            c["view"]
+            for c in state.get("checks", [])
+            if not c["passed"] and c["kind"] in STRUCTURAL
+        }
+        profile = self.profile_data()
+        columns = {t.name: t.columns for t in profile.tables}
+        specs, changed, notes = [], [], []
+        for saved in state.get("view_specs", []):
+            spec = spec_from_dict(saved)
+            if spec.name in failing:
+                fixed, done = repair_spec(spec, profile, self.ctx.settings.joins)
+                notes += done
+                if fixed.joins != spec.joins:
+                    spec = render_view(
+                        fixed, columns, state.get("requirement", ""), self.ctx.settings.kpi
+                    )
+                    changed.append(spec)
+            specs.append(spec)
+        attempts = state.get("repair_attempts", 0) + 1
+        views = {v["name"]: v for v in state.get("views", [])}
+        if changed:
+            with self.open_warehouse() as con:
+                for view in create_views(con, changed, status="repaired"):
+                    views[view.name] = view.model_dump()
+        else:
+            notes.append("No automatic repair was possible for the failing checks.")
+            attempts = self.ctx.settings.agent.max_repairs
+        return {
+            "view_specs": [spec_to_dict(s) for s in specs],
+            "views": list(views.values()),
+            "repair_attempts": attempts,
+            "warnings": notes,
+            "status": "repairing",
+        }
+
+    def after_checks(self, state: RunState) -> str:
+        """Repair while structural checks fail and attempts remain; otherwise finish."""
+        failing = any(not c["passed"] and c["kind"] in STRUCTURAL for c in state.get("checks", []))
+        if failing and state.get("repair_attempts", 0) < self.ctx.settings.agent.max_repairs:
+            return "repair_views"
+        return "finish"
 
     def finish(self, state: RunState) -> dict[str, Any]:
         """Close the run."""
@@ -187,6 +244,7 @@ def build_graph(
     graph.add_edge("parse_requirement", "rank_joins")
     graph.add_node("generate_views", timed("generate_views", nodes.generate_views))
     graph.add_node("check_views", timed("check_views", nodes.check_views))
+    graph.add_node("repair_views", timed("repair_views", nodes.repair_views))
     graph.add_node("finish", timed("finish", nodes.finish))
     graph.add_conditional_edges(
         "rank_joins",
@@ -199,6 +257,7 @@ def build_graph(
         ["generate_views", "finish"],
     )
     graph.add_edge("generate_views", "check_views")
-    graph.add_edge("check_views", "finish")
+    graph.add_conditional_edges("check_views", nodes.after_checks, ["repair_views", "finish"])
+    graph.add_edge("repair_views", "check_views")
     graph.add_edge("finish", END)
     return graph.compile(checkpointer=checkpointer)
