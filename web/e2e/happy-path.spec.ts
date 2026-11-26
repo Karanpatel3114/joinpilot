@@ -27,4 +27,10 @@ test('from raw ERP tables to an approved, checked data model', async ({ page }) 
   const dashboard = page.getByRole('region', { name: 'Dashboard' })
   await expect(dashboard.getByRole('article', { name: 'Open receivables by aging bucket' })).toBeVisible()
   await expect(dashboard.locator('.recharts-bar-rectangle').first()).toBeVisible()
+
+  // No key in this test, so the real API says how to switch the language model on.
+  await page.getByRole('tab', { name: 'Ask' }).click()
+  await page.getByLabel('Your question').fill('How many customers are based in Germany?')
+  await page.getByRole('button', { name: 'Ask' }).click()
+  await expect(page.getByRole('alert')).toContainText('Add GEMINI_API_KEY')
 })
