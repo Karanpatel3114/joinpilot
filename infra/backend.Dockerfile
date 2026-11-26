@@ -28,4 +28,5 @@ USER joinpilot
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
   CMD python -c "import os, urllib.request; urllib.request.urlopen(f'http://127.0.0.1:{os.environ[\"PORT\"]}/health', timeout=4)"
-CMD ["sh", "-c", "exec uvicorn joinpilot.api.main:app --host 0.0.0.0 --port \"$PORT\" --proxy-headers --forwarded-allow-ips='*'"]
+# Forwarded headers are read by the rate limiter only, from trusted hops (LIMITS__FORWARDED_HOPS).
+CMD ["sh", "-c", "exec uvicorn joinpilot.api.main:app --host 0.0.0.0 --port \"$PORT\" --no-proxy-headers"]

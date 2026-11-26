@@ -120,6 +120,9 @@ class LimitSettings(BaseModel):
     expensive_global_per_day: int = Field(default=300, ge=1)
     # Largest JSON request body in KB (uploads use MAX_UPLOAD_MB instead)
     max_body_kb: int = Field(default=512, ge=1)
+    # Trusted proxies in front of the API; the client is the X-Forwarded-For entry they
+    # added, counted from the right (1 on Render). 0 uses the connecting address.
+    forwarded_hops: int = Field(default=0, ge=0, le=5)
 
 
 class QASettings(BaseModel):

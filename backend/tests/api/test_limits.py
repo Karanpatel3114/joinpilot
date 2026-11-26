@@ -1,16 +1,14 @@
 """Rate and size limits, before any endpoint runs."""
 
-import asyncio
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
 from joinpilot.api import limits as limits_module
-from joinpilot.api.limits import Counter, capped
+from joinpilot.api.limits import Counter, client_address
 from joinpilot.api.main import create_app
 from joinpilot.config import LimitSettings, LLMSettings, Settings
-from joinpilot.errors import PayloadTooLargeError
 
 PROJECT = "3f0b7c1e-6a2d-4c8e-9b1a-2d5e8f7a9c10"
 
@@ -60,8 +58,26 @@ def test_pruning_forgets_finished_windows(monkeypatch: pytest.MonkeyPatch) -> No
     counter = Counter()
     for i in range(20):
         counter.hit(f"client-{i}", 5, 60, now=0)
+    assert len(counter._windows) == 10, "the table never grows past its cap"
     counter.hit("late", 5, 60, now=120)
-    assert len(counter._windows) <= 11
+    assert len(counter._windows) == 1, "finished windows are pruned"
+
+
+def test_a_refused_request_uses_no_budget() -> None:
+    counter = Counter()
+    rules = [("model:everyone", 1, 86_400.0), ("model:a", 5, 60.0)]
+    assert counter.hit_all(rules, now=0) is None
+    refused = counter.hit_all([("model:everyone", 1, 86_400.0), ("model:b", 5, 60.0)], now=1)
+    assert refused is not None and refused[0][0] == "model:everyone"
+    assert ("model:b", 60.0) not in counter._windows, "no window is made for a refused client"
+    assert counter.hit("a", 1, 60, now=2) is None
+
+
+def test_the_client_is_the_hop_a_trusted_proxy_added() -> None:
+    scope = {"client": ("10.0.0.1", 1), "headers": [(b"x-forwarded-for", b"6.6.6.6, 203.0.113.7")]}
+    assert client_address(scope, 0) == "10.0.0.1", "without proxies the peer counts"
+    assert client_address(scope, 1) == "203.0.113.7", "the faked leftmost entry is ignored"
+    assert client_address({"client": ("10.0.0.1", 1), "headers": []}, 1) == "10.0.0.1"
 
 
 def test_large_bodies_are_refused_but_uploads_keep_their_own_limit(tmp_path: Path) -> None:
@@ -76,16 +92,11 @@ def test_large_bodies_are_refused_but_uploads_keep_their_own_limit(tmp_path: Pat
     assert upload.status_code == 201
 
 
-def test_bodies_without_a_length_are_counted() -> None:
-    chunks = iter([{"type": "http.request", "body": b"x" * 600, "more_body": True}] * 3)
-
-    async def receive() -> dict[str, object]:
-        return next(chunks)
-
-    async def read_all() -> None:
-        reader = capped(receive, 1024)  # type: ignore[arg-type]
-        for _ in range(3):
-            await reader()
-
-    with pytest.raises(PayloadTooLargeError):
-        asyncio.run(read_all())
+def test_bodies_without_a_length_are_refused_with_413(tmp_path: Path) -> None:
+    api = client(tmp_path, max_body_kb=1)
+    chunks = iter([b'{"name": "', b"x" * 2000, b'"}'])
+    big = api.post("/projects", content=chunks, headers={"content-type": "application/json"})
+    assert big.status_code == 413 and big.json()["error"]["code"] == "PAYLOAD_TOO_LARGE"
+    small = iter([b'{"name": ', b'"Chunked"}'])
+    made = api.post("/projects", content=small, headers={"content-type": "application/json"})
+    assert made.status_code == 201 and made.json()["name"] == "Chunked"

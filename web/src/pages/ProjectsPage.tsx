@@ -21,17 +21,21 @@ export function ProjectsPage() {
       <StackStrip />
       <Statement />
 
-      <section id="how" aria-label="How it works" className="scroll-mt-20 pt-10">
+      <section id="how" aria-labelledby="how-title" className="scroll-mt-20 pt-10">
+        <h2 id="how-title" className="sr-only">
+          How it works
+        </h2>
         <Feature
           eyebrow="Join discovery"
           icon={Waypoints}
           iconClass="bg-[#be7948] text-white"
           title="Find every join, with the numbers that prove it"
-          stat={STATS.joinF1}
+          stat={STATS.fanOut}
           visual={<JoinsVisual />}
         >
           JoinPilot profiles each column, then proposes joins from value overlap, key uniqueness and
-          cardinality. The AI ranks and explains the candidates; it never invents a join.
+          cardinality, and flags joins that would duplicate rows. The AI ranks and explains the candidates; it never
+          invents a join.
         </Feature>
         <Feature
           eyebrow="Approval and checks"

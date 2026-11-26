@@ -1,6 +1,6 @@
 """Rate and request-size limits, enforced before a request reaches any endpoint.
 
-Each client (IP address, from the proxy's forwarded header in production) gets a
+Each client (IP address; behind a proxy, the hop the proxy added) gets a
 per-minute request budget. Starting a run and asking a question use the language
 model, so they also have per-minute and per-day budgets per client and a global
 daily budget that protects the free model quota. JSON bodies are capped in size;
@@ -14,46 +14,83 @@ import json
 import re
 import threading
 import time
-from collections import defaultdict
 from typing import Any
 
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from joinpilot.config import Settings
-from joinpilot.errors import PayloadTooLargeError
 
 EXPENSIVE = re.compile(r"^/projects/[^/]+/(runs|ask)$")
 UPLOAD = re.compile(r"^/projects/[^/]+/tables$")
 MINUTE, DAY = 60.0, 86_400.0
-# Windows kept before finished ones are pruned
+# Most windows kept; finished ones are pruned first, then the oldest are dropped
 MAX_WINDOWS = 50_000
+# Seconds between full prunes, so a full table never costs a scan on every request
+PRUNE_EVERY = 5.0
+
+Rule = tuple[str, int, float]
 
 
 class Counter:
     """Fixed-window counters: at most `limit` hits per `period` seconds for each key."""
 
     def __init__(self) -> None:
-        self._windows: dict[tuple[str, float], tuple[float, int]] = defaultdict(lambda: (0.0, 0))
+        self._windows: dict[tuple[str, float], tuple[float, int]] = {}
         self._lock = threading.Lock()
+        self._pruned_at = float("-inf")
 
     def hit(self, key: str, limit: int, period: float, now: float) -> float | None:
         """Count one hit; return seconds to wait when the window is already full."""
+        refused = self.hit_all([(key, limit, period)], now)
+        return None if refused is None else refused[1]
+
+    def hit_all(self, rules: list[Rule], now: float) -> tuple[Rule, float] | None:
+        """Count one hit against every rule, or none if any rule is full.
+
+        Returns the first full rule and the seconds to wait. Checking before counting
+        means a refused request uses no budget and creates no new window.
+        """
         with self._lock:
-            if len(self._windows) > MAX_WINDOWS:
-                self._prune(now)
-            start, count = self._windows[(key, period)]
-            if now - start >= period:
-                start, count = now, 0
-            if count >= limit:
-                return period - (now - start)
-            self._windows[(key, period)] = (start, count + 1)
+            current = []
+            for key, limit, period in rules:
+                start, count = self._windows.get((key, period), (now, 0))
+                if now - start >= period:
+                    start, count = now, 0
+                if count >= limit:
+                    return (key, limit, period), period - (now - start)
+                current.append(((key, period), start, count))
+            for window, start, count in current:
+                self._windows.pop(window, None)  # re-insert, so the dict stays oldest-first
+                self._windows[window] = (start, count + 1)
+            self._bound(now)
             return None
 
-    def _prune(self, now: float) -> None:
-        """Forget finished windows, so many distinct clients cannot grow memory without end."""
-        for (key, period), (start, _) in list(self._windows.items()):
-            if now - start >= period:
-                del self._windows[(key, period)]
+    def _bound(self, now: float) -> None:
+        """Keep at most MAX_WINDOWS windows, so many clients cannot grow memory without end."""
+        if len(self._windows) <= MAX_WINDOWS:
+            return
+        if now - self._pruned_at >= PRUNE_EVERY:
+            self._pruned_at = now
+            for (key, period), (start, _) in list(self._windows.items()):
+                if now - start >= period:
+                    del self._windows[(key, period)]
+        while len(self._windows) > MAX_WINDOWS:
+            del self._windows[next(iter(self._windows))]
+
+
+def client_address(scope: Scope, hops: int) -> str:
+    """The client's IP address.
+
+    With `hops` trusted proxies in front (Render has one), the address is the entry
+    those proxies appended to X-Forwarded-For, counted from the right; entries further
+    left are written by the client and could be faked. Without proxies it is the peer.
+    """
+    peer = (scope.get("client") or ("unknown", 0))[0]
+    if hops <= 0:
+        return str(peer)
+    header = dict(scope["headers"]).get(b"x-forwarded-for", b"").decode("latin-1")
+    hops_seen = [part.strip() for part in header.split(",") if part.strip()]
+    return hops_seen[-hops] if len(hops_seen) >= hops else str(peer)
 
 
 class LimitMiddleware:
@@ -69,25 +106,36 @@ class LimitMiddleware:
             await self.app(scope, receive, send)
             return
         limits, path = self.settings.limits, scope["path"]
-        client = (scope.get("client") or ("unknown", 0))[0]
-        now = time.monotonic()
-        rules = [(client, limits.requests_per_minute, MINUTE)]
+        client = client_address(scope, limits.forwarded_hops)
+        rules: list[Rule] = [(client, limits.requests_per_minute, MINUTE)]
         if scope["method"] == "POST" and EXPENSIVE.match(path):
-            rules += [
+            rules = [
+                ("model:everyone", limits.expensive_global_per_day, DAY),
+                *rules,
                 (f"model:{client}", limits.expensive_per_minute, MINUTE),
                 (f"model:{client}", limits.expensive_per_day, DAY),
-                ("model:everyone", limits.expensive_global_per_day, DAY),
             ]
-        for key, limit, period in rules:
-            if (wait := self.counter.hit(key, limit, period, now)) is not None:
-                await refuse(send, 429, "RATE_LIMITED", too_many(key, period), wait)
-                return
+        if (refused := self.counter.hit_all(rules, time.monotonic())) is not None:
+            (key, _, period), wait = refused
+            await refuse(send, 429, "RATE_LIMITED", too_many(key, period), wait)
+            return
         cap = self.settings.max_upload_bytes if UPLOAD.match(path) else limits.max_body_kb * 1024
         length = dict(scope["headers"]).get(b"content-length")
-        if length is not None and length.isdigit() and int(length) > cap:
-            await refuse(send, 413, "PAYLOAD_TOO_LARGE", "The request body is too large.", None)
+        if length is not None and length.isdigit():
+            if int(length) > cap:
+                await refuse(send, 413, "PAYLOAD_TOO_LARGE", TOO_LARGE, None)
+                return
+            await self.app(scope, receive, send)
             return
-        await self.app(scope, capped(receive, cap), send)
+        # No length (a chunked body): read it up to the cap first, then hand it on.
+        body = await read_capped(receive, cap)
+        if body is None:
+            await refuse(send, 413, "PAYLOAD_TOO_LARGE", TOO_LARGE, None)
+            return
+        await self.app(scope, replay(body, receive), send)
+
+
+TOO_LARGE = "The request body is too large."
 
 
 def too_many(key: str, period: float) -> str:
@@ -100,18 +148,28 @@ def too_many(key: str, period: float) -> str:
     return "Too many requests; please slow down."
 
 
-def capped(receive: Receive, cap: int) -> Receive:
-    """A receive channel that refuses bodies sent without a length once they pass `cap`."""
+async def read_capped(receive: Receive, cap: int) -> list[Message] | None:
+    """The body's messages, or None once the body passes `cap` bytes."""
+    messages: list[Message] = []
     seen = 0
+    while True:
+        message = await receive()
+        messages.append(message)
+        if message["type"] != "http.request":
+            return messages
+        seen += len(message.get("body", b""))
+        if seen > cap:
+            return None
+        if not message.get("more_body", False):
+            return messages
+
+
+def replay(messages: list[Message], receive: Receive) -> Receive:
+    """A receive channel that first returns the messages already read."""
+    pending = list(messages)
 
     async def wrapped() -> Message:
-        nonlocal seen
-        message = await receive()
-        if message["type"] == "http.request":
-            seen += len(message.get("body", b""))
-            if seen > cap:
-                raise PayloadTooLargeError("The request body is too large.")
-        return message
+        return pending.pop(0) if pending else await receive()
 
     return wrapped
 

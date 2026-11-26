@@ -11,7 +11,8 @@ export const EVAL_SOURCE = {
 }
 
 export const STATS = {
-  joinF1: { value: '1.000', label: 'Join F1 on the dev split' },
+  // Fan-out recall: joins that would duplicate rows, caught (every baseline scores 0.000)
+  fanOut: { value: '1.000', label: 'Fan-out recall · baselines 0.000' },
   kpis: { value: '416/416', label: 'KPI values correct' },
   attacks: { value: '71/71', label: 'SQL attacks blocked' },
 }

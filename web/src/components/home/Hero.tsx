@@ -44,8 +44,8 @@ export function Hero() {
 
       <div className="relative mx-auto mt-6 h-64 w-64 sm:h-80 sm:w-80">
         <HeroArt />
-        <DataLabel className="top-24 -left-52" title="JOIN KEY" lines={['VBAP.VBELN = VBAK.VBELN', 'overlap 100% · N:1']} />
-        <DataLabel className="top-44 -left-44" title="NORMALIZE" lines={["BSID.KUNNR ltrim('0')", 'then join KNA1']} />
+        <DataLabel className="top-24 -left-52" title="EXAMPLE · JOIN KEY" lines={['VBAP.VBELN = VBAK.VBELN', 'overlap 100% · N:1']} />
+        <DataLabel className="top-44 -left-44" title="EXAMPLE · NORMALIZE" lines={["BSID.KUNNR ltrim('0')", 'then join KNA1']} />
         <div
           aria-hidden="true"
           className="absolute top-16 -right-56 hidden w-60 rounded-lg bg-white p-3 text-left shadow-[0_1px_2px_rgba(11,17,8,0.06)] md:block dark:bg-slate-950"

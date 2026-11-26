@@ -4,7 +4,7 @@ The API runs on Render's free web service and the console on Vercel's free Hobby
 
 What to expect from free hosting:
 - The API sleeps after 15 minutes without traffic. The next visit waits about a minute while it wakes.
-- The API's disk is wiped on every restart, so uploads and runs last only until then. In demo mode the sample project is loaded again at startup.
+- The API's disk is wiped on every restart, so uploads and runs last only until then. Demo mode (M12.2) loads the sample project again at startup.
 
 ## 1. API on Render
 
@@ -18,7 +18,7 @@ What to expect from free hosting:
 ## 2. Console on Vercel
 
 1. Sign in at [vercel.com](https://vercel.com) with **Continue with GitHub**.
-2. **Add New → Project**, import `joinpilot`, and set **Root Directory** to `web`. Vercel reads [`web/vercel.json`](../web/vercel.json) for the build.
+2. **Add New → Project**, import `joinpilot`, and set **Root Directory** to `web`. Keep **Include files outside the root directory** switched on (the default): the build type-checks tests that read `shared/fixtures/`. Vercel reads [`web/vercel.json`](../web/vercel.json) for the build.
 3. Under **Environment Variables**, add `VITE_API_URL` = your Render address, such as `https://joinpilot-api.onrender.com` (no trailing slash).
 4. Click **Deploy**. Note the address Vercel gives you, such as `https://joinpilot.vercel.app`.
 5. If that address differs from what you entered for `CORS_ORIGINS` on Render, update it under the Render service's **Environment** tab. Render restarts the API with the new value.
@@ -31,6 +31,8 @@ Both services redeploy automatically on every push to `main`.
 uv run python infra/smoke_api.py https://<service>.onrender.com     # API: create, load, run, approve, checks
 cd web && E2E_BASE_URL=https://<project>.vercel.app npx playwright test happy-path
 ```
+
+Once the console works, check the rate limiter sees real visitor addresses: the Blueprint sets `LIMITS__FORWARDED_HOPS=1` because Render's proxy appends the visitor's address to `X-Forwarded-For`. If Render's logs show one address for every visitor, raise it by one.
 
 ## Settings worth knowing
 
