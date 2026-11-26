@@ -46,7 +46,14 @@ export function MetricCard({ metric }: { metric: Metric }) {
               </button>
             ))}
           </div>
-          {show === 'chart' && <MetricChart metric={metric} />}
+          {show === 'chart' &&
+            (metric.data.length ? (
+              <div role="img" aria-label={`${metric.title}: chart of ${metric.data.length} rows; the Table view lists every value.`}>
+                <MetricChart metric={metric} />
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500 dark:text-slate-400">No rows match this metric.</p>
+            ))}
           {show === 'table' && (
             <div className="max-h-72 overflow-auto rounded-lg border border-slate-200 dark:border-slate-800">
               <table aria-label={`${metric.title} data`} className="w-full text-left text-sm">

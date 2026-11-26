@@ -51,4 +51,31 @@ describe('KPI dashboard', () => {
     expect(within(card).getByRole('alert')).toHaveTextContent('could not be computed')
     expect(within(card).queryByRole('button', { name: 'SQL' })).not.toBeInTheDocument()
   })
+
+  it('names the run it comes from and explains a run without KPIs', async () => {
+    renderAt(`${PROJECT}?tab=Dashboard`)
+    expect(await screen.findByRole('link', { name: '7c9e6679' })).toHaveAttribute(
+      'href',
+      '/runs/7c9e6679-7425-40de-944b-e07fc1f90ae7',
+    )
+    server.use(
+      http.get(`${API}/projects/:id/dashboard`, () =>
+        HttpResponse.json({ run_id: dashboard.run_id, metrics: [] }),
+      ),
+    )
+    renderAt(`${PROJECT}?tab=Dashboard`)
+    expect(await screen.findByText(/that run produced no kpis/i)).toBeInTheDocument()
+  })
+
+  it('says so when a metric has no rows', async () => {
+    const [first, ...rest] = dashboard.metrics
+    server.use(
+      http.get(`${API}/projects/:id/dashboard`, () =>
+        HttpResponse.json({ ...dashboard, metrics: [{ ...first, data: [] }, ...rest] }),
+      ),
+    )
+    renderAt(`${PROJECT}?tab=Dashboard`)
+    const card = await screen.findByRole('article', { name: first.title })
+    expect(within(card).getByText('No rows match this metric.')).toBeInTheDocument()
+  })
 })

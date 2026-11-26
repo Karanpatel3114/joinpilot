@@ -49,6 +49,8 @@ logger = logging.getLogger(__name__)
 
 TERMINAL = frozenset({"completed", "failed"})
 ACTIVE = frozenset({"queued", "profiling", "ranking", "generating", "checking", "repairing"})
+# Steps that write the project's model views; only one run per project may be in them.
+BUILDING = frozenset({"generating", "checking", "repairing"})
 # Mirroring graph state may only move a run forward along this order.
 ORDER = {
     "queued": 0,
@@ -280,13 +282,32 @@ class RunService:
         ]
 
     def _record_decisions(self, run_id: str, decisions: list[Decision]) -> list[str]:
-        """Claim the paused run (compare-and-set) and store decisions in one transaction."""
+        """Claim the paused run (compare-and-set) and store decisions in one transaction.
+
+        Views share one model schema per project, so a run may only start building while
+        no other run of its project is building (checked under a per-project lock).
+        """
         with session_scope(self.settings.db_url) as session:
+            project_id = self._row(session, run_id).project_id
+        with run_lock(f"build:{project_id}"), session_scope(self.settings.db_url) as session:
             row = self._row(session, run_id)
             known = {p.edge_id: p for p in row.proposals}
             unknown = sorted({d.edge_id for d in decisions} - set(known))
             if unknown:
                 raise InvalidInputError("Some decisions name unknown joins.", {"edge_ids": unknown})
+            building = session.scalars(
+                select(RunRow.id).where(
+                    RunRow.project_id == row.project_id,
+                    RunRow.id != row.id,
+                    RunRow.status.in_(BUILDING),
+                )
+            ).first()
+            if building is not None and row.status == "awaiting_approval":
+                raise ConflictError(
+                    "Another run in this project is building its model; approve this one "
+                    "when it finishes.",
+                    {"run_id": building},
+                )
             claimed = session.execute(
                 update(RunRow)
                 .where(RunRow.id == row.id, RunRow.status == "awaiting_approval")
@@ -379,13 +400,16 @@ class RunService:
             return [dict(v.payload) for v in session.scalars(query.order_by(RunViewRow.position))]
 
     def dashboard(self, project_id: str) -> tuple[str | None, list[dict[str, Any]]]:
-        """The metrics of the project's newest completed run that has any, and that run."""
+        """The metrics of the project's most recently completed run, and that run.
+
+        The newest model is the one in the warehouse, so an older run's numbers are never
+        shown in its place, even when the newest run produced no metrics.
+        """
         self.projects.get(project_id)
         query = (
             select(RunRow.id)
-            .join(RunMetricRow, RunMetricRow.run_id == RunRow.id)
             .where(RunRow.project_id == project_id, RunRow.status == "completed")
-            .order_by(RunRow.created_at.desc(), RunRow.id)
+            .order_by(RunRow.updated_at.desc(), RunRow.id)
             .limit(1)
         )
         with session_scope(self.settings.db_url) as session:

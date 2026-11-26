@@ -1,6 +1,8 @@
 # JoinPilot API contract
 
-Version: 0.8. Change it only with the `contract-sync` skill, and bump the version.
+Version: 0.9. Change it only with the `contract-sync` skill, and bump the version.
+
+Changes in 0.9 (behaviour): the dashboard belongs to the project's most recently completed run, even when that run produced no metrics; approving a run gives 409 while another run of the same project is building its model; metrics on a view that failed a row count, fan-out or reconciliation check come back `failed`.
 
 Changes in 0.8 (additive): `GET /projects/{project_id}/dashboard` is implemented and returns the KPI metrics, with their SQL and rows, of the project's newest completed run.
 
@@ -92,7 +94,7 @@ Run status values: `queued`, `profiling`, `ranking`, `awaiting_approval`, `gener
 - `rescued` is true when the model recommended a join the scorer rejected only for a low score.
 - `status` is `proposed`, `approved` or `rejected`.
 
-`POST /runs/{run_id}/approvals` with `{"decisions": [{"edge_id": "e1", "action": "approve"}, {"edge_id": "e2", "action": "reject", "reason": "..."}]}` (1–200 decisions) returns 202 and the `Run`, which resumes in the background. Unknown edge ids give 422 (`details.edge_ids`); a run that is not `awaiting_approval` gives 409.
+`POST /runs/{run_id}/approvals` with `{"decisions": [{"edge_id": "e1", "action": "approve"}, {"edge_id": "e2", "action": "reject", "reason": "..."}]}` (1–200 decisions) returns 202 and the `Run`, which resumes in the background. Unknown edge ids give 422 (`details.edge_ids`); a run that is not `awaiting_approval` gives 409, and so does approving while another run of the same project is generating, checking or repairing its views (`details.run_id` names it; views share one model schema per project).
 
 After approval the run generates one view per fact table and checks it (status `generating`, then `checking`). If nothing is approved, the run completes without views.
 
@@ -115,7 +117,7 @@ After approval the run generates one view per fact table and checks it (status `
 Check kinds: `row_count` (one view row per fact row), `fan_out` (no fact key twice), `orphan_keys` and `null_keys` (per join, within configured shares; `expected` is the allowed count), `bucket_coverage` (every open item in a known aging bucket), `reconciliation` (each money column sums to the fact table's total).
 
 ## Dashboard and questions
-`GET /projects/{project_id}/dashboard` returns the metrics of the project's newest completed run that has any (`run_id` is `null` and `metrics` empty before that; an unknown project gives 404):
+`GET /projects/{project_id}/dashboard` returns the metrics of the project's most recently completed run (`run_id` is `null` and `metrics` empty before the first one; `metrics` is also empty when that run produced none; an unknown project gives 404):
 ```json
 {"run_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
  "metrics": [{"metric_id": "aging_buckets", "title": "Open receivables by aging bucket",
@@ -124,7 +126,7 @@ Check kinds: `row_count` (one view row per fact row), `fan_out` (no fact key twi
    "chart": "bar", "x": "bucket", "y": ["amount"], "requested": true,
    "data": [{"bucket": "not_due", "amount": 12813002.84}], "status": "computed", "message": null}]}
 ```
-`chart` is `bar`, `line` or `table`; `x` names the category column of each `data` row and `y` the value columns. `requested` is true when the requirement asks for the metric (those come first). Metric ids: `aging_buckets`, `aging_top_customers`, `revenue_<year>_by_product_group` (or `revenue_by_product_group` when the requirement names no year), `monthly_order_counts`, `top_customers_by_revenue`; a metric only appears when the approved model has the columns it needs. `status` is `computed` or `failed` (with `message`, and no rows). At most `KPI__MAX_METRIC_ROWS` rows per metric.
+`chart` is `bar`, `line` or `table`; `x` names the category column of each `data` row and `y` the value columns. `requested` is true when the requirement asks for the metric (those come first). Metric ids: `aging_buckets`, `aging_top_customers`, `revenue_<year>_by_product_group` (or `revenue_by_product_group` when the requirement names no year), `monthly_order_counts`, `top_customers_by_revenue`; a metric only appears when the approved model has the columns it needs. `status` is `computed` or `failed` (with `message`, and no rows); a metric whose view still fails a `row_count`, `fan_out` or `reconciliation` check after repairs is `failed`, because its totals would be wrong. At most `KPI__MAX_METRIC_ROWS` rows per metric.
 
 
 `POST /projects/{project_id}/ask` with `{"question": "Which 5 customers have the most overdue receivables?"}` returns `{"sql", "rows", "chart", "evidence", "blocked": false, "reason_code": null}`

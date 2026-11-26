@@ -147,3 +147,49 @@ def test_the_dashboard_shows_the_newest_completed_runs_metrics(client: TestClien
 def test_the_dashboard_of_an_unknown_project_is_not_found(client: TestClient) -> None:
     response = client.get("/projects/3f0b7c1e-6a2d-4c8e-9b1a-2d5e8f7a9c10/dashboard")
     assert response.status_code == 404
+
+
+def decide_all(client: TestClient, run_id: str, approve_recommended: bool) -> None:
+    proposals = client.get(f"/runs/{run_id}/proposals").json()
+    decisions = [
+        {
+            "edge_id": p["edge_id"],
+            "action": "approve" if approve_recommended and p["recommended"] else "reject",
+        }
+        for p in proposals
+    ]
+    assert (
+        client.post(f"/runs/{run_id}/approvals", json={"decisions": decisions}).status_code == 202
+    )
+
+
+def test_the_newest_completed_run_owns_the_dashboard_even_without_metrics(
+    client: TestClient,
+) -> None:
+    project_id = project_with_sample(client)
+    first = start(client, project_id)
+    decide_all(client, first["run_id"], approve_recommended=True)
+    assert client.get(f"/projects/{project_id}/dashboard").json()["metrics"]
+    second = start(client, project_id)
+    decide_all(client, second["run_id"], approve_recommended=False)
+    dashboard = client.get(f"/projects/{project_id}/dashboard").json()
+    assert dashboard == {"run_id": second["run_id"], "metrics": []}
+
+
+def test_only_one_run_per_project_builds_its_model_at_a_time(
+    client: TestClient, settings: Settings
+) -> None:
+    from joinpilot.db.models import RunRow
+
+    project_id = project_with_sample(client)
+    building, waiting = start(client, project_id), start(client, project_id)
+    with session_scope(settings.db_url) as session:
+        session.get(RunRow, building["run_id"]).status = "generating"  # type: ignore[union-attr]
+    proposals = client.get(f"/runs/{waiting['run_id']}/proposals").json()
+    response = client.post(
+        f"/runs/{waiting['run_id']}/approvals",
+        json={"decisions": [{"edge_id": proposals[0]["edge_id"], "action": "approve"}]},
+    )
+    assert response.status_code == 409
+    assert response.json()["error"]["details"] == {"run_id": building["run_id"]}
+    assert client.get(f"/runs/{waiting['run_id']}").json()["status"] == "awaiting_approval"
