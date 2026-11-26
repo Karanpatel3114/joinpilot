@@ -58,7 +58,7 @@ export function SqlViewer({ runId }: { runId: string }) {
         </label>
         <a
           href={`${API_URL}/runs/${runId}/export?dialect=${dialect}`}
-          className="inline-flex items-center gap-1 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"
+          className="btn-primary"
         >
           <Download className="h-4 w-4" /> Download SQL
         </a>

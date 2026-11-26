@@ -83,7 +83,7 @@ export function RunPage() {
         <>
           <Link
             to={`/projects/${run.data.project_id}?tab=Dashboard`}
-            className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+            className="btn-primary"
           >
             <LayoutDashboard className="h-4 w-4" /> Open the KPI dashboard
           </Link>

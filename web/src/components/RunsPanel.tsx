@@ -39,7 +39,7 @@ export function RunsPanel({ projectId }: { projectId: string }) {
           <button
             type="submit"
             disabled={requirement.trim().length < 3 || start.isPending}
-            className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+            className="btn-primary"
           >
             <Play className="h-4 w-4" /> Start run
           </button>

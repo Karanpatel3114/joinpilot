@@ -46,7 +46,7 @@ export function UploadPanel({ projectId }: { projectId: string }) {
           type="button"
           onClick={() => sample.mutate('erp_s1_sap')}
           disabled={busy}
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+          className="btn-primary"
         >
           <Sparkles className="h-4 w-4" /> Load ERP sample
         </button>

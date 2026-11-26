@@ -18,7 +18,7 @@ export function MetricCard({ metric }: { metric: Metric }) {
           <p className="text-sm text-slate-600 dark:text-slate-400">{metric.description}</p>
         </div>
         {metric.requested && (
-          <span className="rounded-full bg-brand-100 px-2 py-0.5 text-xs text-brand-700 dark:bg-slate-800 dark:text-brand-100">
+          <span className="rounded-md bg-brand-50 px-2 py-0.5 font-mono text-[11px] text-slate-700 dark:bg-slate-800 dark:text-brand-300">
             asked for
           </span>
         )}
