@@ -65,4 +65,16 @@ describe('Projects page', () => {
     ])
     await waitFor(() => expect(parts).toEqual(['a,b\n1,2\n', 'x\n1\n']))
   })
+
+  it('moves between project tabs with the arrow keys', async () => {
+    renderAt('/projects/3f0b7c1e-6a2d-4c8e-9b1a-2d5e8f7a9c10')
+    const profile = await screen.findByRole('tab', { name: 'Profile' })
+    expect(profile).toHaveAttribute('aria-selected', 'true')
+    profile.focus()
+    await userEvent.keyboard('{ArrowRight}')
+    const runs = screen.getByRole('tab', { name: 'Runs' })
+    expect(runs).toHaveFocus()
+    expect(runs).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tabpanel', { name: 'Runs' })).toBeInTheDocument()
+  })
 })

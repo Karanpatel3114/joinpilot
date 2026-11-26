@@ -1,5 +1,5 @@
 import { ArrowLeft } from 'lucide-react'
-import { useState } from 'react'
+import { type KeyboardEvent, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { useProjects } from '../api/hooks'
 import { ProfileExplorer } from '../components/ProfileExplorer'
@@ -15,6 +15,17 @@ export function ProjectPage() {
   const project = useProjects().data?.find((p) => p.id === projectId)
   const [tab, setTab] = useState<Tab>('Profile')
   const hasTables = (project?.table_count ?? 0) > 0
+
+  /** Arrow keys, Home and End move between tabs, as in the ARIA tabs pattern. */
+  function onKey(event: KeyboardEvent<HTMLDivElement>) {
+    const index = TABS.indexOf(tab)
+    const next = { ArrowRight: index + 1, ArrowLeft: index - 1, Home: 0, End: TABS.length - 1 }[event.key]
+    if (next === undefined) return
+    event.preventDefault()
+    const name = TABS[(next + TABS.length) % TABS.length]
+    setTab(name)
+    document.getElementById(`tab-${name}`)?.focus()
+  }
   return (
     <section className="space-y-6">
       <Link to="/" className="inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-300">
@@ -24,13 +35,16 @@ export function ProjectPage() {
       <UploadPanel projectId={projectId} />
       {hasTables && (
         <>
-          <div role="tablist" aria-label="Project views" className="flex gap-2 border-b border-slate-200 dark:border-slate-800">
+          <div role="tablist" aria-label="Project views" onKeyDown={onKey} className="flex gap-2 border-b border-slate-200 dark:border-slate-800">
             {TABS.map((name) => (
               <button
                 key={name}
+                id={`tab-${name}`}
                 role="tab"
                 type="button"
                 aria-selected={tab === name}
+                aria-controls={`panel-${name}`}
+                tabIndex={tab === name ? 0 : -1}
                 onClick={() => setTab(name)}
                 className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${
                   tab === name ? 'border-brand-600 text-brand-600 dark:text-brand-300' : 'border-transparent text-slate-500 dark:text-slate-400'
@@ -40,8 +54,9 @@ export function ProjectPage() {
               </button>
             ))}
           </div>
-          {tab === 'Profile' && <ProfileExplorer projectId={projectId} />}
-          {tab === 'Runs' && <RunsPanel projectId={projectId} />}
+          <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
+            {tab === 'Profile' ? <ProfileExplorer projectId={projectId} /> : <RunsPanel projectId={projectId} />}
+          </div>
         </>
       )}
     </section>
