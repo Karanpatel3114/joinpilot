@@ -66,6 +66,7 @@ ALLOWED_FUNCTIONS = frozenset(
         "dayofyear",
         "dense_rank",
         "div",
+        "exists",
         "extract",
         "first",
         "first_value",
@@ -145,6 +146,10 @@ ALLOWED_FUNCTIONS = frozenset(
 )
 
 
+# Largest padded or repeated string a query may build (guards against memory blow-ups).
+MAX_STRING_SIZE = 10_000
+
+
 class UnsafeSQLError(JoinPilotError):
     """The statement was refused by the guard."""
 
@@ -205,7 +210,7 @@ def query_of(statement: exp.Expression, mode: Mode) -> exp.Query:
     if not is_view:
         raise UnsafeSQLError("Only CREATE OR REPLACE VIEW is allowed here.")
     target = statement.this.this if isinstance(statement.this, exp.Schema) else statement.this
-    if not isinstance(target, exp.Table) or target.db != SANDBOX_SCHEMA:
+    if not isinstance(target, exp.Table) or target.db != SANDBOX_SCHEMA or target.catalog:
         raise UnsafeSQLError(f"Views must be created in the {SANDBOX_SCHEMA} schema.")
     body = statement.expression
     if not isinstance(body, exp.Query):
@@ -237,6 +242,18 @@ def check_nodes(query: exp.Query) -> None:
             )
         if isinstance(node, exp.Table) and not isinstance(node.this, exp.Identifier):
             raise UnsafeSQLError("Table functions are not allowed.", {"node": node.this.key})
+        if isinstance(node, exp.With) and node.args.get("recursive"):
+            raise UnsafeSQLError("Recursive queries are not allowed.")
+        if isinstance(node, exp.Func) and isinstance(node.parent, exp.Dot):
+            raise UnsafeSQLError("Qualified function calls are not allowed.")
+        if isinstance(node, exp.Table) and node.catalog:
+            raise UnknownIdentifierError(
+                "Other databases cannot be queried.", {"database": node.catalog}
+            )
+        if isinstance(node, (exp.Pad, exp.Repeat)):
+            for arg in node.args.values():
+                if isinstance(arg, exp.Literal) and arg.is_int and int(arg.this) > MAX_STRING_SIZE:
+                    raise UnsafeSQLError("The query asks for an oversized string.")
         is_operator = isinstance(node, (exp.Connector, exp.Binary, exp.Unary))
         if (
             isinstance(node, exp.Func)

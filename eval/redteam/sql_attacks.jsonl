@@ -54,3 +54,10 @@
 {"id": "a54", "category": "view_mode", "mode": "create_view", "sql": "CREATE OR REPLACE VIEW main.v AS SELECT KUNNR FROM KNA1"}
 {"id": "a55", "category": "view_mode", "mode": "create_view", "sql": "CREATE OR REPLACE VIEW model.v AS SELECT * FROM read_csv('/etc/passwd')"}
 {"id": "a56", "category": "view_mode", "mode": "create_view", "sql": "CREATE OR REPLACE TABLE model.v AS SELECT KUNNR FROM KNA1"}
+{"id": "a57", "category": "database", "mode": "select", "sql": "SELECT * FROM other.main.KNA1"}
+{"id": "a58", "category": "database", "mode": "select", "sql": "SELECT * FROM memory.main.KNA1"}
+{"id": "a59", "category": "view_mode", "mode": "create_view", "sql": "CREATE OR REPLACE VIEW other.model.v AS SELECT KUNNR FROM KNA1"}
+{"id": "a60", "category": "system", "mode": "select", "sql": "SELECT system.main.lpad(NAME1, 3, '0') FROM KNA1"}
+{"id": "a61", "category": "cost", "mode": "select", "sql": "WITH RECURSIVE r(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM r) SELECT count(*) FROM r"}
+{"id": "a62", "category": "cost", "mode": "select", "sql": "SELECT lpad(NAME1, 2000000000, 'x') FROM KNA1"}
+{"id": "a63", "category": "cost", "mode": "select", "sql": "SELECT repeat(NAME1, 100000000) FROM KNA1"}

@@ -8,3 +8,4 @@
 {"id": "h08", "sql": "SELECT KUNNR, RANK() OVER (ORDER BY KUNNR) FROM KNA1"}
 {"id": "h09", "sql": "SELECT aging_bucket, ROUND(SUM(DMBTR), 2) FROM model.v_bsid GROUP BY aging_bucket"}
 {"id": "h10", "sql": "SELECT COUNT(DISTINCT KUNNR) FILTER (WHERE DMBTR > 1000) FROM BSID"}
+{"id": "h11", "sql": "SELECT NAME1 FROM KNA1 k WHERE EXISTS (SELECT 1 FROM BSID b WHERE lpad(b.KUNNR, 10, '0') = k.KUNNR)"}

@@ -46,3 +46,12 @@ def test_every_attack_is_blocked(attack: dict[str, Any], catalog: Catalog) -> No
 @pytest.mark.parametrize("sql", HARMLESS)
 def test_ordinary_questions_are_not_blocked(sql: str, catalog: Catalog) -> None:
     guard_sql(sql, catalog)
+
+
+def test_comments_cannot_smuggle_a_second_statement(catalog: Catalog) -> None:
+    sql = "SELECT KUNNR -- x */ ; DROP TABLE KNA1; /*\nFROM KNA1"
+    safe = guard_sql(sql, catalog)
+    import sqlglot
+
+    assert len([s for s in sqlglot.parse(safe, read="duckdb") if s is not None]) == 1
+    assert "DROP" not in safe.split("/*")[0]
