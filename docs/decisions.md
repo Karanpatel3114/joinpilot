@@ -155,3 +155,9 @@ One entry per design choice that had real alternatives. Newest at the bottom. Fo
 - **Decision:** transpile each view with sqlglot after rewriting DuckDB-only functions into sqlglot's typed equivalents (`try_strptime` becomes a safe date parse, which Snowflake renders as `TRY_TO_TIMESTAMP` and BigQuery as `SAFE_CAST ... FORMAT`). Anything a dialect cannot express is reported next to the SQL rather than dropped; Postgres gets a note that its date parsing is not safe.
 - **Alternatives:** hand-written templates per dialect (more code and drift); dbt project export (a planned stretch goal).
 - **Consequences:** one source of truth with checked translations; tests parse every exported view back in its dialect and re-run the DuckDB script against the raw tables.
+
+## D-028: Show DuckDB views pretty-printed, not as the stored text
+- **Context:** the views are stored and run as one compact line each, which is hard to read in the console and in a downloaded script.
+- **Decision:** the export layer re-renders DuckDB SQL with sqlglot's pretty printer, the same path the other dialects already take. The stored SQL that ran is unchanged; only what is shown and downloaded is formatted.
+- **Alternatives:** generate pretty SQL in the first place (touches the guarded view builder for a display concern); format in the browser (a second SQL formatter to keep in step).
+- **Consequences:** a test builds every fixture view from both texts and requires identical rows, so the formatting cannot silently change what a view returns.
