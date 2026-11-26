@@ -161,3 +161,9 @@ One entry per design choice that had real alternatives. Newest at the bottom. Fo
 - **Decision:** the export layer re-renders DuckDB SQL with sqlglot's pretty printer, the same path the other dialects already take. The stored SQL that ran is unchanged; only what is shown and downloaded is formatted.
 - **Alternatives:** generate pretty SQL in the first place (touches the guarded view builder for a display concern); format in the browser (a second SQL formatter to keep in step).
 - **Consequences:** a test builds every fixture view from both texts and requires identical rows, so the formatting cannot silently change what a view returns.
+
+## D-029: Dashboard metrics from deterministic templates
+- **Context:** M8 needs KPI definitions that are correct enough to be measured against gold, from views whose column names follow either SAP-style or readable naming.
+- **Decision:** metrics are templates (aging buckets, top customers by open amount, revenue by product group, orders per month, top customers by revenue) that apply only when the model has the columns they need. Columns are found by meaning, from field hints or readable names, and through the approved joins (a customer table is one reached on a customer key). Header-level money is reduced to one row per header before summing, so items cannot double it. The requirement decides which metrics are marked as asked for and shown first, and a year in the requirement becomes a filter.
+- **Alternatives:** let the LLM write metric SQL (untestable without a key, and unsafe to trust for numbers leaders read); a full semantic layer such as dbt metrics (far more than five KPIs need).
+- **Consequences:** KPI numbers are reproducible and testable offline, and every metric's SQL goes through the guard. New KPI kinds need a new template; free-form questions are M9's job.
