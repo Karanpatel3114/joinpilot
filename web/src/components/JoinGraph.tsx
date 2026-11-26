@@ -11,36 +11,7 @@ import {
 import { useMemo, useState } from 'react'
 import type { Proposal } from '../types/api'
 import { pct } from './format'
-
-const COLUMN_GAP = 300
-const ROW_GAP = 120
-
-/** Place tables in columns by how deep they sit in the recommended join graph. */
-function layout(proposals: Proposal[]): Map<string, { x: number; y: number }> {
-  const tables = new Set<string>()
-  for (const p of proposals) {
-    tables.add(p.from.split('.')[0])
-    tables.add(p.to.split('.')[0])
-  }
-  const depth = new Map<string, number>([...tables].map((t) => [t, 0]))
-  const edges = proposals.filter((p) => p.recommended)
-  for (let i = 0; i < tables.size; i += 1) {
-    for (const p of edges) {
-      const from = p.from.split('.')[0]
-      const to = p.to.split('.')[0]
-      depth.set(to, Math.max(depth.get(to) ?? 0, (depth.get(from) ?? 0) + 1))
-    }
-  }
-  const rows = new Map<number, number>()
-  const positions = new Map<string, { x: number; y: number }>()
-  for (const table of [...tables].sort()) {
-    const column = Math.min(depth.get(table) ?? 0, tables.size)
-    const row = rows.get(column) ?? 0
-    rows.set(column, row + 1)
-    positions.set(table, { x: column * COLUMN_GAP, y: row * ROW_GAP })
-  }
-  return positions
-}
+import { layout, tableOf } from './graphLayout'
 
 function edgeColor(p: Proposal): string {
   if (p.status === 'approved') return '#059669'
@@ -75,8 +46,8 @@ export function JoinGraph({
     }))
     const edges: Edge[] = shown.map((p) => ({
       id: p.edge_id,
-      source: p.from.split('.')[0],
-      target: p.to.split('.')[0],
+      source: tableOf(p.from),
+      target: tableOf(p.to),
       label: p.recommended || p.status === 'approved' ? `${p.edge_id} · ${pct(p.score)}` : undefined,
       animated: p.edge_id === selected,
       style: {
