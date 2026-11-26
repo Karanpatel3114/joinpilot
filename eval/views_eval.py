@@ -1,8 +1,12 @@
 """View validity and SIT pass rates, measured by driving the real agent graph offline.
 
 Two reviewer modes (docs/eval-plan.md):
-- approve_all: every proposed join is approved, with no human judgement at all;
+- approve_all: every join the agent recommends is approved, with no human review;
 - oracle: only the true joins are approved (the harness reads gold; the app never does).
+
+Approving joins the agent did not recommend (many-to-many pairs) can multiply rows
+by orders of magnitude; repairing such approvals is covered by unit tests rather
+than by timing those exploding views here.
 """
 
 from __future__ import annotations
@@ -30,7 +34,7 @@ def decide(
     """The reviewer's decisions for one mode."""
 
     def approved(p: dict[str, Any]) -> bool:
-        return mode == "approve_all" or (p["from"], p["to"]) in truth
+        return bool(p["recommended"]) if mode == "approve_all" else (p["from"], p["to"]) in truth
 
     return [
         {"edge_id": p["edge_id"], "action": "approve" if approved(p) else "reject"}
