@@ -1,4 +1,4 @@
-// Types for the JoinPilot API. They mirror docs/contract.md (version 0.5) exactly.
+// Types for the JoinPilot API. They mirror docs/contract.md (version 0.7) exactly.
 // Change them only together with the contract, the Pydantic schemas and the fixtures.
 
 export type ErrorCode =
@@ -192,3 +192,34 @@ export interface GlossaryMatch {
   description: string
   score: number
 }
+
+export interface View {
+  name: string
+  sql: string
+  dialect: string
+  status: 'created' | 'repaired' | 'failed'
+  fact_table: string
+  joins: string[]
+  derived_columns: string[]
+  message: string | null
+}
+
+export type CheckKind =
+  | 'row_count'
+  | 'fan_out'
+  | 'orphan_keys'
+  | 'null_keys'
+  | 'bucket_coverage'
+  | 'reconciliation'
+
+export interface CheckResult {
+  check_id: string
+  view: string
+  kind: CheckKind
+  passed: boolean
+  observed: number | string | null
+  expected: number | string | null
+  message: string
+}
+
+export type SqlDialect = 'duckdb' | 'postgres' | 'snowflake' | 'bigquery'

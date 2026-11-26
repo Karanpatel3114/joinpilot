@@ -7,10 +7,19 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
 from fastapi.concurrency import run_in_threadpool
+from fastapi.responses import PlainTextResponse
 
 from joinpilot.api.deps import get_run_service
-from joinpilot.api.schemas import ApprovalRequest, CreateRunRequest, Run, RunProposal
+from joinpilot.api.schemas import (
+    ApprovalRequest,
+    CheckResult,
+    CreateRunRequest,
+    Run,
+    RunProposal,
+    View,
+)
 from joinpilot.services.runs import RunService
+from joinpilot.sqlgen.export import Dialect, export_script, export_views
 
 router = APIRouter(tags=["runs"])
 Runs = Annotated[RunService, Depends(get_run_service)]
@@ -50,3 +59,28 @@ async def approve(run_id: UUID, body: ApprovalRequest, runs: Runs) -> Run:
     """Approve or reject joins on a waiting run; the run then resumes in the background."""
     record = await run_in_threadpool(runs.approve, str(run_id), body.decisions)
     return Run.model_validate(record.model_dump())
+
+
+@router.get("/runs/{run_id}/views", response_model=list[View])
+async def get_views(run_id: UUID, runs: Runs, dialect: Dialect = "duckdb") -> list[View]:
+    """The views the run generated (after approval), with their SQL in the chosen dialect."""
+    views = await run_in_threadpool(runs.views, str(run_id))
+    return [View.model_validate(v) for v in export_views(views, dialect)]
+
+
+@router.get("/runs/{run_id}/export", response_class=PlainTextResponse)
+async def export_model(run_id: UUID, runs: Runs, dialect: Dialect = "duckdb") -> PlainTextResponse:
+    """The whole model as one SQL script for Postgres, Snowflake, BigQuery or DuckDB."""
+    views = await run_in_threadpool(runs.views, str(run_id))
+    filename = f"joinpilot-{str(run_id)[:8]}-{dialect}.sql"
+    return PlainTextResponse(
+        export_script(views, dialect, str(run_id)),
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/runs/{run_id}/checks", response_model=list[CheckResult])
+async def get_checks(run_id: UUID, runs: Runs) -> list[CheckResult]:
+    """The latest SIT check results of the run's views."""
+    rows = await run_in_threadpool(runs.checks, str(run_id))
+    return [CheckResult.model_validate(c) for c in rows]

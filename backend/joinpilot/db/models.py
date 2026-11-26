@@ -152,3 +152,32 @@ class GlossaryRow(Base):
     column_ref: Mapped[str] = mapped_column(String(130))
     description: Mapped[str] = mapped_column(Text)
     embedding: Mapped[list[float]] = mapped_column(EmbeddingValue)
+
+
+class RunViewRow(Base):
+    """A view a run generated, with its SQL and status."""
+
+    __tablename__ = "run_views"
+    __table_args__ = (UniqueConstraint("run_id", "name", name="uq_run_views_run_id_name"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    run_id: Mapped[str] = mapped_column(ForeignKey("runs.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(80))
+    position: Mapped[int] = mapped_column(Integer)
+    payload: Mapped[dict[str, Any]] = mapped_column()
+
+
+class CheckResultRow(Base):
+    """The latest result of one check on one of a run's views."""
+
+    __tablename__ = "check_results"
+    __table_args__ = (
+        UniqueConstraint("run_id", "check_id", name="uq_check_results_run_id_check_id"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    run_id: Mapped[str] = mapped_column(ForeignKey("runs.id", ondelete="CASCADE"), index=True)
+    check_id: Mapped[str] = mapped_column(String(200))
+    position: Mapped[int] = mapped_column(Integer)
+    passed: Mapped[bool] = mapped_column(Boolean)
+    payload: Mapped[dict[str, Any]] = mapped_column()

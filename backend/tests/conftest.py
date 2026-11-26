@@ -1,5 +1,7 @@
 """Fixtures shared across test packages."""
 
+from collections.abc import Iterator
+
 import duckdb
 import pytest
 
@@ -30,3 +32,13 @@ def sap_profile() -> ProjectProfile:
 @pytest.fixture(scope="session")
 def friendly_profile() -> ProjectProfile:
     return erp_profile(1, "friendly")
+
+
+@pytest.fixture(scope="session")
+def sample_duckdb() -> Iterator[duckdb.DuckDBPyConnection]:
+    """The sap sample (seed 1, size S) loaded into an in-memory DuckDB."""
+    con = duckdb.connect()
+    for name, data in build_dataset(1, "S", "sap", SynthSettings()).output_tables().items():
+        load_arrow(con, name, data)
+    yield con
+    con.close()

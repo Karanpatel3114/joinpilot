@@ -8,10 +8,11 @@ from __future__ import annotations
 
 from datetime import date
 from functools import lru_cache
+from itertools import pairwise
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, Field, SecretStr
+from pydantic import BaseModel, Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -114,6 +115,33 @@ class AgentSettings(BaseModel):
     ranking_max_candidates: int = 25
     rescue_min_score: float = 0.5
     explanation_tolerance_points: float = 0.6
+    max_repairs: int = 2
+
+
+class KPISettings(BaseModel):
+    """Business rules for derived columns and metrics."""
+
+    # As-of date for aging; empty means today. The sample data is as of 2026-06-30.
+    reference_date: date | None = None
+    # Upper bounds (days past due) of the aging buckets; the last bucket is open-ended
+    aging_bucket_edges: list[int] = Field(default_factory=lambda: [30, 60, 90], min_length=1)
+
+    @field_validator("aging_bucket_edges")
+    @classmethod
+    def edges_increase(cls, edges: list[int]) -> list[int]:
+        """Bucket bounds must be positive and strictly increasing."""
+        if edges[0] < 1 or any(b <= a for a, b in pairwise(edges)):
+            raise ValueError("aging bucket edges must be positive and increasing")
+        return edges
+
+
+class CheckSettings(BaseModel):
+    """Limits for the automated checks on generated views."""
+
+    max_orphan_rate: float = Field(default=0.05, ge=0, le=1)
+    max_null_rate: float = Field(default=0.05, ge=0, le=1)
+    # Relative difference allowed between money totals in a view and its fact table
+    reconciliation_tolerance: float = 1e-9
 
 
 class Settings(BaseSettings):
@@ -156,6 +184,12 @@ class Settings(BaseSettings):
 
     # Join candidates
     joins: JoinSettings = Field(default_factory=JoinSettings)
+
+    # Checks on generated views
+    checks: CheckSettings = Field(default_factory=CheckSettings)
+
+    # KPIs
+    kpi: KPISettings = Field(default_factory=KPISettings)
 
     # Agent
     agent: AgentSettings = Field(default_factory=AgentSettings)

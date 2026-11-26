@@ -79,15 +79,16 @@ Done when: runs persist in Postgres, pause for approval, and resume in a backgro
 - [x] M5.7 `feat(db): add pgvector glossary search from business terms to columns`
 
 ## M6: View generation and automated SIT (branch `m6-views-checks`)
-Done when: approved joins become guarded SQL views that pass SIT checks, and evaluation reports view validity and KPI correctness. **MVP gate: add JoinPilot to the resumes now.**
+Done when: approved joins become guarded SQL views that pass SIT checks, and evaluation reports view validity and SIT pass rates (KPI correctness is measured in M8, once metrics exist). **MVP gate: add JoinPilot to the resumes now.**
 
-- [ ] M6.1 `feat(sqlgen): generate views from approved joins and the requirement`
-- [ ] M6.2 `feat(sqlgen): add sqlglot guard with statement and identifier allowlists`
-- [ ] M6.3 `feat(checks): add SIT suite for counts, fan-out, orphans, null keys, buckets and totals`
-- [ ] M6.4 `feat(agent): repair failing views using check results`
-- [ ] M6.5 `feat(sqlgen): export the model to Postgres, Snowflake and BigQuery dialects`
-- [ ] M6.6 `test(sqlgen): add SQL red-team cases and prove they are blocked`
-- [ ] M6.7 `feat(eval): measure view validity and KPI correctness against gold`
+- [x] M6.1 `feat(sqlgen): add sqlglot guard with statement and identifier allowlists`
+- [x] M6.2 `feat(sqlgen): generate views from approved joins and the requirement`
+- [x] M6.3 `feat(checks): add SIT suite for counts, fan-out, orphans, null keys, buckets and totals`
+- [x] M6.4 `feat(agent): build, check and store views after approval`
+- [x] M6.5 `feat(agent): repair failing views using check results`
+- [x] M6.6 `feat(sqlgen): export the model to Postgres, Snowflake and BigQuery dialects`
+- [x] M6.7 `test(sqlgen): add SQL red-team cases and prove they are blocked`
+- [x] M6.8 `feat(eval): measure view validity and SIT pass rates`
 
 ## M7: Web console (branch `m7-console`)
 Done when: the whole flow, from upload to approved views, works in the browser.
@@ -107,6 +108,7 @@ Done when: a dashboard is generated from metric definitions, and KPI values matc
 - [ ] M8.2 `feat(kpi): compute metrics on approved views`
 - [ ] M8.3 `feat(api): add dashboard endpoint`
 - [ ] M8.4 `feat(web): add generated dashboard page`
+- [ ] M8.5 `feat(eval): measure KPI correctness against gold`
 
 ## M9: Ask questions (branch `m9-qa`)
 Done when: plain-English questions get guarded, read-only SQL answers with the query shown, and accuracy is evaluated.

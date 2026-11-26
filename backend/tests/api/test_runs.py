@@ -62,6 +62,20 @@ def test_a_run_pauses_for_approval_then_completes(client: TestClient, settings: 
 
     finished = client.get(f"/runs/{run['run_id']}").json()
     assert finished["status"] == "completed"
+    views = client.get(f"/runs/{run['run_id']}/views").json()
+    assert views and all(
+        v["status"] == "created" and v["sql"].startswith("CREATE OR REPLACE VIEW") for v in views
+    )
+    snowflake = client.get(f"/runs/{run['run_id']}/views", params={"dialect": "snowflake"}).json()
+    assert {v["dialect"] for v in snowflake} == {"snowflake"}
+    script = client.get(f"/runs/{run['run_id']}/export", params={"dialect": "bigquery"})
+    assert script.status_code == 200 and "attachment" in script.headers["content-disposition"]
+    assert (
+        client.get(f"/runs/{run['run_id']}/views", params={"dialect": "oracle"}).status_code == 422
+    )
+    checks = client.get(f"/runs/{run['run_id']}/checks").json()
+    assert {c["view"] for c in checks} == {v["name"] for v in views}
+    assert all(c["message"] for c in checks)
     after = {p["edge_id"]: p for p in client.get(f"/runs/{run['run_id']}/proposals").json()}
     assert after[recommended[4]["edge_id"]]["status"] == "rejected"
     assert after[recommended[4]["edge_id"]]["decision_reason"] == "later"

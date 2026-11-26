@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import re
 import uuid
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import BinaryIO
 
@@ -159,6 +161,13 @@ class ProjectService:
         with session_scope(self.settings.db_url) as session:
             session.execute(delete(GlossaryRow).where(GlossaryRow.project_id == record.id))
         return added
+
+    @contextmanager
+    def warehouse(self, project_id: str) -> Iterator[duckdb.DuckDBPyConnection]:
+        """The project's warehouse, held under the project's lock (for views and checks)."""
+        self.store.get(project_id)
+        with project_lock(project_id), self._connect(project_id) as con:
+            yield con
 
     def _connect(self, project_id: str) -> duckdb.DuckDBPyConnection:
         """Open the project's warehouse with the configured memory and thread limits."""

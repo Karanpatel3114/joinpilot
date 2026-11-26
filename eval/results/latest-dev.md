@@ -1,7 +1,7 @@
 # Evaluation: dev split
 
-- Date: 2026-11-25T22:49:13+00:00
-- Commit: `ccdeaf3`
+- Date: 2026-11-26T01:25:34+00:00
+- Commit: `3566c20`
 - Datasets: `erp_s1_sap`, `erp_s2_sap`, `erp_s3_sap`, `erp_s1_friendly`
 - Settings: recorded in metrics.json
 
@@ -39,3 +39,15 @@
   - erp_s1_friendly: order_items.product_id -> products.product_id
 - **inclusion_dependency**: 0 false positives, 0 false negatives
 - **joinpilot_deterministic**: 0 false positives, 0 false negatives
+
+## Views and SIT checks (deterministic agent, no model)
+
+| Reviewer | Views valid | Checks passed (first try) | Checks passed (final) | Avg repair attempts | Views repaired |
+|---|---|---|---|---|---|
+| approve_all | 1.000 | 1.000 | 1.000 | 0.0 | 0 |
+| oracle | 1.000 | 1.000 | 1.000 | 0.0 | 0 |
+
+## SQL safety
+
+- Attacks blocked: 100.0% of 63
+- Harmless queries wrongly blocked: 0.0% of 11

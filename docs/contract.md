@@ -1,6 +1,10 @@
 # JoinPilot API contract
 
-Version: 0.5. Change it only with the `contract-sync` skill, and bump the version.
+Version: 0.7. Change it only with the `contract-sync` skill, and bump the version.
+
+Changes in 0.7 (additive): `GET /runs/{run_id}/views` takes `?dialect=`; `GET /runs/{run_id}/export` downloads the model as one SQL script.
+
+Changes in 0.6 (additive): the views and checks endpoints are implemented; `View` gains `fact_table`, `joins`, `derived_columns` and `message`.
 
 Changes in 0.5 (additive): `GET /projects/{project_id}/glossary` searches columns by business words.
 
@@ -88,11 +92,25 @@ Run status values: `queued`, `profiling`, `ranking`, `awaiting_approval`, `gener
 
 `POST /runs/{run_id}/approvals` with `{"decisions": [{"edge_id": "e1", "action": "approve"}, {"edge_id": "e2", "action": "reject", "reason": "..."}]}` (1–200 decisions) returns 202 and the `Run`, which resumes in the background. Unknown edge ids give 422 (`details.edge_ids`); a run that is not `awaiting_approval` gives 409.
 
-`GET /runs/{run_id}/views` returns `[View {name, sql, dialect, status}]` (M6)
+After approval the run generates one view per fact table and checks it (status `generating`, then `checking`). If nothing is approved, the run completes without views.
 
-`GET /runs/{run_id}/checks` returns `[CheckResult {check_id, view, kind, passed, observed, expected, message}]` (M6)
+`GET /runs/{run_id}/views` returns:
+```json
+[{"name": "v_bsid", "sql": "CREATE OR REPLACE VIEW model.v_bsid AS SELECT ...", "dialect": "duckdb",
+  "status": "created", "fact_table": "BSID", "joins": ["e5"],
+  "derived_columns": ["due_date", "days_overdue", "aging_bucket"], "message": null}]
+```
+`status` is `created`, `repaired` or `failed` (with `message`). `joins` lists the approved edge ids the view uses. Add `?dialect=postgres`, `snowflake` or `bigquery` (default `duckdb`) to get the SQL translated with sqlglot; notes about anything that may need a manual change are in `message`.
 
-Check kinds: `row_count`, `fan_out`, `orphan_keys`, `null_keys`, `bucket_coverage`, `reconciliation`.
+`GET /runs/{run_id}/export?dialect=snowflake` returns the whole model as one `text/plain` SQL script (`Content-Disposition: attachment`), one `CREATE OR REPLACE VIEW` per created view, with notes as SQL comments. Unknown dialects give 422.
+
+`GET /runs/{run_id}/checks` returns:
+```json
+[{"check_id": "v_bsid:orphan_keys:BSID.KUNNR", "view": "v_bsid", "kind": "orphan_keys",
+  "passed": true, "observed": 40, "expected": 400,
+  "message": "40 BSID.KUNNR values (0.50%) have no match in KNA1.KUNNR."}]
+```
+Check kinds: `row_count` (one view row per fact row), `fan_out` (no fact key twice), `orphan_keys` and `null_keys` (per join, within configured shares; `expected` is the allowed count), `bucket_coverage` (every open item in a known aging bucket), `reconciliation` (each money column sums to the fact table's total).
 
 ## Dashboard and questions
 `GET /projects/{project_id}/dashboard` returns `{"metrics": [{"metric_id", "title", "sql", "chart": "bar", "data": []}]}`

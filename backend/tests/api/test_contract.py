@@ -7,6 +7,7 @@ import pytest
 from pydantic import TypeAdapter
 
 from joinpilot.api.schemas import (
+    CheckResult,
     ErrorResponse,
     GlossaryMatch,
     HealthResponse,
@@ -15,6 +16,7 @@ from joinpilot.api.schemas import (
     Run,
     RunProposal,
     TableSummary,
+    View,
 )
 from joinpilot.config import REPO_ROOT
 
@@ -29,6 +31,8 @@ FIXTURES: dict[str, Any] = {
     "runs.json": list[Run],
     "proposals.json": list[RunProposal],
     "glossary.json": list[GlossaryMatch],
+    "views.json": list[View],
+    "checks.json": list[CheckResult],
 }
 
 

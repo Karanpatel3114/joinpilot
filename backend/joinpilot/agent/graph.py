@@ -1,17 +1,21 @@
 """The agent graph. Each node is a small function of the state; dependencies come in
 through `AgentContext`, so tests swap in fakes.
 
-Flow so far: profile -> parse_requirement -> rank_joins -> await_approval (a pause
-until a person decides). M6 adds view generation, checks and repair after approval.
+Flow: profile -> parse_requirement -> rank_joins -> await_approval (a pause until a
+person decides) -> generate_views -> check_views -> [repair_views -> check_views, at
+most AGENT__MAX_REPAIRS times] -> finish. Runs with no candidates or no approved
+joins go straight to finish.
 """
 
 from __future__ import annotations
 
 import time
 from collections.abc import Callable
+from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from typing import Any, Protocol
 
+import duckdb
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
@@ -19,13 +23,22 @@ from langgraph.types import interrupt
 
 from joinpilot.agent.approval import Decision, apply_decisions
 from joinpilot.agent.ranking import rank_joins
+from joinpilot.agent.repair import STRUCTURAL, repair_spec
 from joinpilot.agent.requirement import ParsedRequirement, parse_requirement
 from joinpilot.agent.state import RunState
+from joinpilot.checks.sit import run_checks
 from joinpilot.config import Settings
 from joinpilot.joins.models import JoinCandidate
 from joinpilot.joins.scoring import score_candidates
 from joinpilot.llm.provider import LLMProvider
 from joinpilot.profiling.models import ProjectProfile
+from joinpilot.sqlgen.views import (
+    create_views,
+    plan_views,
+    render_view,
+    spec_from_dict,
+    spec_to_dict,
+)
 
 
 class Node(Protocol):
@@ -41,6 +54,7 @@ class AgentContext:
     load_profile: Callable[[], ProjectProfile]
     llm: LLMProvider
     settings: Settings
+    warehouse: Callable[[], AbstractContextManager[duckdb.DuckDBPyConnection]] | None = None
 
 
 def timed(name: str, node: Node) -> Node:
@@ -127,9 +141,107 @@ class AgentNodes:
             "status": "generating" if approved else "completed",
         }
 
+    def generate_views(self, state: RunState) -> dict[str, Any]:
+        """Write one guarded view per fact table from the approved joins."""
+        specs = plan_views(
+            state.get("proposals", []),
+            self.profile_data(),
+            state.get("requirement", ""),
+            self.ctx.settings.kpi,
+        )
+        with self.open_warehouse() as con:
+            views = create_views(con, specs)
+        failed = [v.name for v in views if v.status == "failed"]
+        return {
+            "views": [v.model_dump() for v in views],
+            "view_specs": [spec_to_dict(s) for s in specs],
+            "warnings": [f"The view {name} could not be created." for name in failed],
+            "status": "checking",
+        }
+
+    def check_views(self, state: RunState) -> dict[str, Any]:
+        """Run the SIT checks on every view that was created."""
+        created = {v["name"] for v in state.get("views", []) if v["status"] != "failed"}
+        specs = [spec_from_dict(s) for s in state.get("view_specs", []) if s["name"] in created]
+        with self.open_warehouse() as con:
+            results = run_checks(
+                con,
+                specs,
+                self.profile_data(),
+                self.ctx.settings.checks,
+                self.ctx.settings.kpi.aging_bucket_edges,
+            )
+        failed = [r for r in results if not r.passed]
+        warnings = [f"{len(failed)} of {len(results)} checks failed."] if failed else []
+        round_number = len(state.get("check_rounds", [])) + 1
+        summary = {
+            "round": round_number,
+            "passed": len(results) - len(failed),
+            "failed": len(failed),
+        }
+        return {
+            "checks": [r.model_dump() for r in results],
+            "check_rounds": [summary],
+            "warnings": warnings,
+            "status": "checking",
+        }
+
+    def repair_views(self, state: RunState) -> dict[str, Any]:
+        """Fix views whose checks show duplicated or lost rows, then let them be checked again."""
+        failing = {
+            c["view"]
+            for c in state.get("checks", [])
+            if not c["passed"] and c["kind"] in STRUCTURAL
+        }
+        profile = self.profile_data()
+        columns = {t.name: t.columns for t in profile.tables}
+        specs, changed, notes = [], [], []
+        for saved in state.get("view_specs", []):
+            spec = spec_from_dict(saved)
+            if spec.name in failing:
+                fixed, done = repair_spec(spec, profile, self.ctx.settings.joins)
+                notes += done
+                if fixed.joins != spec.joins:
+                    spec = render_view(
+                        fixed, columns, state.get("requirement", ""), self.ctx.settings.kpi
+                    )
+                    changed.append(spec)
+            specs.append(spec)
+        attempts = state.get("repair_attempts", 0) + 1
+        views = {v["name"]: v for v in state.get("views", [])}
+        if changed:
+            with self.open_warehouse() as con:
+                for view in create_views(con, changed, status="repaired"):
+                    views[view.name] = view.model_dump()
+                    if view.status == "failed":
+                        notes.append(f"The repaired view {view.name} could not be created.")
+        else:
+            notes.append("No automatic repair was possible for the failing checks.")
+            attempts = self.ctx.settings.agent.max_repairs
+        return {
+            "view_specs": [spec_to_dict(s) for s in specs],
+            "views": list(views.values()),
+            "repair_attempts": attempts,
+            "warnings": notes,
+            "status": "repairing",
+        }
+
+    def after_checks(self, state: RunState) -> str:
+        """Repair while structural checks fail and attempts remain; otherwise finish."""
+        failing = any(not c["passed"] and c["kind"] in STRUCTURAL for c in state.get("checks", []))
+        if failing and state.get("repair_attempts", 0) < self.ctx.settings.agent.max_repairs:
+            return "repair_views"
+        return "finish"
+
     def finish(self, state: RunState) -> dict[str, Any]:
-        """Close the run (M6 adds view generation and checks before this step)."""
+        """Close the run."""
         return {"status": "completed"}
+
+    def open_warehouse(self) -> AbstractContextManager[duckdb.DuckDBPyConnection]:
+        """The project's warehouse; every graph that builds views needs one."""
+        if self.ctx.warehouse is None:
+            raise RuntimeError("This graph has no warehouse to build views in.")
+        return self.ctx.warehouse()
 
 
 def build_graph(
@@ -145,12 +257,22 @@ def build_graph(
     graph.add_edge(START, "profile")
     graph.add_edge("profile", "parse_requirement")
     graph.add_edge("parse_requirement", "rank_joins")
+    graph.add_node("generate_views", timed("generate_views", nodes.generate_views))
+    graph.add_node("check_views", timed("check_views", nodes.check_views))
+    graph.add_node("repair_views", timed("repair_views", nodes.repair_views))
     graph.add_node("finish", timed("finish", nodes.finish))
     graph.add_conditional_edges(
         "rank_joins",
         lambda state: "await_approval" if state.get("proposals") else "finish",
         ["await_approval", "finish"],
     )
-    graph.add_edge("await_approval", "finish")
+    graph.add_conditional_edges(
+        "await_approval",
+        lambda state: "generate_views" if state.get("status") == "generating" else "finish",
+        ["generate_views", "finish"],
+    )
+    graph.add_edge("generate_views", "check_views")
+    graph.add_conditional_edges("check_views", nodes.after_checks, ["repair_views", "finish"])
+    graph.add_edge("repair_views", "check_views")
     graph.add_edge("finish", END)
     return graph.compile(checkpointer=checkpointer)

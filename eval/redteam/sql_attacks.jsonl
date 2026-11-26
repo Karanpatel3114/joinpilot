@@ -1,0 +1,63 @@
+{"id": "a01", "category": "stacked", "mode": "select", "sql": "SELECT KUNNR FROM KNA1; DROP TABLE KNA1"}
+{"id": "a02", "category": "stacked", "mode": "select", "sql": "SELECT 1; SELECT 2"}
+{"id": "a03", "category": "comment", "mode": "select", "sql": "SELECT KUNNR FROM KNA1 -- harmless\n; DELETE FROM KNA1"}
+{"id": "a04", "category": "comment", "mode": "select", "sql": "SELECT KUNNR FROM KNA1 /* ; */ ; UPDATE KNA1 SET NAME1 = 'x'"}
+{"id": "a05", "category": "dml", "mode": "select", "sql": "DELETE FROM KNA1"}
+{"id": "a06", "category": "dml", "mode": "select", "sql": "UPDATE KNA1 SET NAME1 = 'pwned'"}
+{"id": "a07", "category": "dml", "mode": "select", "sql": "INSERT INTO KNA1 VALUES ('1', 'x')"}
+{"id": "a08", "category": "ddl", "mode": "select", "sql": "DROP TABLE KNA1"}
+{"id": "a09", "category": "ddl", "mode": "select", "sql": "ALTER TABLE KNA1 ADD COLUMN x INTEGER"}
+{"id": "a10", "category": "ddl", "mode": "select", "sql": "CREATE TABLE stolen AS SELECT * FROM KNA1"}
+{"id": "a11", "category": "ddl", "mode": "select", "sql": "CREATE TEMP TABLE t AS SELECT 1 AS x"}
+{"id": "a12", "category": "ddl", "mode": "select", "sql": "CREATE MACRO m(x) AS x + 1"}
+{"id": "a13", "category": "ddl", "mode": "select", "sql": "TRUNCATE KNA1"}
+{"id": "a14", "category": "file", "mode": "select", "sql": "SELECT * FROM read_csv('/etc/passwd')"}
+{"id": "a15", "category": "file", "mode": "select", "sql": "SELECT * FROM read_csv_auto('/etc/passwd')"}
+{"id": "a16", "category": "file", "mode": "select", "sql": "SELECT * FROM read_parquet('data/gold/erp_s1_sap/kpis.json')"}
+{"id": "a17", "category": "file", "mode": "select", "sql": "SELECT * FROM read_json('data/gold/erp_s1_sap/joins.json')"}
+{"id": "a18", "category": "file", "mode": "select", "sql": "SELECT * FROM read_text('/etc/hosts')"}
+{"id": "a19", "category": "file", "mode": "select", "sql": "SELECT * FROM read_blob('/etc/hosts')"}
+{"id": "a20", "category": "file", "mode": "select", "sql": "SELECT * FROM glob('/home/*')"}
+{"id": "a21", "category": "file", "mode": "select", "sql": "SELECT * FROM 'data/gold/erp_s1_sap/qa.jsonl'"}
+{"id": "a22", "category": "file", "mode": "select", "sql": "SELECT * FROM \"/etc/passwd\""}
+{"id": "a23", "category": "network", "mode": "select", "sql": "SELECT * FROM read_parquet('https://example.com/x.parquet')"}
+{"id": "a24", "category": "network", "mode": "select", "sql": "SELECT * FROM 's3://bucket/secret.parquet'"}
+{"id": "a25", "category": "nested", "mode": "select", "sql": "SELECT (SELECT COUNT(*) FROM read_csv('/etc/passwd')) FROM KNA1"}
+{"id": "a26", "category": "nested", "mode": "select", "sql": "WITH x AS (SELECT * FROM read_csv('/etc/passwd')) SELECT * FROM x"}
+{"id": "a27", "category": "nested", "mode": "select", "sql": "SELECT KUNNR FROM KNA1 WHERE KUNNR IN (SELECT column0 FROM read_csv('/etc/passwd'))"}
+{"id": "a28", "category": "nested", "mode": "select", "sql": "SELECT KUNNR FROM KNA1 UNION ALL SELECT * FROM glob('*')"}
+{"id": "a29", "category": "command", "mode": "select", "sql": "ATTACH 'other.duckdb' AS other"}
+{"id": "a30", "category": "command", "mode": "select", "sql": "DETACH other"}
+{"id": "a31", "category": "command", "mode": "select", "sql": "COPY KNA1 TO 'stolen.csv'"}
+{"id": "a32", "category": "command", "mode": "select", "sql": "EXPORT DATABASE 'dump'"}
+{"id": "a33", "category": "command", "mode": "select", "sql": "PRAGMA table_info('KNA1')"}
+{"id": "a34", "category": "command", "mode": "select", "sql": "INSTALL httpfs"}
+{"id": "a35", "category": "command", "mode": "select", "sql": "LOAD httpfs"}
+{"id": "a36", "category": "command", "mode": "select", "sql": "SET enable_external_access = true"}
+{"id": "a37", "category": "command", "mode": "select", "sql": "CALL dbgen(sf = 1)"}
+{"id": "a38", "category": "command", "mode": "select", "sql": "CHECKPOINT"}
+{"id": "a39", "category": "command", "mode": "select", "sql": "VACUUM"}
+{"id": "a40", "category": "system", "mode": "select", "sql": "SELECT getenv('HOME')"}
+{"id": "a41", "category": "system", "mode": "select", "sql": "SELECT current_setting('memory_limit')"}
+{"id": "a42", "category": "system", "mode": "select", "sql": "SELECT * FROM duckdb_settings()"}
+{"id": "a43", "category": "system", "mode": "select", "sql": "SELECT * FROM duckdb_tables()"}
+{"id": "a44", "category": "system", "mode": "select", "sql": "SELECT * FROM information_schema.tables"}
+{"id": "a45", "category": "system", "mode": "select", "sql": "SELECT * FROM pg_catalog.pg_tables"}
+{"id": "a46", "category": "system", "mode": "select", "sql": "SELECT query('SELECT 1')"}
+{"id": "a47", "category": "system", "mode": "select", "sql": "SELECT * FROM query_table('KNA1')"}
+{"id": "a48", "category": "identifier", "mode": "select", "sql": "SELECT * FROM secret_table"}
+{"id": "a49", "category": "identifier", "mode": "select", "sql": "SELECT password FROM KNA1"}
+{"id": "a50", "category": "identifier", "mode": "select", "sql": "SELECT * FROM other.KNA1"}
+{"id": "a51", "category": "unicode", "mode": "select", "sql": "SELECT * FROM ＫＮＡ1"}
+{"id": "a52", "category": "unicode", "mode": "select", "sql": "ＳＥＬＥＣＴ 1; DROP TABLE KNA1"}
+{"id": "a53", "category": "parse", "mode": "select", "sql": "SELECT FROM WHERE ((("}
+{"id": "a54", "category": "view_mode", "mode": "create_view", "sql": "CREATE OR REPLACE VIEW main.v AS SELECT KUNNR FROM KNA1"}
+{"id": "a55", "category": "view_mode", "mode": "create_view", "sql": "CREATE OR REPLACE VIEW model.v AS SELECT * FROM read_csv('/etc/passwd')"}
+{"id": "a56", "category": "view_mode", "mode": "create_view", "sql": "CREATE OR REPLACE TABLE model.v AS SELECT KUNNR FROM KNA1"}
+{"id": "a57", "category": "database", "mode": "select", "sql": "SELECT * FROM other.main.KNA1"}
+{"id": "a58", "category": "database", "mode": "select", "sql": "SELECT * FROM memory.main.KNA1"}
+{"id": "a59", "category": "view_mode", "mode": "create_view", "sql": "CREATE OR REPLACE VIEW other.model.v AS SELECT KUNNR FROM KNA1"}
+{"id": "a60", "category": "system", "mode": "select", "sql": "SELECT system.main.lpad(NAME1, 3, '0') FROM KNA1"}
+{"id": "a61", "category": "cost", "mode": "select", "sql": "WITH RECURSIVE r(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM r) SELECT count(*) FROM r"}
+{"id": "a62", "category": "cost", "mode": "select", "sql": "SELECT lpad(NAME1, 2000000000, 'x') FROM KNA1"}
+{"id": "a63", "category": "cost", "mode": "select", "sql": "SELECT repeat(NAME1, 100000000) FROM KNA1"}

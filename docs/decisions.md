@@ -137,3 +137,21 @@ One entry per design choice that had real alternatives. Newest at the bottom. Fo
 - **Context:** review reproduced a completed run flipping back to "awaiting approval" when a start job was redelivered, a status set before the pause was saved, two approvals racing, and a failed enqueue leaving a run stuck forever.
 - **Decision:** every status change is a single `UPDATE ... WHERE status IN (...)`, so only one caller wins and completed or failed runs never change. Jobs never trust the status alone: they read the saved checkpoint and do only what is left (start, resume once decisions exist, continue after a restart, or nothing). The graph is streamed with synchronous durability, and "awaiting approval" is set only after the pause is saved. A failed enqueue fails a new run or restores the pause, and returns 503. Thread mode re-queues active runs on startup; an arq time-out marks the run failed. Errors shown to users are safe messages; details stay in the log.
 - **Consequences:** duplicate or redelivered jobs are harmless, which also makes arq's redelivery on shutdown a feature rather than a bug; tests cover each reproduced case.
+
+## D-025: An allowlist SQL guard built on sqlglot's parser and qualifier
+- **Context:** model output and user questions become SQL that runs on the project's warehouse. DuckDB can read files and URLs (`read_csv`, `FROM 'file.csv'`), attach databases and change settings, so a blocklist of keywords is not enough.
+- **Decision:** parse with sqlglot (DuckDB dialect); allow exactly one statement; allow only a query (or, for model generation, `CREATE OR REPLACE VIEW` in the `model` schema); refuse any DDL, DML or command node anywhere in the tree; allow only functions on an explicit allowlist (so every table function is refused); and resolve every table and column against the project's catalog with sqlglot's `qualify`, which also expands `*`. The guard returns the normalized SQL that is then executed.
+- **Alternatives:** keyword or regex blocklists (easy to bypass with comments, case or nesting); DuckDB settings alone such as disabling external access (not available for every attack, and a single layer).
+- **Consequences:** safe by construction for unknown functions; some legitimate functions may need adding to the allowlist, which is a one-line, reviewed change.
+
+## D-026: Deterministic repair of structural check failures
+- **Context:** a person can approve a join that multiplies rows (for example order items to product texts in two languages). Checks catch it; the spec asks the agent to repair failures in up to two attempts.
+- **Decision:** only structural failures are repaired: row counts, duplicate fact keys and totals that do not reconcile. For each join whose target is not unique, the repair either filters the target to one row per key (when a small code column such as a language fills every key, choosing the configured preferred value) or removes the join and the branch that hung on it, then re-renders the view through the guard and re-runs the checks. Orphan and null keys describe the data, so they are reported, not "fixed". Each repair is explained in the run's warnings and the view is marked `repaired`.
+- **Alternatives:** asking the model to rewrite the SQL (harder to guarantee, needs a key); failing the run (leaves the person with nothing usable).
+- **Consequences:** repairs are predictable and testable; a test shows a bad approval repaired with `SPRAS = 'E'` and every structural check passing afterwards.
+
+## D-027: Export to other warehouses by transpiling with sqlglot
+- **Context:** views are built and tested in DuckDB, but teams run models in Postgres, Snowflake or BigQuery.
+- **Decision:** transpile each view with sqlglot after rewriting DuckDB-only functions into sqlglot's typed equivalents (`try_strptime` becomes a safe date parse, which Snowflake renders as `TRY_TO_TIMESTAMP` and BigQuery as `SAFE_CAST ... FORMAT`). Anything a dialect cannot express is reported next to the SQL rather than dropped; Postgres gets a note that its date parsing is not safe.
+- **Alternatives:** hand-written templates per dialect (more code and drift); dbt project export (a planned stretch goal).
+- **Consequences:** one source of truth with checked translations; tests parse every exported view back in its dialect and re-run the DuckDB script against the raw tables.

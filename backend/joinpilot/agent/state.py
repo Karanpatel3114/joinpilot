@@ -6,6 +6,7 @@ and a run can resume in another process.
 
 from __future__ import annotations
 
+import operator
 from typing import Annotated, Any, Literal, TypedDict
 
 RunStatus = Literal[
@@ -43,7 +44,9 @@ class RunState(TypedDict, total=False):
     proposals: list[dict[str, Any]]
     decisions: list[dict[str, Any]]
     views: list[dict[str, Any]]
+    view_specs: list[dict[str, Any]]
     checks: list[dict[str, Any]]
+    check_rounds: Annotated[list[dict[str, int]], operator.add]
     repair_attempts: int
     error: str | None
     timings_ms: Annotated[dict[str, float], merge_dicts]
