@@ -21,9 +21,19 @@ from joinpilot.glossary.hints import FIELD_HINTS
 from joinpilot.profiling.models import ColumnProfile, ProjectProfile
 from joinpilot.profiling.sql import ident
 from joinpilot.sqlgen.guard import SANDBOX_SCHEMA
-from joinpilot.sqlgen.views import ViewSpec, bucket_labels, is_text_date, literal, wants_aging
+from joinpilot.sqlgen.views import (
+    ApprovedJoin,
+    ViewSpec,
+    bucket_labels,
+    is_text_date,
+    literal,
+    wants_aging,
+)
 
-MONEY_WORDS = ("value", "amount", "revenue", "price")
+MONEY_WORDS = ("value", "amount", "revenue", "price", "total")
+NOT_MONEY_WORDS = ("quantity", "qty", "count", "weight", "volume", "rate", "percent")
+# When several columns look like money, these words pick the one a KPI means by default.
+PREFERRED_MONEY_WORDS = ("net", "local")
 YEAR = re.compile(r"\b(19|20)\d{2}\b")
 
 
@@ -53,11 +63,23 @@ def pick(columns: list[ColumnProfile], *wanted: str) -> ColumnProfile | None:
 
 
 def money(columns: list[ColumnProfile]) -> ColumnProfile | None:
-    """A money column: DECIMAL, preferring one named like a value or amount."""
-    decimals = [c for c in columns if c.type.startswith("DECIMAL")]
-    named = [c for c in decimals if any(w in words(c).split() for w in MONEY_WORDS)]
-    candidates = named or decimals
-    return candidates[0] if candidates else None
+    """The money column: a DECIMAL named like a value or amount, never a quantity.
+
+    With several candidates, a net or local-currency amount wins; if that still leaves
+    a choice, there is no safe answer and the metric is skipped rather than guessed.
+    """
+    candidates = [
+        c
+        for c in columns
+        if c.type.startswith("DECIMAL")
+        and any(w in words(c).split() for w in MONEY_WORDS)
+        and not any(w in words(c).split() for w in NOT_MONEY_WORDS)
+    ]
+    if len(candidates) > 1:
+        candidates = [
+            c for c in candidates if any(w in words(c).split() for w in PREFERRED_MONEY_WORDS)
+        ]
+    return candidates[0] if len(candidates) == 1 else None
 
 
 def date_column(columns: list[ColumnProfile]) -> ColumnProfile | None:
@@ -85,14 +107,25 @@ class ViewModel:
         """The columns of a table found by `joined_on`, or none."""
         return self.columns[found[0]] if found else []
 
-    def joined_on(self, *wanted: str) -> tuple[str, ColumnProfile] | None:
-        """A table joined into the view on a key with the wanted words, and that key."""
+    def joined_on(
+        self, *wanted: str, source: str | None = None
+    ) -> tuple[str, ColumnProfile] | None:
+        """A table joined into the view on a key with the wanted words, and that key
+        (only joins from `source` when given)."""
+        found = self.join_on(*wanted, source=source)
+        if found is None:
+            return None
+        key = next(c for c in self.columns[found.to_table] if c.name == found.to_column)
+        return found.to_table, key
+
+    def join_on(self, *wanted: str, source: str | None = None) -> ApprovedJoin | None:
+        """The first plain join whose target key has the wanted words."""
         for join in self.spec.joins:
-            if join.is_attribute:
+            if join.is_attribute or (source and join.from_table != source):
                 continue
-            key = next(c for c in self.columns[join.to_table] if c.name == join.to_column)
-            if all(w in words(key).split() for w in wanted):
-                return join.to_table, key
+            key = next((c for c in self.columns[join.to_table] if c.name == join.to_column), None)
+            if key and all(w in words(key).split() for w in wanted):
+                return join
         return None
 
     @property
@@ -211,7 +244,10 @@ def order_metrics(model: ViewModel, requirement: str, settings: KPISettings) -> 
         MetricDef(
             metric_id="monthly_order_counts",
             title="Orders per month",
-            description=f"Distinct {table}.{order_key.name} per month of {order_date.name}.",
+            description=(
+                f"Distinct {table}.{order_key.name} per month of {order_date.name}, for orders "
+                "with at least one item."
+            ),
             view=model.spec.name,
             sql=(
                 f"SELECT strftime({day}, '%Y-%m') AS month, COUNT(DISTINCT {order}) AS orders "
@@ -225,25 +261,32 @@ def order_metrics(model: ViewModel, requirement: str, settings: KPISettings) -> 
     )
 
     header_value = money(model.columns[table])
-    customer = pick(model.columns[table], "customer")
-    master = model.joined_on("customer")
+    # The customer the approved join names, so the id and the name always belong together.
+    sold_to = model.join_on("customer", source=table)
+    customer = (
+        next(c for c in model.columns[table] if c.name == sold_to.from_column)
+        if sold_to
+        else pick(model.columns[table], "customer")
+    )
+    master = model.joined_on("customer", source=table)
     name = pick(model.table_columns(master), "name")
     if header_value and customer:
-        name_sql = f", {model.ref(master[0], name)} AS n" if master and name else ""
+        name_sql = f", MAX({model.ref(master[0], name)}) AS n" if master and name else ""
         metrics.append(
             MetricDef(
                 metric_id="top_customers_by_revenue",
                 title=f"Top {settings.top_n} customers by revenue",
                 description=(
                     f"Sum of {table}.{header_value.name} per {table}.{customer.name}, counting "
-                    "each order once however many items it has."
+                    "each order once however many items it has (orders with at least one item)."
                 ),
                 view=model.spec.name,
                 sql=(
                     f"SELECT c AS customer_id, {'MAX(n)' if name_sql else 'c'} AS customer_name, "
-                    f"ROUND(SUM(v), 2) AS revenue FROM (SELECT DISTINCT {order} AS o, "
+                    f"ROUND(SUM(v), 2) AS revenue FROM (SELECT {order} AS o, "
                     f"{model.ref(table, customer)} AS c, {model.ref(table, header_value)} AS v"
-                    f"{name_sql} FROM {model.source}) AS orders WHERE c IS NOT NULL "
+                    f"{name_sql} FROM {model.source} GROUP BY 1, 2, 3) AS orders "
+                    "WHERE c IS NOT NULL "
                     f"GROUP BY c ORDER BY revenue DESC, customer_id LIMIT {settings.top_n}"
                 ),
                 chart="bar",

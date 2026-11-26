@@ -162,3 +162,65 @@ def test_no_aging_metrics_without_an_aging_view(sap: Model) -> None:
     )
     assert "aging_bucket" not in plain[0].derived
     assert [m.metric_id for m in define_metrics(plain, profile, "x", KPI)] == []
+
+
+def profile_of(sql: str) -> list[Any]:
+    con = duckdb.connect()
+    con.execute(f"CREATE TABLE t AS {sql}")
+    return profile_project(con, {"t": "t"}, ProfilingSettings()).tables[0].columns
+
+
+def test_money_is_never_a_quantity_and_never_a_guess() -> None:
+    from joinpilot.kpi.metrics import money
+
+    picked = money(profile_of("SELECT 2.5::DECIMAL(9,2) AS qty, 10.0::DECIMAL(9,2) AS line_total"))
+    assert picked is not None and picked.name == "line_total"
+    local = money(
+        profile_of("SELECT 1.0::DECIMAL(9,2) AS amount_doc, 1.0::DECIMAL(9,2) AS amount_local")
+    )
+    assert local is not None and local.name == "amount_local"
+    assert (
+        money(
+            profile_of("SELECT 1.0::DECIMAL(9,2) AS gross_amount, 1.0::DECIMAL(9,2) AS tax_amount")
+        )
+        is None
+    )
+    assert money(profile_of("SELECT 1.0::DECIMAL(9,2) AS weight")) is None
+
+
+def test_order_revenue_uses_the_customer_the_approved_join_names() -> None:
+    con = duckdb.connect()
+    con.execute(
+        "CREATE TABLE orders AS SELECT 'O' || i AS order_id, 'C' || (i % 5) AS customer_id, "
+        "'C' || ((i + 1) % 5) AS payer_customer_id, 10.0::DECIMAL(9,2) AS net_value, "
+        "DATE '2026-01-01' AS order_date FROM range(50) t(i)"
+    )
+    con.execute(
+        "CREATE TABLE items AS SELECT 'O' || (i % 50) AS order_id, i AS item_no, "
+        "5.0::DECIMAL(9,2) AS net_value FROM range(100) t(i)"
+    )
+    con.execute(
+        "CREATE TABLE customers AS SELECT 'C' || i AS customer_id, 'Name ' || i AS customer_name "
+        "FROM range(5) t(i)"
+    )
+    profile = profile_project(
+        con, {n: n for n in ("orders", "items", "customers")}, ProfilingSettings()
+    )
+    proposals = [
+        {"edge_id": "e1", "from": "items.order_id", "to": "orders.order_id", "status": "approved"},
+        {
+            "edge_id": "e2",
+            "from": "orders.payer_customer_id",
+            "to": "customers.customer_id",
+            "status": "approved",
+        },
+    ]
+    specs = plan_views(proposals, profile, "top customers by revenue", KPI)
+    create_views(con, specs)
+    metric = by_id(define_metrics(specs, profile, "top customers by revenue", KPI))[
+        "top_customers_by_revenue"
+    ]
+    assert '"orders__payer_customer_id"' in metric.sql
+    result = rows(con, metric)
+    assert all(name == f"Name {cid[1:]}" for cid, name, _ in result)
+    assert sum(r[2] for r in result) == 500
