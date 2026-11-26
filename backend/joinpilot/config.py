@@ -125,6 +125,10 @@ class KPISettings(BaseModel):
     reference_date: date | None = None
     # Upper bounds (days past due) of the aging buckets; the last bucket is open-ended
     aging_bucket_edges: list[int] = Field(default_factory=lambda: [30, 60, 90], min_length=1)
+    # Rows in "top customers" style metrics
+    top_n: int = Field(default=10, ge=1, le=100)
+    # Most rows kept per dashboard metric
+    max_metric_rows: int = Field(default=200, ge=1, le=10_000)
 
     @field_validator("aging_bucket_edges")
     @classmethod

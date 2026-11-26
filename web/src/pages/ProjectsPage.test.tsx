@@ -77,4 +77,9 @@ describe('Projects page', () => {
     expect(runs).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('tabpanel', { name: 'Runs' })).toBeInTheDocument()
   })
+
+  it('shows a friendly page for an unknown address', async () => {
+    renderAt('/no/such/page')
+    expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument()
+  })
 })

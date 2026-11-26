@@ -104,11 +104,11 @@ Done when: the whole flow, from upload to approved views, works in the browser.
 ## M8: KPI dashboard (branch `m8-dashboard`)
 Done when: a dashboard is generated from metric definitions, and KPI values match gold in evaluation.
 
-- [ ] M8.1 `feat(kpi): define metrics from the requirement and model`
-- [ ] M8.2 `feat(kpi): compute metrics on approved views`
-- [ ] M8.3 `feat(api): add dashboard endpoint`
-- [ ] M8.4 `feat(web): add generated dashboard page`
-- [ ] M8.5 `feat(eval): measure KPI correctness against gold`
+- [x] M8.1 `feat(kpi): define metrics from the requirement and model`
+- [x] M8.2 `feat(kpi): compute metrics on approved views`
+- [x] M8.3 `feat(api): add dashboard endpoint`
+- [x] M8.4 `feat(web): add generated dashboard page`
+- [x] M8.5 `feat(eval): measure KPI correctness against gold`
 
 ## M9: Ask questions (branch `m9-qa`)
 Done when: plain-English questions get guarded, read-only SQL answers with the query shown, and accuracy is evaluated.

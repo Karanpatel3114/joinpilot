@@ -30,6 +30,11 @@ test('README screenshots', async ({ page }) => {
   await page.getByRole('region', { name: 'Generated SQL' }).scrollIntoViewIfNeeded()
   await page.screenshot({ path: out('results'), fullPage: true })
 
+  await page.getByRole('link', { name: /open the kpi dashboard/i }).click()
+  await expect(page.locator('.recharts-bar-rectangle').first()).toBeVisible()
+  await page.waitForTimeout(800)
+  await page.screenshot({ path: out('dashboard'), fullPage: true })
+
   await page.goto('/')
   await page.screenshot({ path: out('projects') })
 })

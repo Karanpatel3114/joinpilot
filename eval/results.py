@@ -81,6 +81,23 @@ def markdown(report: dict[str, Any]) -> str:
             lines.append(
                 f"| {mode} | {shown} | {m['avg_repair_attempts']} | {m['views_repaired']} |"
             )
+    kpis = report.get("kpis")
+    if kpis and kpis["aggregate"]["total"]:
+        overall = kpis["aggregate"]
+        lines += [
+            "",
+            "## KPI correctness (recommended joins approved)",
+            "",
+            f"- Values right: {overall['right']} of {overall['total']} "
+            f"({overall['kpi_accuracy']:.1%}); counts exact, money within 0.01%",
+            "",
+            "| Dataset | " + " | ".join(next(iter(kpis["per_dataset"].values()))) + " |",
+            "|---|" + "---|" * len(next(iter(kpis["per_dataset"].values()))),
+        ]
+        for dataset, metrics in kpis["per_dataset"].items():
+            scores = " | ".join(f"{m['right']}/{m['total']}" for m in metrics.values())
+            lines.append(f"| {dataset} | {scores} |")
+            lines += [f"  - wrong: {w}" for m in metrics.values() for w in m["wrong"]]
     redteam = report.get("redteam")
     if redteam:
         lines += [

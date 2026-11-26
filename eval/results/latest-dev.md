@@ -1,7 +1,7 @@
 # Evaluation: dev split
 
-- Date: 2026-11-26T01:25:34+00:00
-- Commit: `3566c20`
+- Date: 2026-11-26T02:26:18+00:00
+- Commit: `fb92e1f`
 - Datasets: `erp_s1_sap`, `erp_s2_sap`, `erp_s3_sap`, `erp_s1_friendly`
 - Settings: recorded in metrics.json
 
@@ -46,6 +46,17 @@
 |---|---|---|---|---|---|
 | approve_all | 1.000 | 1.000 | 1.000 | 0.0 | 0 |
 | oracle | 1.000 | 1.000 | 1.000 | 0.0 | 0 |
+
+## KPI correctness (recommended joins approved)
+
+- Values right: 416 of 416 (100.0%); counts exact, money within 0.01%
+
+| Dataset | aging_buckets | revenue_2026_by_product_group | monthly_order_counts | top_customers_by_revenue | aging_top_customers |
+|---|---|---|---|---|---|
+| erp_s1_sap | 5/5 | 11/11 | 18/18 | 10/10 | 60/60 |
+| erp_s2_sap | 5/5 | 11/11 | 18/18 | 10/10 | 60/60 |
+| erp_s3_sap | 5/5 | 11/11 | 18/18 | 10/10 | 60/60 |
+| erp_s1_friendly | 5/5 | 11/11 | 18/18 | 10/10 | 60/60 |
 
 ## SQL safety
 

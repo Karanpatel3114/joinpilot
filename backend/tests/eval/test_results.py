@@ -45,3 +45,22 @@ def test_markdown_lists_errors_per_system() -> None:
     text = markdown(sample_report())
     assert "**name_only**: 1 false positives, 0 false negatives" in text
     assert "  - a -> b" in text
+
+
+def test_markdown_reports_kpi_correctness_per_dataset() -> None:
+    score = {"accuracy": 0.5, "right": 1, "total": 2, "wrong": ["aging_buckets[90+].amount"]}
+    report = {
+        "split": "dev",
+        "date": "2026-11-26T00:00:00+00:00",
+        "commit": "abc1234",
+        "dirty": False,
+        "datasets": [{"dataset_id": "erp_s1_sap"}],
+        "kpis": {
+            "aggregate": {"kpi_accuracy": 0.5, "right": 1, "total": 2},
+            "per_dataset": {"erp_s1_sap": {"aging_buckets": score}},
+        },
+    }
+    text = markdown(report)
+    assert "Values right: 1 of 2 (50.0%)" in text
+    assert "| erp_s1_sap | 1/2 |" in text
+    assert "wrong: aging_buckets[90+].amount" in text

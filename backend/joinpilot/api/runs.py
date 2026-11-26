@@ -14,6 +14,8 @@ from joinpilot.api.schemas import (
     ApprovalRequest,
     CheckResult,
     CreateRunRequest,
+    Dashboard,
+    Metric,
     Run,
     RunProposal,
     View,
@@ -39,6 +41,13 @@ async def list_runs(project_id: UUID, runs: Runs) -> list[Run]:
     """A project's runs, newest first."""
     records = await run_in_threadpool(runs.list_for_project, str(project_id))
     return [Run.model_validate(r.model_dump()) for r in records]
+
+
+@router.get("/projects/{project_id}/dashboard", response_model=Dashboard)
+async def get_dashboard(project_id: UUID, runs: Runs) -> Dashboard:
+    """KPI metrics with their SQL and rows, from the newest completed run that has them."""
+    run_id, metrics = await run_in_threadpool(runs.dashboard, str(project_id))
+    return Dashboard(run_id=run_id, metrics=[Metric.model_validate(m) for m in metrics])
 
 
 @router.get("/runs/{run_id}", response_model=Run)

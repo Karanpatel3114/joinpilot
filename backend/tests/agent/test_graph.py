@@ -56,6 +56,24 @@ def test_a_new_process_resumes_from_the_saved_checkpoint(ctx: AgentContext, tmp_
     assert final["decisions"][3]["reason"] == "not needed"
 
 
+def test_an_approved_model_gets_a_computed_dashboard(ctx: AgentContext) -> None:
+    graph = build_graph(ctx, checkpointer=InMemorySaver())
+    state = graph.invoke(
+        {"run_id": "r", "requirement": "Open receivables by aging bucket"}, config("t3")
+    )
+    approve = [
+        {"edge_id": p["edge_id"], "action": "approve"}
+        for p in state["proposals"]
+        if p["recommended"]
+    ]
+    final = resume_with(graph, "t3", approve)
+    assert final["status"] == "completed" and "build_dashboard" in final["timings_ms"]
+    metrics = {m["metric_id"]: m for m in final["metrics"]}
+    assert final["metrics"][0]["metric_id"] == "aging_buckets"
+    assert all(m["status"] == "computed" and m["data"] for m in metrics.values())
+    assert isinstance(metrics["aging_buckets"]["data"][0]["amount"], float)
+
+
 def test_rejecting_everything_completes_without_views(ctx: AgentContext) -> None:
     graph = build_graph(ctx, checkpointer=InMemorySaver())
     state = graph.invoke(START, config("t2"))

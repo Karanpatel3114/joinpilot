@@ -18,6 +18,7 @@ from eval.baselines import inclusion_dependency, name_only, overlap_only
 from eval.datasets import EvalDataset, load_dataset, split_ids
 from eval.gold import GOLD_ROOT, load_joins
 from eval.join_metrics import JoinCounts, PredictedEdge, score_dataset
+from eval.kpi_eval import evaluate_kpis
 from eval.llm_systems import joinpilot_full, llm_only, requirement_for
 from eval.redteam_eval import evaluate_redteam
 from eval.results import new_report, write_results
@@ -178,6 +179,8 @@ def main(argv: list[str] | None = None) -> None:
     report["settings"]["checks"] = settings.checks.model_dump(mode="json")
     report["settings"]["kpi"] = settings.kpi.model_dump(mode="json")
     report["views"] = evaluate_views(datasets, settings)
+    report["kpis"] = evaluate_kpis(datasets, settings)
+    logger.info("kpis: %s", json.dumps(report["kpis"]["aggregate"]))
     report["redteam"] = evaluate_redteam()
     if args.llm:
         report["settings"]["llm"] = settings.llm.model_dump(mode="json")

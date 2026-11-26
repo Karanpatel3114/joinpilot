@@ -46,6 +46,7 @@ class RunState(TypedDict, total=False):
     views: list[dict[str, Any]]
     view_specs: list[dict[str, Any]]
     checks: list[dict[str, Any]]
+    metrics: list[dict[str, Any]]
     check_rounds: Annotated[list[dict[str, int]], operator.add]
     repair_attempts: int
     error: str | None

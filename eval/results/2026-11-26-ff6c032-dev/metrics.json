@@ -1,0 +1,762 @@
+{
+  "split": "dev",
+  "date": "2026-11-26T02:15:38+00:00",
+  "commit": "ff6c032",
+  "dirty": false,
+  "datasets": [
+    {
+      "dataset_id": "erp_s1_sap",
+      "fingerprint": "sha256:c73fd3e7464a8ded4f8f3bb647b9320a9311cfdd23f7313d71318fe218405a17",
+      "profile_seconds": 0.186
+    },
+    {
+      "dataset_id": "erp_s2_sap",
+      "fingerprint": "sha256:d470653a11024d8d68218f25d2f26d12ff739c00abbc58b749abd7d6713897a4",
+      "profile_seconds": 0.184
+    },
+    {
+      "dataset_id": "erp_s3_sap",
+      "fingerprint": "sha256:6fae23ee8100597f19ac3da2289568fdca9095ab6d9e284405686d2c5e9a92d8",
+      "profile_seconds": 0.185
+    },
+    {
+      "dataset_id": "erp_s1_friendly",
+      "fingerprint": "sha256:450f4c9ad562216c6461372bb18cd32c642e6ad6ead49394a828f6e9b6bb1019",
+      "profile_seconds": 0.181
+    }
+  ],
+  "settings": {
+    "profiling": {
+      "sample_values": 5,
+      "max_pair_columns": 12,
+      "overlap_sample_size": 10000,
+      "overlap_max_value_length": 40,
+      "overlap_min_ratio": 0.1,
+      "overlap_max_columns": 300,
+      "overlap_max_results": 5000,
+      "stats_batch_columns": 50,
+      "normalization_min_gain": 0.1
+    },
+    "joins": {
+      "candidate_min_inclusion": 0.5,
+      "unique_min": 0.999,
+      "weight_inclusion": 0.35,
+      "weight_name": 0.35,
+      "weight_coverage": 0.15,
+      "weight_key_strength": 0.15,
+      "key_strength_full_at": 50,
+      "name_fuzzy_weight": 0.5,
+      "prefix_min_share": 0.8,
+      "prefix_max_length": 4,
+      "one_to_one_min_overlap": 0.95,
+      "n_to_m_factor": 0.5,
+      "accept_threshold": 0.7,
+      "discriminator_max_distinct": 5,
+      "discriminator_fill": 0.9,
+      "preferred_filter_values": [
+        "E",
+        "EN",
+        "en"
+      ]
+    },
+    "checks": {
+      "max_orphan_rate": 0.05,
+      "max_null_rate": 0.05,
+      "reconciliation_tolerance": 1e-09
+    },
+    "kpi": {
+      "reference_date": null,
+      "aging_bucket_edges": [
+        30,
+        60,
+        90
+      ],
+      "top_n": 10,
+      "max_metric_rows": 200
+    }
+  },
+  "joins": {
+    "name_only": {
+      "aggregate": {
+        "precision": 0.3704,
+        "recall": 1.0,
+        "f1": 0.5405,
+        "undirected_f1": 0.6897,
+        "predicted": 54,
+        "gold": 20,
+        "true_positives": 20,
+        "normalization_recall": 0.0,
+        "wrong_normalizations": 4,
+        "fan_out_recall": 0.0,
+        "fan_out_precision": null,
+        "filter_accuracy": 0.0,
+        "decoy_rejection": 0.8
+      },
+      "per_dataset": {
+        "erp_s1_sap": {
+          "precision": 0.3571,
+          "recall": 1.0,
+          "f1": 0.5263,
+          "undirected_f1": 0.6667,
+          "predicted": 14,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 0.0,
+          "wrong_normalizations": 1,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 0.8
+        },
+        "erp_s2_sap": {
+          "precision": 0.3571,
+          "recall": 1.0,
+          "f1": 0.5263,
+          "undirected_f1": 0.6667,
+          "predicted": 14,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 0.0,
+          "wrong_normalizations": 1,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 0.8
+        },
+        "erp_s3_sap": {
+          "precision": 0.3571,
+          "recall": 1.0,
+          "f1": 0.5263,
+          "undirected_f1": 0.6667,
+          "predicted": 14,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 0.0,
+          "wrong_normalizations": 1,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 0.8
+        },
+        "erp_s1_friendly": {
+          "precision": 0.4167,
+          "recall": 1.0,
+          "f1": 0.5882,
+          "undirected_f1": 0.7692,
+          "predicted": 12,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 0.0,
+          "wrong_normalizations": 1,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 0.8
+        }
+      },
+      "false_positives": [
+        "erp_s1_sap: BSID.KUNNR -> VBAK.KUNNR",
+        "erp_s1_sap: BSID.BELNR -> VBAK.VBELN",
+        "erp_s1_sap: BSID.BELNR -> VBAP.VBELN",
+        "erp_s1_sap: BSID.WAERS -> VBAK.WAERK",
+        "erp_s1_sap: MARA.MATNR -> MAKT.MATNR",
+        "erp_s1_sap: VBAK.VBELN -> VBAP.VBELN",
+        "erp_s1_sap: VBAK.KUNNR -> BSID.KUNNR",
+        "erp_s1_sap: VBAK.WAERK -> BSID.WAERS",
+        "erp_s1_sap: VBAP.MATNR -> MAKT.MATNR",
+        "erp_s2_sap: BSID.KUNNR -> VBAK.KUNNR",
+        "erp_s2_sap: BSID.BELNR -> VBAK.VBELN",
+        "erp_s2_sap: BSID.BELNR -> VBAP.VBELN",
+        "erp_s2_sap: BSID.WAERS -> VBAK.WAERK",
+        "erp_s2_sap: MARA.MATNR -> MAKT.MATNR",
+        "erp_s2_sap: VBAK.VBELN -> VBAP.VBELN",
+        "erp_s2_sap: VBAK.KUNNR -> BSID.KUNNR",
+        "erp_s2_sap: VBAK.WAERK -> BSID.WAERS",
+        "erp_s2_sap: VBAP.MATNR -> MAKT.MATNR",
+        "erp_s3_sap: BSID.KUNNR -> VBAK.KUNNR",
+        "erp_s3_sap: BSID.BELNR -> VBAK.VBELN",
+        "erp_s3_sap: BSID.BELNR -> VBAP.VBELN",
+        "erp_s3_sap: BSID.WAERS -> VBAK.WAERK",
+        "erp_s3_sap: MARA.MATNR -> MAKT.MATNR",
+        "erp_s3_sap: VBAK.VBELN -> VBAP.VBELN",
+        "erp_s3_sap: VBAK.KUNNR -> BSID.KUNNR",
+        "erp_s3_sap: VBAK.WAERK -> BSID.WAERS",
+        "erp_s3_sap: VBAP.MATNR -> MAKT.MATNR",
+        "erp_s1_friendly: open_items.customer_id -> order_headers.customer_id",
+        "erp_s1_friendly: open_items.currency -> order_headers.currency",
+        "erp_s1_friendly: order_headers.order_id -> order_items.order_id",
+        "erp_s1_friendly: order_headers.customer_id -> open_items.customer_id",
+        "erp_s1_friendly: order_headers.currency -> open_items.currency",
+        "erp_s1_friendly: order_items.product_id -> product_texts.product_id",
+        "erp_s1_friendly: products.product_id -> product_texts.product_id"
+      ],
+      "false_negatives": []
+    },
+    "overlap_only": {
+      "aggregate": {
+        "precision": 0.2742,
+        "recall": 0.85,
+        "f1": 0.4146,
+        "undirected_f1": 0.5152,
+        "predicted": 62,
+        "gold": 20,
+        "true_positives": 17,
+        "normalization_recall": 1.0,
+        "wrong_normalizations": 0,
+        "fan_out_recall": 0.0,
+        "fan_out_precision": null,
+        "filter_accuracy": 0.0,
+        "decoy_rejection": 0.6
+      },
+      "per_dataset": {
+        "erp_s1_sap": {
+          "precision": 0.2667,
+          "recall": 0.8,
+          "f1": 0.4,
+          "undirected_f1": 0.5,
+          "predicted": 15,
+          "gold": 5,
+          "true_positives": 4,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 0.6
+        },
+        "erp_s2_sap": {
+          "precision": 0.2667,
+          "recall": 0.8,
+          "f1": 0.4,
+          "undirected_f1": 0.5,
+          "predicted": 15,
+          "gold": 5,
+          "true_positives": 4,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 0.6
+        },
+        "erp_s3_sap": {
+          "precision": 0.2941,
+          "recall": 1.0,
+          "f1": 0.4545,
+          "undirected_f1": 0.5556,
+          "predicted": 17,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 0.6
+        },
+        "erp_s1_friendly": {
+          "precision": 0.2667,
+          "recall": 0.8,
+          "f1": 0.4,
+          "undirected_f1": 0.5,
+          "predicted": 15,
+          "gold": 5,
+          "true_positives": 4,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 0.6
+        }
+      },
+      "false_positives": [
+        "erp_s1_sap: BSID.BUKRS -> VBAK.VKORG",
+        "erp_s1_sap: BSID.BUZEI -> KNA1.KTOKD",
+        "erp_s1_sap: BSID.BUZEI -> VBAP.KWMENG",
+        "erp_s1_sap: BSID.BUZEI -> VBAP.POSNR",
+        "erp_s1_sap: BSID.WAERS -> VBAK.WAERK",
+        "erp_s1_sap: KNA1.KTOKD -> BSID.BUZEI",
+        "erp_s1_sap: KNA1.KTOKD -> VBAP.KWMENG",
+        "erp_s1_sap: KNA1.KTOKD -> VBAP.POSNR",
+        "erp_s1_sap: MARA.MATNR -> MAKT.MATNR",
+        "erp_s1_sap: VBAK.VBELN -> VBAP.VBELN",
+        "erp_s1_sap: VBAK.WAERK -> BSID.WAERS",
+        "erp_s2_sap: BSID.BUKRS -> VBAK.VKORG",
+        "erp_s2_sap: BSID.BUZEI -> KNA1.KTOKD",
+        "erp_s2_sap: BSID.BUZEI -> VBAP.KWMENG",
+        "erp_s2_sap: BSID.BUZEI -> VBAP.POSNR",
+        "erp_s2_sap: BSID.WAERS -> VBAK.WAERK",
+        "erp_s2_sap: KNA1.KTOKD -> BSID.BUZEI",
+        "erp_s2_sap: KNA1.KTOKD -> VBAP.KWMENG",
+        "erp_s2_sap: KNA1.KTOKD -> VBAP.POSNR",
+        "erp_s2_sap: MARA.MATNR -> MAKT.MATNR",
+        "erp_s2_sap: VBAK.VBELN -> VBAP.VBELN",
+        "erp_s2_sap: VBAK.WAERK -> BSID.WAERS",
+        "erp_s3_sap: BSID.BUKRS -> VBAK.VKORG",
+        "erp_s3_sap: BSID.BUZEI -> KNA1.KTOKD",
+        "erp_s3_sap: BSID.BUZEI -> VBAP.KWMENG",
+        "erp_s3_sap: BSID.BUZEI -> VBAP.POSNR",
+        "erp_s3_sap: BSID.WAERS -> VBAK.WAERK",
+        "erp_s3_sap: KNA1.KTOKD -> BSID.BUZEI",
+        "erp_s3_sap: KNA1.KTOKD -> VBAP.KWMENG",
+        "erp_s3_sap: KNA1.KTOKD -> VBAP.POSNR",
+        "erp_s3_sap: MARA.MATNR -> MAKT.MATNR",
+        "erp_s3_sap: VBAK.VBELN -> VBAP.VBELN",
+        "erp_s3_sap: VBAK.WAERK -> BSID.WAERS",
+        "erp_s3_sap: VBAP.MATNR -> MAKT.MATNR",
+        "erp_s1_friendly: customers.account_group -> open_items.line_no",
+        "erp_s1_friendly: customers.account_group -> order_items.item_no",
+        "erp_s1_friendly: customers.account_group -> order_items.quantity",
+        "erp_s1_friendly: open_items.company_code -> order_headers.sales_org",
+        "erp_s1_friendly: open_items.currency -> order_headers.currency",
+        "erp_s1_friendly: open_items.line_no -> customers.account_group",
+        "erp_s1_friendly: open_items.line_no -> order_items.item_no",
+        "erp_s1_friendly: open_items.line_no -> order_items.quantity",
+        "erp_s1_friendly: order_headers.currency -> open_items.currency",
+        "erp_s1_friendly: order_headers.order_id -> order_items.order_id",
+        "erp_s1_friendly: products.product_id -> product_texts.product_id"
+      ],
+      "false_negatives": [
+        "erp_s1_sap: VBAP.MATNR -> MARA.MATNR",
+        "erp_s2_sap: VBAP.MATNR -> MARA.MATNR",
+        "erp_s1_friendly: order_items.product_id -> products.product_id"
+      ]
+    },
+    "inclusion_dependency": {
+      "aggregate": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "undirected_f1": 1.0,
+        "predicted": 20,
+        "gold": 20,
+        "true_positives": 20,
+        "normalization_recall": 1.0,
+        "wrong_normalizations": 0,
+        "fan_out_recall": 0.0,
+        "fan_out_precision": null,
+        "filter_accuracy": 0.0,
+        "decoy_rejection": 1.0
+      },
+      "per_dataset": {
+        "erp_s1_sap": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "undirected_f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 1.0
+        },
+        "erp_s2_sap": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "undirected_f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 1.0
+        },
+        "erp_s3_sap": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "undirected_f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 1.0
+        },
+        "erp_s1_friendly": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "undirected_f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 1.0
+        }
+      },
+      "false_positives": [],
+      "false_negatives": []
+    },
+    "joinpilot_deterministic": {
+      "aggregate": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "undirected_f1": 1.0,
+        "predicted": 20,
+        "gold": 20,
+        "true_positives": 20,
+        "normalization_recall": 1.0,
+        "wrong_normalizations": 0,
+        "fan_out_recall": 1.0,
+        "fan_out_precision": 1.0,
+        "filter_accuracy": 1.0,
+        "decoy_rejection": 1.0
+      },
+      "per_dataset": {
+        "erp_s1_sap": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "undirected_f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 1.0,
+          "fan_out_precision": 1.0,
+          "filter_accuracy": 1.0,
+          "decoy_rejection": 1.0
+        },
+        "erp_s2_sap": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "undirected_f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 1.0,
+          "fan_out_precision": 1.0,
+          "filter_accuracy": 1.0,
+          "decoy_rejection": 1.0
+        },
+        "erp_s3_sap": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "undirected_f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 1.0,
+          "fan_out_precision": 1.0,
+          "filter_accuracy": 1.0,
+          "decoy_rejection": 1.0
+        },
+        "erp_s1_friendly": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "undirected_f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 1.0,
+          "fan_out_precision": 1.0,
+          "filter_accuracy": 1.0,
+          "decoy_rejection": 1.0
+        }
+      },
+      "false_positives": [],
+      "false_negatives": []
+    }
+  },
+  "views": {
+    "approve_all": {
+      "aggregate": {
+        "view_validity": 1.0,
+        "check_pass_first": 1.0,
+        "check_pass_final": 1.0,
+        "avg_repair_attempts": 0.0,
+        "views": 8,
+        "views_valid": 8,
+        "views_repaired": 0,
+        "checks_first": 60,
+        "checks_passed_first": 60,
+        "checks_final": 60,
+        "checks_passed_final": 60,
+        "repair_attempts": 0,
+        "approved": 20
+      },
+      "per_dataset": {
+        "erp_s1_sap": {
+          "views": 2,
+          "views_valid": 2,
+          "views_repaired": 0,
+          "checks_first": 15,
+          "checks_passed_first": 15,
+          "checks_final": 15,
+          "checks_passed_final": 15,
+          "repair_attempts": 0,
+          "approved": 5
+        },
+        "erp_s2_sap": {
+          "views": 2,
+          "views_valid": 2,
+          "views_repaired": 0,
+          "checks_first": 15,
+          "checks_passed_first": 15,
+          "checks_final": 15,
+          "checks_passed_final": 15,
+          "repair_attempts": 0,
+          "approved": 5
+        },
+        "erp_s3_sap": {
+          "views": 2,
+          "views_valid": 2,
+          "views_repaired": 0,
+          "checks_first": 15,
+          "checks_passed_first": 15,
+          "checks_final": 15,
+          "checks_passed_final": 15,
+          "repair_attempts": 0,
+          "approved": 5
+        },
+        "erp_s1_friendly": {
+          "views": 2,
+          "views_valid": 2,
+          "views_repaired": 0,
+          "checks_first": 15,
+          "checks_passed_first": 15,
+          "checks_final": 15,
+          "checks_passed_final": 15,
+          "repair_attempts": 0,
+          "approved": 5
+        }
+      }
+    },
+    "oracle": {
+      "aggregate": {
+        "view_validity": 1.0,
+        "check_pass_first": 1.0,
+        "check_pass_final": 1.0,
+        "avg_repair_attempts": 0.0,
+        "views": 8,
+        "views_valid": 8,
+        "views_repaired": 0,
+        "checks_first": 60,
+        "checks_passed_first": 60,
+        "checks_final": 60,
+        "checks_passed_final": 60,
+        "repair_attempts": 0,
+        "approved": 20
+      },
+      "per_dataset": {
+        "erp_s1_sap": {
+          "views": 2,
+          "views_valid": 2,
+          "views_repaired": 0,
+          "checks_first": 15,
+          "checks_passed_first": 15,
+          "checks_final": 15,
+          "checks_passed_final": 15,
+          "repair_attempts": 0,
+          "approved": 5
+        },
+        "erp_s2_sap": {
+          "views": 2,
+          "views_valid": 2,
+          "views_repaired": 0,
+          "checks_first": 15,
+          "checks_passed_first": 15,
+          "checks_final": 15,
+          "checks_passed_final": 15,
+          "repair_attempts": 0,
+          "approved": 5
+        },
+        "erp_s3_sap": {
+          "views": 2,
+          "views_valid": 2,
+          "views_repaired": 0,
+          "checks_first": 15,
+          "checks_passed_first": 15,
+          "checks_final": 15,
+          "checks_passed_final": 15,
+          "repair_attempts": 0,
+          "approved": 5
+        },
+        "erp_s1_friendly": {
+          "views": 2,
+          "views_valid": 2,
+          "views_repaired": 0,
+          "checks_first": 15,
+          "checks_passed_first": 15,
+          "checks_final": 15,
+          "checks_passed_final": 15,
+          "repair_attempts": 0,
+          "approved": 5
+        }
+      }
+    }
+  },
+  "kpis": {
+    "aggregate": {
+      "kpi_accuracy": 1.0,
+      "right": 416,
+      "total": 416
+    },
+    "per_dataset": {
+      "erp_s1_sap": {
+        "aging_buckets": {
+          "accuracy": 1.0,
+          "right": 5,
+          "total": 5,
+          "wrong": []
+        },
+        "revenue_2026_by_product_group": {
+          "accuracy": 1.0,
+          "right": 11,
+          "total": 11,
+          "wrong": []
+        },
+        "monthly_order_counts": {
+          "accuracy": 1.0,
+          "right": 18,
+          "total": 18,
+          "wrong": []
+        },
+        "top_customers_by_revenue": {
+          "accuracy": 1.0,
+          "right": 10,
+          "total": 10,
+          "wrong": []
+        },
+        "aging_top_customers": {
+          "accuracy": 1.0,
+          "right": 60,
+          "total": 60,
+          "wrong": []
+        }
+      },
+      "erp_s2_sap": {
+        "aging_buckets": {
+          "accuracy": 1.0,
+          "right": 5,
+          "total": 5,
+          "wrong": []
+        },
+        "revenue_2026_by_product_group": {
+          "accuracy": 1.0,
+          "right": 11,
+          "total": 11,
+          "wrong": []
+        },
+        "monthly_order_counts": {
+          "accuracy": 1.0,
+          "right": 18,
+          "total": 18,
+          "wrong": []
+        },
+        "top_customers_by_revenue": {
+          "accuracy": 1.0,
+          "right": 10,
+          "total": 10,
+          "wrong": []
+        },
+        "aging_top_customers": {
+          "accuracy": 1.0,
+          "right": 60,
+          "total": 60,
+          "wrong": []
+        }
+      },
+      "erp_s3_sap": {
+        "aging_buckets": {
+          "accuracy": 1.0,
+          "right": 5,
+          "total": 5,
+          "wrong": []
+        },
+        "revenue_2026_by_product_group": {
+          "accuracy": 1.0,
+          "right": 11,
+          "total": 11,
+          "wrong": []
+        },
+        "monthly_order_counts": {
+          "accuracy": 1.0,
+          "right": 18,
+          "total": 18,
+          "wrong": []
+        },
+        "top_customers_by_revenue": {
+          "accuracy": 1.0,
+          "right": 10,
+          "total": 10,
+          "wrong": []
+        },
+        "aging_top_customers": {
+          "accuracy": 1.0,
+          "right": 60,
+          "total": 60,
+          "wrong": []
+        }
+      },
+      "erp_s1_friendly": {
+        "aging_buckets": {
+          "accuracy": 1.0,
+          "right": 5,
+          "total": 5,
+          "wrong": []
+        },
+        "revenue_2026_by_product_group": {
+          "accuracy": 1.0,
+          "right": 11,
+          "total": 11,
+          "wrong": []
+        },
+        "monthly_order_counts": {
+          "accuracy": 1.0,
+          "right": 18,
+          "total": 18,
+          "wrong": []
+        },
+        "top_customers_by_revenue": {
+          "accuracy": 1.0,
+          "right": 10,
+          "total": 10,
+          "wrong": []
+        },
+        "aging_top_customers": {
+          "accuracy": 1.0,
+          "right": 60,
+          "total": 60,
+          "wrong": []
+        }
+      }
+    }
+  },
+  "redteam": {
+    "attacks": 63,
+    "block_rate": 1.0,
+    "missed": [],
+    "harmless": 11,
+    "false_block_rate": 0.0,
+    "wrongly_blocked": []
+  }
+}

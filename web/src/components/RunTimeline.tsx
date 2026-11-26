@@ -8,6 +8,7 @@ const STEPS = [
   { key: 'await_approval', label: 'Your approval', active: ['awaiting_approval'] },
   { key: 'generate_views', label: 'Generate views', active: ['generating'] },
   { key: 'check_views', label: 'Run checks (and repair)', active: ['checking', 'repairing'] },
+  { key: 'build_dashboard', label: 'Build the dashboard', active: [] },
 ] as const
 
 /** The run's steps with what is done, what is running and how long each took. */
@@ -15,7 +16,7 @@ export function RunTimeline({ run }: { run: Run }) {
   const failedAt =
     run.status === 'failed' ? STEPS.findIndex((s) => run.timings_ms[s.key] === undefined) : -1
   return (
-    <ol aria-label="Run steps" className="grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
+    <ol aria-label="Run steps" className="grid gap-2 sm:grid-cols-3 lg:grid-cols-7">
       {STEPS.map((step, index) => {
         const ms = run.timings_ms[step.key]
         // Checks rerun after a repair, so that step keeps spinning while it has a timing.

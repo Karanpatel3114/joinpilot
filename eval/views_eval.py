@@ -42,10 +42,10 @@ def decide(
     ]
 
 
-def run_mode(
+def run_graph(
     dataset: EvalDataset, mode: str, settings: Settings, gold_root: Path
 ) -> dict[str, Any]:
-    """Run the graph from requirement to finished views for one dataset and reviewer."""
+    """Run the graph from requirement to its final state for one dataset and reviewer."""
     ctx = AgentContext(
         load_profile=lambda: dataset.profile,
         llm=UnavailableProvider("evaluation runs the deterministic path"),
@@ -58,7 +58,17 @@ def run_mode(
         {"run_id": mode, "requirement": requirement_for(dataset.dataset_id)}, config
     )
     truth = {(e.from_, e.to) for e in load_joins(dataset.dataset_id, gold_root).edges}
-    final = graph.invoke(Command(resume=decide(mode, paused.get("proposals", []), truth)), config)
+    final: dict[str, Any] = graph.invoke(
+        Command(resume=decide(mode, paused.get("proposals", []), truth)), config
+    )
+    return final
+
+
+def run_mode(
+    dataset: EvalDataset, mode: str, settings: Settings, gold_root: Path
+) -> dict[str, Any]:
+    """View validity, checks and repairs of one dataset's run for one reviewer."""
+    final = run_graph(dataset, mode, settings, gold_root)
     views = final.get("views", [])
     rounds = final.get("check_rounds", [])
     first = rounds[0] if rounds else {"passed": 0, "failed": 0}

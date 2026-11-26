@@ -161,3 +161,15 @@ One entry per design choice that had real alternatives. Newest at the bottom. Fo
 - **Decision:** the export layer re-renders DuckDB SQL with sqlglot's pretty printer, the same path the other dialects already take. The stored SQL that ran is unchanged; only what is shown and downloaded is formatted.
 - **Alternatives:** generate pretty SQL in the first place (touches the guarded view builder for a display concern); format in the browser (a second SQL formatter to keep in step).
 - **Consequences:** a test builds every fixture view from both texts and requires identical rows, so the formatting cannot silently change what a view returns.
+
+## D-029: Dashboard metrics from deterministic templates
+- **Context:** M8 needs KPI definitions that are correct enough to be measured against gold, from views whose column names follow either SAP-style or readable naming.
+- **Decision:** metrics are templates (aging buckets, top customers by open amount, revenue by product group, orders per month, top customers by revenue) that apply only when the model has the columns they need. Columns are found by meaning, from field hints or readable names, and through the approved joins (a customer table is one reached on a customer key). Header-level money is reduced to one row per header before summing, so items cannot double it. The requirement decides which metrics are marked as asked for and shown first, and a year in the requirement becomes a filter.
+- **Alternatives:** let the LLM write metric SQL (untestable without a key, and unsafe to trust for numbers leaders read); a full semantic layer such as dbt metrics (far more than five KPIs need).
+- **Consequences:** KPI numbers are reproducible and testable offline, and every metric's SQL goes through the guard. New KPI kinds need a new template; free-form questions are M9's job.
+
+## D-030: One run per project builds its model at a time
+- **Context:** views have fixed names (`v_<fact>`) in one model schema per project, so two runs building at once could check, or compute KPIs on, each other's views.
+- **Decision:** approving a run gives 409 while another run of the same project is generating, checking or repairing, checked under a per-project lock in the service. Starting runs and waiting for approval stay unrestricted, so an abandoned run never blocks the project. The dashboard belongs to the most recently completed run, because its model is the one in the warehouse.
+- **Alternatives:** a schema per run (more storage and a moving target for questions and MCP); a queue that serialises builds (more moving parts for a rare case).
+- **Consequences:** numbers are always stored under the run whose views produced them. The lock is per process, which fits the single API process with an in-process worker; several API processes would need a database lock instead.

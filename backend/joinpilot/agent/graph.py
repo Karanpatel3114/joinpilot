@@ -3,12 +3,13 @@ through `AgentContext`, so tests swap in fakes.
 
 Flow: profile -> parse_requirement -> rank_joins -> await_approval (a pause until a
 person decides) -> generate_views -> check_views -> [repair_views -> check_views, at
-most AGENT__MAX_REPAIRS times] -> finish. Runs with no candidates or no approved
+most AGENT__MAX_REPAIRS times] -> build_dashboard -> finish. Runs with no candidates or no approved
 joins go straight to finish.
 """
 
 from __future__ import annotations
 
+import logging
 import time
 from collections.abc import Callable
 from contextlib import AbstractContextManager
@@ -30,6 +31,8 @@ from joinpilot.checks.sit import run_checks
 from joinpilot.config import Settings
 from joinpilot.joins.models import JoinCandidate
 from joinpilot.joins.scoring import score_candidates
+from joinpilot.kpi.compute import Metric, compute_metrics
+from joinpilot.kpi.metrics import define_metrics
 from joinpilot.llm.provider import LLMProvider
 from joinpilot.profiling.models import ProjectProfile
 from joinpilot.sqlgen.views import (
@@ -39,6 +42,8 @@ from joinpilot.sqlgen.views import (
     spec_from_dict,
     spec_to_dict,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class Node(Protocol):
@@ -231,7 +236,50 @@ class AgentNodes:
         failing = any(not c["passed"] and c["kind"] in STRUCTURAL for c in state.get("checks", []))
         if failing and state.get("repair_attempts", 0) < self.ctx.settings.agent.max_repairs:
             return "repair_views"
-        return "finish"
+        return "build_dashboard"
+
+    def build_dashboard(self, state: RunState) -> dict[str, Any]:
+        """Define the KPI metrics the model supports and compute them on its views.
+
+        A view that still fails a structural check (lost or duplicated rows) would give
+        wrong totals, so its metrics are reported as failed instead of computed. A problem
+        here never fails a run whose views and checks are done.
+        """
+        created = {v["name"] for v in state.get("views", []) if v["status"] != "failed"}
+        specs = [spec_from_dict(s) for s in state.get("view_specs", []) if s["name"] in created]
+        broken: dict[str, set[str]] = {}
+        for check in state.get("checks", []):
+            if not check["passed"] and check["kind"] in STRUCTURAL:
+                broken.setdefault(check["view"], set()).add(check["kind"])
+        kpi = self.ctx.settings.kpi
+        try:
+            metrics = define_metrics(specs, self.profile_data(), state.get("requirement", ""), kpi)
+            usable = [m for m in metrics if m.view not in broken]
+            with self.open_warehouse() as con:
+                computed = {
+                    m.metric_id: m for m in compute_metrics(con, usable, kpi.max_metric_rows)
+                }
+        except Exception as error:  # the model is done; the dashboard is extra
+            logger.warning("dashboard failed: %s", type(error).__name__)
+            return {"metrics": [], "warnings": ["The KPI dashboard could not be built."]}
+        results = [
+            computed.get(m.metric_id)
+            or Metric(
+                **m.model_dump(),
+                data=[],
+                status="failed",
+                message=(
+                    f"Not computed: the view {m.view} failed its "
+                    f"{', '.join(sorted(broken[m.view]))} checks, so its totals would be wrong."
+                ),
+            )
+            for m in metrics
+        ]
+        failed = [m.title for m in results if m.status == "failed"]
+        return {
+            "metrics": [m.model_dump() for m in results],
+            "warnings": [f"The metric {title!r} was not computed." for title in failed],
+        }
 
     def finish(self, state: RunState) -> dict[str, Any]:
         """Close the run."""
@@ -260,6 +308,7 @@ def build_graph(
     graph.add_node("generate_views", timed("generate_views", nodes.generate_views))
     graph.add_node("check_views", timed("check_views", nodes.check_views))
     graph.add_node("repair_views", timed("repair_views", nodes.repair_views))
+    graph.add_node("build_dashboard", timed("build_dashboard", nodes.build_dashboard))
     graph.add_node("finish", timed("finish", nodes.finish))
     graph.add_conditional_edges(
         "rank_joins",
@@ -272,7 +321,10 @@ def build_graph(
         ["generate_views", "finish"],
     )
     graph.add_edge("generate_views", "check_views")
-    graph.add_conditional_edges("check_views", nodes.after_checks, ["repair_views", "finish"])
+    graph.add_conditional_edges(
+        "check_views", nodes.after_checks, ["repair_views", "build_dashboard"]
+    )
+    graph.add_edge("build_dashboard", "finish")
     graph.add_edge("repair_views", "check_views")
     graph.add_edge("finish", END)
     return graph.compile(checkpointer=checkpointer)

@@ -1,0 +1,380 @@
+{
+  "run_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "metrics": [
+    {
+      "metric_id": "aging_buckets",
+      "title": "Open receivables by aging bucket",
+      "description": "Sum of DMBTR per aging bucket, as of the reference date.",
+      "view": "v_bsid",
+      "sql": "SELECT \"aging_bucket\" AS bucket, ROUND(SUM(\"DMBTR\"), 2) AS amount FROM model.\"v_bsid\" GROUP BY \"aging_bucket\" ORDER BY CASE \"aging_bucket\" WHEN 'not_due' THEN 0 WHEN '1-30' THEN 1 WHEN '31-60' THEN 2 WHEN '61-90' THEN 3 WHEN '90+' THEN 4 ELSE 5 END",
+      "chart": "bar",
+      "x": "bucket",
+      "y": [
+        "amount"
+      ],
+      "requested": true,
+      "data": [
+        {
+          "bucket": "not_due",
+          "amount": 12813002.84
+        },
+        {
+          "bucket": "1-30",
+          "amount": 6593339.3
+        },
+        {
+          "bucket": "31-60",
+          "amount": 4610945.11
+        },
+        {
+          "bucket": "61-90",
+          "amount": 3040133.78
+        },
+        {
+          "bucket": "90+",
+          "amount": 5882086.08
+        }
+      ],
+      "status": "computed",
+      "message": null
+    },
+    {
+      "metric_id": "aging_top_customers",
+      "title": "Top 10 customers by open amount",
+      "description": "Open DMBTR per KNA1 customer and aging bucket; items without a matching customer are left out.",
+      "view": "v_bsid",
+      "sql": "SELECT \"KNA1__KUNNR\" AS customer_id, MAX(\"KNA1__NAME1\") AS customer_name, ROUND(SUM(\"DMBTR\"), 2) AS total, ROUND(SUM(CASE WHEN \"aging_bucket\" = 'not_due' THEN \"DMBTR\" ELSE 0 END), 2) AS \"bucket_not_due\", ROUND(SUM(CASE WHEN \"aging_bucket\" = '1-30' THEN \"DMBTR\" ELSE 0 END), 2) AS \"bucket_1-30\", ROUND(SUM(CASE WHEN \"aging_bucket\" = '31-60' THEN \"DMBTR\" ELSE 0 END), 2) AS \"bucket_31-60\", ROUND(SUM(CASE WHEN \"aging_bucket\" = '61-90' THEN \"DMBTR\" ELSE 0 END), 2) AS \"bucket_61-90\", ROUND(SUM(CASE WHEN \"aging_bucket\" = '90+' THEN \"DMBTR\" ELSE 0 END), 2) AS \"bucket_90+\" FROM model.\"v_bsid\" WHERE \"KNA1__KUNNR\" IS NOT NULL GROUP BY 1 ORDER BY total DESC, customer_id LIMIT 10",
+      "chart": "bar",
+      "x": "customer_name",
+      "y": [
+        "bucket_not_due",
+        "bucket_1-30",
+        "bucket_31-60",
+        "bucket_61-90",
+        "bucket_90+"
+      ],
+      "requested": true,
+      "data": [
+        {
+          "customer_id": "0000555945",
+          "customer_name": "South Torfield Logistics AG",
+          "total": 6033693.44,
+          "bucket_not_due": 2474555.55,
+          "bucket_1-30": 1123942.4,
+          "bucket_31-60": 785419.54,
+          "bucket_61-90": 594753.03,
+          "bucket_90+": 1055022.92
+        },
+        {
+          "customer_id": "0000679541",
+          "customer_name": "Kelwood Technologies LLC",
+          "total": 2427140.22,
+          "bucket_not_due": 982438.9,
+          "bucket_1-30": 550372.33,
+          "bucket_31-60": 340306.96,
+          "bucket_61-90": 153319.01,
+          "bucket_90+": 400703.02
+        },
+        {
+          "customer_id": "0000966278",
+          "customer_name": "United Newstone Trading LLC",
+          "total": 1774600.06,
+          "bucket_not_due": 705383.93,
+          "bucket_1-30": 311271.42,
+          "bucket_31-60": 234143.19,
+          "bucket_61-90": 191607.81,
+          "bucket_90+": 332193.71
+        },
+        {
+          "customer_id": "0000821978",
+          "customer_name": "North Ulcrest Trading Pvt Ltd",
+          "total": 1069581.99,
+          "bucket_not_due": 423595.11,
+          "bucket_1-30": 186258.11,
+          "bucket_31-60": 128023.24,
+          "bucket_61-90": 119551.22,
+          "bucket_90+": 212154.31
+        },
+        {
+          "customer_id": "0000505662",
+          "customer_name": "Atlantic Kelview Engineering Pvt Ltd",
+          "total": 1057185.92,
+          "bucket_not_due": 419294.72,
+          "bucket_1-30": 193755.42,
+          "bucket_31-60": 159026.56,
+          "bucket_61-90": 45976.81,
+          "bucket_90+": 239132.41
+        },
+        {
+          "customer_id": "0000611940",
+          "customer_name": "Central Torford Distribution Inc.",
+          "total": 828010.29,
+          "bucket_not_due": 284944.33,
+          "bucket_1-30": 154824.22,
+          "bucket_31-60": 136611.38,
+          "bucket_61-90": 89689.45,
+          "bucket_90+": 161940.91
+        },
+        {
+          "customer_id": "0000628411",
+          "customer_name": "Atlantic Halfield Systems AG",
+          "total": 811257.4,
+          "bucket_not_due": 335847.8,
+          "bucket_1-30": 132630.33,
+          "bucket_31-60": 123417.55,
+          "bucket_61-90": 63351.08,
+          "bucket_90+": 156010.64
+        },
+        {
+          "customer_id": "0000653497",
+          "customer_name": "Alpine Kinton Trading LLC",
+          "total": 736808.3,
+          "bucket_not_due": 281923.81,
+          "bucket_1-30": 260231.62,
+          "bucket_31-60": 72163.16,
+          "bucket_61-90": 13898.76,
+          "bucket_90+": 108590.95
+        },
+        {
+          "customer_id": "0000486314",
+          "customer_name": "East Granview Logistics Inc.",
+          "total": 503561.53,
+          "bucket_not_due": 202472.13,
+          "bucket_1-30": 84011.34,
+          "bucket_31-60": 90981.43,
+          "bucket_61-90": 31082.59,
+          "bucket_90+": 95014.04
+        },
+        {
+          "customer_id": "0000700778",
+          "customer_name": "United Silview Manufacturing SA",
+          "total": 442614.95,
+          "bucket_not_due": 193677.06,
+          "bucket_1-30": 67689.15,
+          "bucket_31-60": 94105.15,
+          "bucket_61-90": 17185.66,
+          "bucket_90+": 69957.93
+        }
+      ],
+      "status": "computed",
+      "message": null
+    },
+    {
+      "metric_id": "revenue_2026_by_product_group",
+      "title": "2026 revenue by product group",
+      "description": "Sum of item NETWR by MARA.MATKL for orders dated in 2026; items without a known product form an empty group.",
+      "view": "v_vbap",
+      "sql": "SELECT \"MARA__MATKL\" AS product_group, ROUND(SUM(\"NETWR\"), 2) AS revenue FROM model.\"v_vbap\" WHERE year(\"VBAK__ERDAT_date\") = 2026 GROUP BY 1 ORDER BY 1 NULLS LAST",
+      "chart": "bar",
+      "x": "product_group",
+      "y": [
+        "revenue"
+      ],
+      "requested": true,
+      "data": [
+        {
+          "product_group": "BEAR",
+          "revenue": 1590742.61
+        },
+        {
+          "product_group": "CABL",
+          "revenue": 536479.78
+        },
+        {
+          "product_group": "ELEC",
+          "revenue": 958419.34
+        },
+        {
+          "product_group": "FILT",
+          "revenue": 7879768.88
+        },
+        {
+          "product_group": "MOTR",
+          "revenue": 309095.54
+        },
+        {
+          "product_group": "PUMP",
+          "revenue": 468533.85
+        },
+        {
+          "product_group": "SAFE",
+          "revenue": 1356815.5
+        },
+        {
+          "product_group": "SENS",
+          "revenue": 1227417.82
+        },
+        {
+          "product_group": "TOOL",
+          "revenue": 692409.92
+        },
+        {
+          "product_group": "VALV",
+          "revenue": 1228951.1
+        },
+        {
+          "product_group": null,
+          "revenue": 124968.02
+        }
+      ],
+      "status": "computed",
+      "message": null
+    },
+    {
+      "metric_id": "monthly_order_counts",
+      "title": "Orders per month",
+      "description": "Distinct VBAK.VBELN per month of ERDAT.",
+      "view": "v_vbap",
+      "sql": "SELECT strftime(\"VBAK__ERDAT_date\", '%Y-%m') AS month, COUNT(DISTINCT \"VBAK__VBELN\") AS orders FROM model.\"v_vbap\" WHERE \"VBAK__ERDAT_date\" IS NOT NULL GROUP BY 1 ORDER BY 1",
+      "chart": "line",
+      "x": "month",
+      "y": [
+        "orders"
+      ],
+      "requested": true,
+      "data": [
+        {
+          "month": "2025-01",
+          "orders": 562
+        },
+        {
+          "month": "2025-02",
+          "orders": 519
+        },
+        {
+          "month": "2025-03",
+          "orders": 571
+        },
+        {
+          "month": "2025-04",
+          "orders": 566
+        },
+        {
+          "month": "2025-05",
+          "orders": 599
+        },
+        {
+          "month": "2025-06",
+          "orders": 550
+        },
+        {
+          "month": "2025-07",
+          "orders": 569
+        },
+        {
+          "month": "2025-08",
+          "orders": 556
+        },
+        {
+          "month": "2025-09",
+          "orders": 568
+        },
+        {
+          "month": "2025-10",
+          "orders": 561
+        },
+        {
+          "month": "2025-11",
+          "orders": 537
+        },
+        {
+          "month": "2025-12",
+          "orders": 500
+        },
+        {
+          "month": "2026-01",
+          "orders": 576
+        },
+        {
+          "month": "2026-02",
+          "orders": 518
+        },
+        {
+          "month": "2026-03",
+          "orders": 552
+        },
+        {
+          "month": "2026-04",
+          "orders": 573
+        },
+        {
+          "month": "2026-05",
+          "orders": 561
+        },
+        {
+          "month": "2026-06",
+          "orders": 562
+        }
+      ],
+      "status": "computed",
+      "message": null
+    },
+    {
+      "metric_id": "top_customers_by_revenue",
+      "title": "Top 10 customers by revenue",
+      "description": "Sum of VBAK.NETWR per VBAK.KUNNR, counting each order once however many items it has.",
+      "view": "v_vbap",
+      "sql": "SELECT c AS customer_id, MAX(n) AS customer_name, ROUND(SUM(v), 2) AS revenue FROM (SELECT DISTINCT \"VBAK__VBELN\" AS o, \"VBAK__KUNNR\" AS c, \"VBAK__NETWR\" AS v, \"KNA1__NAME1\" AS n FROM model.\"v_vbap\") AS orders WHERE c IS NOT NULL GROUP BY c ORDER BY revenue DESC, customer_id LIMIT 10",
+      "chart": "bar",
+      "x": "customer_name",
+      "y": [
+        "revenue"
+      ],
+      "requested": true,
+      "data": [
+        {
+          "customer_id": "0000729831",
+          "customer_name": "Global Fairwood Distribution LLC",
+          "revenue": 8841260.59
+        },
+        {
+          "customer_id": "0000338922",
+          "customer_name": "Atlantic Glencrest Engineering Inc.",
+          "revenue": 4310155.09
+        },
+        {
+          "customer_id": "0000815762",
+          "customer_name": "Alpine Ironstone Technologies Ltd",
+          "revenue": 2587389.87
+        },
+        {
+          "customer_id": "0000556745",
+          "customer_name": "United Fengate Systems Inc.",
+          "revenue": 1652736.99
+        },
+        {
+          "customer_id": "0000824108",
+          "customer_name": "East Elmont Components LLC",
+          "revenue": 1383449.66
+        },
+        {
+          "customer_id": "0000276946",
+          "customer_name": "Weswick Industrial LLC",
+          "revenue": 1354691.52
+        },
+        {
+          "customer_id": "0000250567",
+          "customer_name": "Norford Technologies LLC",
+          "revenue": 1136898.23
+        },
+        {
+          "customer_id": "0000756769",
+          "customer_name": "West Newhaven Manufacturing AG",
+          "revenue": 922176.4
+        },
+        {
+          "customer_id": "0000366195",
+          "customer_name": "Atlantic Newfield Trading Pvt Ltd",
+          "revenue": 812845.53
+        },
+        {
+          "customer_id": "0000630021",
+          "customer_name": "Atlantic Millbrook Engineering GmbH",
+          "revenue": 668600.03
+        }
+      ],
+      "status": "computed",
+      "message": null
+    }
+  ]
+}

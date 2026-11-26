@@ -1,19 +1,25 @@
 import { ArrowLeft } from 'lucide-react'
-import { type KeyboardEvent, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { type KeyboardEvent, Suspense, lazy, useState } from 'react'
+import { Link, useParams, useSearchParams } from 'react-router'
 import { useProjects } from '../api/hooks'
 import { ProfileExplorer } from '../components/ProfileExplorer'
 import { RunsPanel } from '../components/RunsPanel'
 import { UploadPanel } from '../components/UploadPanel'
 
-const TABS = ['Profile', 'Runs'] as const
+const TABS = ['Profile', 'Runs', 'Dashboard'] as const
+
+// Recharts is large, so the dashboard loads when its tab first opens.
+const DashboardPanel = lazy(async () => ({
+  default: (await import('../components/dashboard/DashboardPanel')).DashboardPanel,
+}))
 type Tab = (typeof TABS)[number]
 
 /** One project: add tables, explore their profile, and run the agent. */
 export function ProjectPage() {
   const { projectId = '' } = useParams()
   const project = useProjects().data?.find((p) => p.id === projectId)
-  const [tab, setTab] = useState<Tab>('Profile')
+  const [params] = useSearchParams()
+  const [tab, setTab] = useState<Tab>(() => TABS.find((t) => t === params.get('tab')) ?? 'Profile')
   const hasTables = (project?.table_count ?? 0) > 0
 
   /** Arrow keys, Home and End move between tabs, as in the ARIA tabs pattern. */
@@ -55,7 +61,13 @@ export function ProjectPage() {
             ))}
           </div>
           <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
-            {tab === 'Profile' ? <ProfileExplorer projectId={projectId} /> : <RunsPanel projectId={projectId} />}
+            {tab === 'Profile' && <ProfileExplorer projectId={projectId} />}
+            {tab === 'Runs' && <RunsPanel projectId={projectId} />}
+            {tab === 'Dashboard' && (
+              <Suspense fallback={<p className="text-sm text-slate-500 dark:text-slate-400">Loading dashboard…</p>}>
+                <DashboardPanel projectId={projectId} />
+              </Suspense>
+            )}
           </div>
         </>
       )}
