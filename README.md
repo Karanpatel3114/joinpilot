@@ -78,7 +78,7 @@ cd web && npm install && npm run dev           # console on http://localhost:517
 
 Every number below comes from a file in [`eval/results/`](eval/results/), which records the split, dataset fingerprints, commit and date. Gold answers are written by the data generator and read only by `eval/`.
 
-**Join discovery, dev split** (4 synthetic ERP datasets, 2026-11-26, commit `fb92e1f`, [results](eval/results/2026-11-26-fb92e1f-dev/metrics.md)):
+**Join discovery, dev split** (4 synthetic ERP datasets, 2026-11-26, commit `e376633`, [results](eval/results/2026-11-26-e376633-dev/metrics.md)):
 
 | System | Precision | Recall | F1 | Normalization recall | Fan-out recall | Decoy rejection |
 |---|---|---|---|---|---|---|
@@ -96,7 +96,9 @@ How to read this honestly:
 
 **KPI correctness, dev split** (same run): with the recommended joins approved, the generated dashboard got **416 of 416** gold KPI values right (100%): open receivables by aging bucket, the top 10 customers by open amount per bucket, 2026 revenue by product group, monthly order counts and the top 10 customers by revenue, in both naming styles. Counts must match exactly, money within 0.01%, and a row the app adds that gold does not have counts against it. KPI correctness is measured only on the synthetic ERP schema the templates were written against; the test split adds new seeds and a larger size of that schema, and on other schemas (TPC-H included) the templates may simply not apply.
 
-**SQL safety:** the guard blocked 100% of 63 red-team attacks (file and URL readers, other databases, recursive and oversized queries, stacked statements, DDL and DML, system functions, Unicode lookalikes and more) and wrongly blocked 0% of 11 ordinary analytics queries ([attacks](eval/redteam/sql_attacks.jsonl)).
+**SQL safety** (same run): the guard blocked 100% of 71 red-team attacks (file and URL readers, other databases, recursive queries, values grown to gigabytes from tiny input, parser crashes, stacked statements, DDL and DML, system functions, Unicode lookalikes and more) and wrongly blocked 0% of 11 ordinary analytics queries ([attacks](eval/redteam/sql_attacks.jsonl)). The stricter mode used for model-written questions also refuses 2 of those 11, both of which pad customer keys by hand; the model views already do that.
+
+**Question answering:** measured with a language model only (`--llm`); the first run is pending a free Gemini key.
 
 ## Data
 
