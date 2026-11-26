@@ -18,7 +18,13 @@ function CopyButton({ text }: { text: string }) {
     <button
       type="button"
       onClick={() => {
-        void navigator.clipboard?.writeText(text).then(() => setCopied(true))
+        navigator.clipboard
+          ?.writeText(text)
+          .then(() => {
+            setCopied(true)
+            setTimeout(() => setCopied(false), 2000)
+          })
+          .catch(() => setCopied(false))
       }}
       className="inline-flex items-center gap-1 rounded-md border border-slate-300 px-2 py-1 text-xs hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
     >
@@ -31,7 +37,7 @@ function CopyButton({ text }: { text: string }) {
 /** The generated views' SQL in the chosen warehouse dialect, with copy and download. */
 export function SqlViewer({ runId }: { runId: string }) {
   const [dialect, setDialect] = useState<SqlDialect>('duckdb')
-  const views = useViews(runId, dialect, true)
+  const views = useViews(runId, dialect)
   return (
     <section aria-label="Generated SQL" className="space-y-3">
       <div className="flex flex-wrap items-center gap-3">
@@ -58,6 +64,9 @@ export function SqlViewer({ runId }: { runId: string }) {
         </a>
       </div>
       <ErrorNote error={views.error} />
+      {views.isFetching && views.isPlaceholderData && (
+        <p className="text-sm text-slate-500 dark:text-slate-400">Translating to {dialect}…</p>
+      )}
       {views.data?.map((view) => (
         <article key={view.name} className="rounded-xl border border-slate-200 dark:border-slate-800">
           <header className="flex flex-wrap items-center gap-2 border-b border-slate-200 px-3 py-2 text-sm dark:border-slate-800">

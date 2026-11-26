@@ -1,7 +1,7 @@
 import type { ApiError } from '../types/api'
 
 /** Base URL of the JoinPilot API (set VITE_API_URL for deployments). */
-export const API_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+export const API_URL: string = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/+$/, '')
 
 /** An API error with the contract's code, message and details. */
 export class ApiRequestError extends Error {
@@ -49,13 +49,6 @@ export async function postJson<T>(path: string, body: unknown): Promise<T> {
 /** POST files as multipart form data (field `files`). */
 export async function postFiles<T>(path: string, files: File[]): Promise<T> {
   const form = new FormData()
-  for (const file of files) form.append('files', file)
+  for (const file of files) form.append('files', file, file.name)
   return parse<T>(await fetch(`${API_URL}${path}`, { method: 'POST', body: form }))
-}
-
-/** GET plain text (for SQL downloads). */
-export async function getText(path: string): Promise<string> {
-  const response = await fetch(`${API_URL}${path}`)
-  if (!response.ok) throw new ApiRequestError(response.status, null)
-  return response.text()
 }

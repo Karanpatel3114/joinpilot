@@ -13,7 +13,7 @@ const KIND_LABELS: Record<string, string> = {
 
 /** The automated checks on every view, with observed and expected values. */
 export function CheckResults({ runId }: { runId: string }) {
-  const checks = useChecks(runId, true)
+  const checks = useChecks(runId)
   const results = checks.data ?? []
   const passed = results.filter((c) => c.passed).length
   return (

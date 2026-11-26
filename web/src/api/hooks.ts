@@ -45,6 +45,7 @@ function useTablesChanged(projectId: string) {
   return () => {
     void client.invalidateQueries({ queryKey: keys.projects })
     void client.invalidateQueries({ queryKey: keys.profile(projectId) })
+    void client.invalidateQueries({ queryKey: ['glossary', projectId] })
   }
 }
 
@@ -136,18 +137,17 @@ export function useApprove(runId: string) {
   })
 }
 
-export function useViews(runId: string, dialect: SqlDialect, enabled: boolean) {
+export function useViews(runId: string, dialect: SqlDialect) {
   return useQuery({
     queryKey: keys.views(runId, dialect),
     queryFn: () => getJson<View[]>(`/runs/${runId}/views?dialect=${dialect}`),
-    enabled,
+    placeholderData: (previous) => previous,
   })
 }
 
-export function useChecks(runId: string, enabled: boolean) {
+export function useChecks(runId: string) {
   return useQuery({
     queryKey: keys.checks(runId),
     queryFn: () => getJson<CheckResult[]>(`/runs/${runId}/checks`),
-    enabled,
   })
 }
