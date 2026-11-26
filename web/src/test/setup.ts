@@ -9,3 +9,11 @@ afterEach(() => {
   server.resetHandlers()
 })
 afterAll(() => server.close())
+
+// React Flow measures elements; jsdom has no layout engine, so give it the basics.
+class ResizeObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+globalThis.ResizeObserver ??= ResizeObserverStub as unknown as typeof ResizeObserver
