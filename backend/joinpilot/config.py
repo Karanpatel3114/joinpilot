@@ -8,10 +8,11 @@ from __future__ import annotations
 
 from datetime import date
 from functools import lru_cache
+from itertools import pairwise
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, Field, SecretStr
+from pydantic import BaseModel, Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -123,7 +124,15 @@ class KPISettings(BaseModel):
     # As-of date for aging; empty means today. The sample data is as of 2026-06-30.
     reference_date: date | None = None
     # Upper bounds (days past due) of the aging buckets; the last bucket is open-ended
-    aging_bucket_edges: list[int] = Field(default_factory=lambda: [30, 60, 90])
+    aging_bucket_edges: list[int] = Field(default_factory=lambda: [30, 60, 90], min_length=1)
+
+    @field_validator("aging_bucket_edges")
+    @classmethod
+    def edges_increase(cls, edges: list[int]) -> list[int]:
+        """Bucket bounds must be positive and strictly increasing."""
+        if edges[0] < 1 or any(b <= a for a, b in pairwise(edges)):
+            raise ValueError("aging bucket edges must be positive and increasing")
+        return edges
 
 
 class CheckSettings(BaseModel):
@@ -133,9 +142,6 @@ class CheckSettings(BaseModel):
     max_null_rate: float = Field(default=0.05, ge=0, le=1)
     # Relative difference allowed between money totals in a view and its fact table
     reconciliation_tolerance: float = 1e-9
-    bucket_labels: list[str] = Field(
-        default_factory=lambda: ["not_due", "1-30", "31-60", "61-90", "90+"]
-    )
 
 
 class Settings(BaseSettings):

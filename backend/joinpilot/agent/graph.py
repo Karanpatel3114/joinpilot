@@ -164,7 +164,13 @@ class AgentNodes:
         created = {v["name"] for v in state.get("views", []) if v["status"] != "failed"}
         specs = [spec_from_dict(s) for s in state.get("view_specs", []) if s["name"] in created]
         with self.open_warehouse() as con:
-            results = run_checks(con, specs, self.profile_data(), self.ctx.settings.checks)
+            results = run_checks(
+                con,
+                specs,
+                self.profile_data(),
+                self.ctx.settings.checks,
+                self.ctx.settings.kpi.aging_bucket_edges,
+            )
         failed = [r for r in results if not r.passed]
         warnings = [f"{len(failed)} of {len(results)} checks failed."] if failed else []
         round_number = len(state.get("check_rounds", [])) + 1
@@ -207,6 +213,8 @@ class AgentNodes:
             with self.open_warehouse() as con:
                 for view in create_views(con, changed, status="repaired"):
                     views[view.name] = view.model_dump()
+                    if view.status == "failed":
+                        notes.append(f"The repaired view {view.name} could not be created.")
         else:
             notes.append("No automatic repair was possible for the failing checks.")
             attempts = self.ctx.settings.agent.max_repairs

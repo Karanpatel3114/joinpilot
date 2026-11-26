@@ -17,7 +17,7 @@ from joinpilot.profiling.models import ProjectProfile
 from joinpilot.profiling.normalize import normalized_sql
 from joinpilot.profiling.sql import ident
 from joinpilot.sqlgen.guard import SANDBOX_SCHEMA, Catalog, catalog_from_connection, guard_sql
-from joinpilot.sqlgen.views import ApprovedJoin, ViewSpec
+from joinpilot.sqlgen.views import ApprovedJoin, ViewSpec, bucket_labels, literal
 
 CheckKind = Literal[
     "row_count", "fan_out", "orphan_keys", "null_keys", "bucket_coverage", "reconciliation"
@@ -59,10 +59,15 @@ class ViewChecker:
     """Runs every check for one view against its source tables."""
 
     def __init__(
-        self, con: duckdb.DuckDBPyConnection, profile: ProjectProfile, settings: CheckSettings
+        self,
+        con: duckdb.DuckDBPyConnection,
+        profile: ProjectProfile,
+        settings: CheckSettings,
+        aging_edges: list[int],
     ) -> None:
         self.con = con
         self.settings = settings
+        self.aging_edges = aging_edges
         self.columns = {t.name: t.columns for t in profile.tables}
         self.keys = {t.name: t.candidate_keys for t in profile.tables}
         self.catalog = catalog_from_connection(con, ("main", SANDBOX_SCHEMA))
@@ -150,7 +155,8 @@ class ViewChecker:
                 f"WHERE {key} IS NOT NULL AND t.{ident(join.to_column)} IS NULL"
             )
         )
-        detail = f"{join.from_table}.{join.from_column}"
+        source_ref = f"{join.from_table}.{join.from_column}"
+        detail = f"{join.edge_id}:{source_ref}->{join.to_table}.{join.to_column}"
         orphan_rate, null_rate = ratio(orphans, total), ratio(nulls, total)
         return [
             self.result(
@@ -160,7 +166,7 @@ class ViewChecker:
                 orphan_rate <= self.settings.max_orphan_rate,
                 orphans,
                 round(self.settings.max_orphan_rate * total),
-                f"{orphans} {detail} values ({orphan_rate:.2%}) have no match in "
+                f"{orphans} {source_ref} values ({orphan_rate:.2%}) have no match in "
                 f"{join.to_table}.{join.to_column}.",
             ),
             self.result(
@@ -170,7 +176,7 @@ class ViewChecker:
                 null_rate <= self.settings.max_null_rate,
                 nulls,
                 round(self.settings.max_null_rate * total),
-                f"{nulls} {detail} values ({null_rate:.2%}) are empty.",
+                f"{nulls} {source_ref} values ({null_rate:.2%}) are empty.",
             ),
         ]
 
@@ -178,7 +184,7 @@ class ViewChecker:
         """Every row with a due date lands in exactly one known aging bucket."""
         if "aging_bucket" not in spec.derived:
             return []
-        labels = ", ".join(f"'{label}'" for label in self.settings.bucket_labels)
+        labels = ", ".join(literal(label) for label in bucket_labels(self.aging_edges))
         missing = int(
             self.value(
                 f"SELECT COUNT(*) FROM {view} WHERE due_date IS NOT NULL "
@@ -221,7 +227,8 @@ def run_checks(
     specs: list[ViewSpec],
     profile: ProjectProfile,
     settings: CheckSettings,
+    aging_edges: list[int] | None = None,
 ) -> list[CheckResult]:
     """Run every check on every view; each statement passes the guard first."""
-    checker = ViewChecker(con, profile, settings)
+    checker = ViewChecker(con, profile, settings, aging_edges or [30, 60, 90])
     return [result for spec in specs for result in checker.run(spec)]

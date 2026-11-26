@@ -64,12 +64,13 @@ def export_script(views: list[dict[str, Any]], dialect: Dialect, run_id: str) ->
     """All views of a run as one SQL script, in dependency-free order."""
     parts = [
         f"-- JoinPilot data model for run {run_id}, {dialect} dialect",
-        "-- Generated from approved joins; every view passed automated checks.",
+        "-- Generated from approved joins; see the run's check results before deploying.",
     ]
     for view in export_views(views, dialect):
         if view.get("status") == "failed":
             continue
         if view.get("message"):
-            parts.append(f"-- Note: {view['message']}")
+            note = " ".join(str(view["message"]).split())
+            parts.append(f"-- Note: {note}")
         parts.append(view["sql"].rstrip(";") + ";")
     return "\n\n".join(parts) + "\n"

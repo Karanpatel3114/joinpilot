@@ -47,6 +47,12 @@ def good_views(con: duckdb.DuckDBPyConnection, profile: ProjectProfile) -> list[
     return specs
 
 
+def find(results: list[CheckResult], view: str, kind: str, source: str) -> CheckResult:
+    return next(
+        r for r in results if r.view == view and r.kind == kind and f":{source}->" in r.check_id
+    )
+
+
 def by_id(results: list[CheckResult]) -> dict[str, CheckResult]:
     return {r.check_id: r for r in results}
 
@@ -68,19 +74,19 @@ def test_a_correct_model_passes_every_check(warehouse: Any) -> None:
 
 def test_checks_report_the_planted_orphans_and_null_keys(warehouse: Any) -> None:
     con, profile = warehouse
-    results = by_id(run_checks(con, good_views(con, profile), profile, CheckSettings()))
-    items = results["v_vbap:orphan_keys:VBAP.MATNR"]
+    results = run_checks(con, good_views(con, profile), profile, CheckSettings())
+    items = find(results, "v_vbap", "orphan_keys", "VBAP.MATNR")
     assert items.observed == scalar(
         con,
         "SELECT COUNT(*) FROM VBAP v LEFT JOIN MARA m ON v.MATNR = m.MATNR WHERE m.MATNR IS NULL",
     )
-    assert results["v_bsid:null_keys:BSID.KUNNR"].observed == scalar(
+    assert find(results, "v_bsid", "null_keys", "BSID.KUNNR").observed == scalar(
         con, "SELECT COUNT(*) FROM BSID WHERE KUNNR IS NULL"
     )
-    strict = by_id(
-        run_checks(con, good_views(con, profile), profile, CheckSettings(max_orphan_rate=0.001))
+    strict = run_checks(
+        con, good_views(con, profile), profile, CheckSettings(max_orphan_rate=0.001)
     )
-    assert not strict["v_vbap:orphan_keys:VBAP.MATNR"].passed
+    assert not find(strict, "v_vbap", "orphan_keys", "VBAP.MATNR").passed
 
 
 def scalar(con: duckdb.DuckDBPyConnection, sql: str) -> Any:
@@ -101,3 +107,31 @@ def test_a_join_that_multiplies_rows_fails_three_checks(warehouse: Any) -> None:
     assert not results["v_bad:fan_out:VBELN+POSNR"].passed
     assert not results["v_bad:reconciliation:NETWR"].passed
     assert "duplicated" in results["v_bad:reconciliation:NETWR"].message
+
+
+def test_two_joins_from_one_column_get_distinct_check_ids() -> None:
+    con = duckdb.connect()
+    con.execute("CREATE TABLE f AS SELECT range % 5 AS k FROM range(20)")
+    con.execute("CREATE TABLE d1 AS SELECT range AS k FROM range(5)")
+    con.execute("CREATE TABLE d2 AS SELECT range AS k FROM range(5)")
+    profile = profile_project(con, {"f": "f", "d1": "d1", "d2": "d2"}, ProfilingSettings())
+    joins = [ApprovedJoin("e1", "f", "k", "d1", "k"), ApprovedJoin("e2", "f", "k", "d2", "k")]
+    spec = build_view("f", joins, {t.name: t.columns for t in profile.tables}, "x", KPI)
+    create_views(con, [spec])
+    ids = [r.check_id for r in run_checks(con, [spec], profile, CheckSettings())]
+    assert len(ids) == len(set(ids))
+
+
+def test_aging_works_when_the_baseline_date_is_stored_as_text() -> None:
+    con = duckdb.connect()
+    con.execute(
+        "CREATE TABLE BSID AS SELECT range::VARCHAR AS BELNR, "
+        "strftime(DATE '2026-05-01' + range * INTERVAL 1 DAY, '%Y%m%d') AS ZFBDT, "
+        "30 AS ZBD1T, CAST(10 AS DECIMAL(15,2)) AS DMBTR FROM range(10)"
+    )
+    profile = profile_project(con, {"b": "BSID"}, ProfilingSettings())
+    spec = build_view("BSID", [], {t.name: t.columns for t in profile.tables}, "aging", KPI)
+    [view] = create_views(con, [spec])
+    assert view.status == "created"
+    results = run_checks(con, [spec], profile, CheckSettings())
+    assert all(r.passed for r in results if r.kind == "bucket_coverage")

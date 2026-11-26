@@ -147,17 +147,21 @@ def aging_columns(
     days = find_column(columns, ("ZBD1T",), ("payment", "days"))
     if not baseline or not days:
         return []
-    due = f"CAST({alias}.{ident(baseline)} + {alias}.{ident(days)} * INTERVAL 1 DAY AS DATE)"
+    base_profile = next(c for c in columns if c.name == baseline)
+    base = f"{alias}.{ident(baseline)}"
+    if is_text_date(base_profile):
+        base = f"CAST(try_strptime({base}, '%Y%m%d') AS DATE)"
+    due = f"CAST({base} + {alias}.{ident(days)} * INTERVAL 1 DAY AS DATE)"
     overdue = f"date_diff('day', {due}, DATE '{reference.isoformat()}')"
     labels = bucket_labels(edges)
     cases = " ".join(
-        f"WHEN {overdue} <= {upper} THEN '{label}'"
+        f"WHEN {overdue} <= {upper} THEN {literal(label)}"
         for upper, label in zip([0, *edges], labels[:-1], strict=True)
     )
     return [
         f"{due} AS {ident('due_date')}",
         f"{overdue} AS {ident('days_overdue')}",
-        f"CASE WHEN {due} IS NULL THEN NULL {cases} ELSE '{labels[-1]}' END "
+        f"CASE WHEN {due} IS NULL THEN NULL {cases} ELSE {literal(labels[-1])} END "
         f"AS {ident('aging_bucket')}",
     ]
 
