@@ -8,6 +8,7 @@ from joinpilot.config import (
     CheckSettings,
     JoinSettings,
     KPISettings,
+    LimitSettings,
     LLMSettings,
     ProfilingSettings,
     QASettings,
@@ -41,7 +42,7 @@ def test_env_example_documents_every_setting() -> None:
         for line in text.splitlines()
         if "=" in line and line.lstrip("# ").split("=", 1)[0].isupper()
     }
-    nested = {"synth", "profiling", "joins", "llm", "agent", "kpi", "checks", "qa"}
+    nested = {"synth", "profiling", "joins", "llm", "agent", "kpi", "checks", "qa", "limits"}
     expected = {name.upper() for name in Settings.model_fields if name not in nested}
     expected |= {f"PROFILING__{name.upper()}" for name in ProfilingSettings.model_fields}
     expected |= {f"JOINS__{name.upper()}" for name in JoinSettings.model_fields}
@@ -50,4 +51,5 @@ def test_env_example_documents_every_setting() -> None:
     expected |= {f"KPI__{name.upper()}" for name in KPISettings.model_fields}
     expected |= {f"CHECKS__{name.upper()}" for name in CheckSettings.model_fields}
     expected |= {f"QA__{name.upper()}" for name in QASettings.model_fields}
+    expected |= {f"LIMITS__{name.upper()}" for name in LimitSettings.model_fields}
     assert expected <= keys, sorted(expected - keys)

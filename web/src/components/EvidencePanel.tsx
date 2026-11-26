@@ -25,7 +25,7 @@ export function EvidencePanel({
 }) {
   if (!proposal) {
     return (
-      <aside className="rounded-xl border border-slate-200 p-4 text-sm text-slate-500 dark:text-slate-400 dark:border-slate-800">
+      <aside className="rounded-2xl border border-slate-200 p-4 text-sm text-slate-500 dark:text-slate-400 dark:border-slate-800">
         Select a join in the graph or the list to see its evidence.
       </aside>
     )
@@ -33,7 +33,7 @@ export function EvidencePanel({
   return (
     <aside
       aria-label="Evidence"
-      className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 text-sm dark:border-slate-800 dark:bg-slate-900"
+      className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 text-sm dark:border-slate-800 dark:bg-slate-900"
     >
       <h3 className="font-mono font-semibold">
         {proposal.edge_id}: {proposal.from} → {proposal.to}

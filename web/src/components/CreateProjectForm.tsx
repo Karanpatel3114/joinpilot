@@ -30,7 +30,7 @@ export function CreateProjectForm() {
       <button
         type="submit"
         disabled={!name.trim() || create.isPending}
-        className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2 font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+        className="btn-primary"
       >
         <Plus className="h-4 w-4" />
         Create project

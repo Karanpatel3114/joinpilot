@@ -129,17 +129,22 @@ Done when: Claude Desktop or Claude Code can list projects, profile tables, prop
 ## M11: Ship it (branch `m11-deploy`)
 Done when: JoinPilot runs at a public URL with CI building Docker images and running an evaluation smoke test. **Add the live link to the resumes.**
 
-- [ ] M11.1 `build(infra): add Dockerfiles for API, worker and web`
-- [ ] M11.2 `ci: build Docker images and run an evaluation smoke test`
-- [ ] M11.3 `feat(api): add rate limits and request size limits`
-- [ ] M11.4 `build(infra): deploy database, Redis, API and web`
-- [ ] M11.5 `docs: add deployment guide and live demo link`
+- [x] M11.1 `build(infra): add Dockerfiles for API, worker and web`
+- [x] M11.2 `ci: build Docker images and run an evaluation smoke test`
+- [x] M11.3 `feat(api): add rate limits and request size limits`
+- [x] M11.3a `feat(web): add the new visual theme, fonts and buttons`
+- [x] M11.3b `feat(web): redesign the home page with a hero and features`
+- [x] M11.3c `feat(web): restyle the project and run pages`
+- [x] M11.3d `feat(web): recolour charts, join graph and status badges`
+- [x] M11.3e `docs: refresh console screenshots after the redesign`
+- [x] M11.4 `build(infra): add Render and Vercel deployment config`
+- [x] M11.5 `docs: add the deployment guide`
 
 ## M12: Auth and polish (branch `m12-polish`)
 Done when: the public demo is safe, the final evaluation is in the README, and v1.0.0 is tagged.
 
-- [ ] M12.1 `feat(auth): add Supabase sign-in and per-user projects`
+- [ ] M12.1 `feat(api): add private workspaces per browser, without login`
 - [ ] M12.2 `feat(web): add demo mode with a preloaded sample project`
 - [ ] M12.3 `feat(eval): run the final test split and publish results`
-- [ ] M12.4 `docs: add architecture diagram, limitations and demo video`
+- [ ] M12.4 `docs: add architecture diagram, limitations and live demo link`
 - [ ] M12.5 `chore: release v1.0.0 with changelog`

@@ -1,15 +1,19 @@
 import { defineConfig, devices } from '@playwright/test'
 
-// End-to-end tests against the real API (inline jobs, no model) and the Vite dev server.
+// End-to-end tests against the real API (inline jobs, no model) and the Vite dev server,
+// or, with E2E_BASE_URL set, against an app that is already running (Docker or production).
 const dataDir = process.env.E2E_DATA_DIR ?? '/tmp/joinpilot-e2e'
+const external = process.env.E2E_BASE_URL
 
 export default defineConfig({
   testDir: './e2e',
   timeout: 90_000,
   retries: process.env.CI ? 1 : 0,
-  use: { baseURL: 'http://localhost:5173', trace: 'retain-on-failure' },
+  use: { baseURL: external ?? 'http://localhost:5173', trace: 'retain-on-failure' },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  webServer: [
+  webServer: external
+    ? undefined
+    : [
     {
       command: 'uv run uvicorn joinpilot.api.main:app --port 8000',
       cwd: '..',

@@ -38,7 +38,7 @@ export function ApprovalList({
 
   return (
     <div className="space-y-3">
-      <ul aria-label="Proposed joins" className="divide-y divide-slate-200 rounded-xl border border-slate-200 dark:divide-slate-800 dark:border-slate-800">
+      <ul aria-label="Proposed joins" className="divide-y divide-slate-200 rounded-2xl border border-slate-200 dark:divide-slate-800 dark:border-slate-800">
         {visible.map((p) => (
           <li key={p.edge_id} className="flex items-center gap-3 px-3 py-2 text-sm">
             {editable ? (
@@ -62,7 +62,7 @@ export function ApprovalList({
             </button>
             <span className="tabular-nums text-slate-500 dark:text-slate-400">{pct(p.score)}</span>
             {p.recommended && (
-              <span className="rounded-full bg-brand-100 px-2 py-0.5 text-xs text-brand-700 dark:bg-slate-800 dark:text-brand-100">
+              <span className="rounded-md bg-brand-50 px-2 py-0.5 font-mono text-[11px] text-slate-700 dark:bg-slate-800 dark:text-brand-300">
                 recommended
               </span>
             )}
@@ -84,7 +84,7 @@ export function ApprovalList({
             type="button"
             onClick={submit}
             disabled={approve.isPending}
-            className="rounded-lg bg-brand-600 px-4 py-2 font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+            className="btn-primary"
           >
             Approve {approvedCount} {approvedCount === 1 ? 'join' : 'joins'} and build the model
           </button>

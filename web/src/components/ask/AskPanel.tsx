@@ -40,7 +40,7 @@ export function AskPanel({ projectId }: { projectId: string }) {
         <button
           type="submit"
           disabled={ask.isPending || question.trim().length < 3}
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+          className="btn-primary"
         >
           <MessageSquareText className="h-4 w-4" /> {ask.isPending ? 'Thinking…' : 'Ask'}
         </button>

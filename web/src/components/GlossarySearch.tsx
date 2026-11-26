@@ -29,7 +29,7 @@ export function GlossarySearch({ projectId }: { projectId: string }) {
         />
         <button
           type="submit"
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
+          className="btn-secondary"
         >
           <Search className="h-4 w-4" /> Search
         </button>

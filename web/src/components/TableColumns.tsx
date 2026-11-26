@@ -9,10 +9,10 @@ export function TableColumns({ table, keys }: { table: TableProfile; keys: KeyEv
     keys.filter((k) => k.table === table.name && k.columns.length === 1).map((k) => [k.columns[0], k]),
   )
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+    <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
       <table className="w-full text-left text-sm">
         <caption className="sr-only">Columns of {table.name}</caption>
-        <thead className="bg-slate-50 text-xs uppercase text-slate-500 dark:text-slate-400 dark:bg-slate-900">
+        <thead className="bg-slate-50 font-mono text-[11px] tracking-[0.08em] uppercase text-slate-500 dark:text-slate-400 dark:bg-slate-900">
           <tr>
             <th className="px-3 py-2">Column</th>
             <th className="px-3 py-2">Type</th>

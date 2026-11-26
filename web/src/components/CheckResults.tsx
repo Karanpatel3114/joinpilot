@@ -19,10 +19,10 @@ export function CheckResults({ runId }: { runId: string }) {
   const passed = results.filter((c) => c.passed).length
   return (
     <section aria-label="Check results" className="space-y-3">
-      <h2 className="text-lg font-semibold">
+      <h2 className="text-2xl font-semibold">
         Checks{' '}
         {results.length > 0 && (
-          <span className={passed === results.length ? 'text-emerald-600' : 'text-rose-600'}>
+          <span className={passed === results.length ? 'text-brand-500 dark:text-brand-300' : 'text-rose-600 dark:text-rose-400'}>
             {passed} of {results.length} passed
           </span>
         )}
@@ -32,9 +32,9 @@ export function CheckResults({ runId }: { runId: string }) {
         <p className="text-sm text-slate-500 dark:text-slate-400">No checks ran for this run.</p>
       )}
       {results.length > 0 && (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+        <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500 dark:text-slate-400 dark:bg-slate-900">
+            <thead className="bg-slate-50 font-mono text-[11px] tracking-[0.08em] uppercase text-slate-500 dark:text-slate-400 dark:bg-slate-900">
               <tr>
                 <th className="px-3 py-2">Result</th>
                 <th className="px-3 py-2">View</th>
@@ -49,7 +49,7 @@ export function CheckResults({ runId }: { runId: string }) {
                 <tr key={c.check_id}>
                   <td className="px-3 py-2">
                     {c.passed ? (
-                      <CircleCheck className="h-4 w-4 text-emerald-600" aria-label="passed" />
+                      <CircleCheck className="h-4 w-4 text-brand-500 dark:text-brand-300" aria-label="passed" />
                     ) : (
                       <CircleX className="h-4 w-4 text-rose-600" aria-label="failed" />
                     )}

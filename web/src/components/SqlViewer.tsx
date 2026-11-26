@@ -41,7 +41,7 @@ export function SqlViewer({ runId }: { runId: string }) {
   return (
     <section aria-label="Generated SQL" className="space-y-3">
       <div className="flex flex-wrap items-center gap-3">
-        <h2 className="text-lg font-semibold">Generated views</h2>
+        <h2 className="text-2xl font-semibold">Generated views</h2>
         <label className="ml-auto flex items-center gap-2 text-sm">
           Dialect
           <select
@@ -58,7 +58,7 @@ export function SqlViewer({ runId }: { runId: string }) {
         </label>
         <a
           href={`${API_URL}/runs/${runId}/export?dialect=${dialect}`}
-          className="inline-flex items-center gap-1 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"
+          className="btn-primary"
         >
           <Download className="h-4 w-4" /> Download SQL
         </a>
@@ -68,7 +68,7 @@ export function SqlViewer({ runId }: { runId: string }) {
         <p className="text-sm text-slate-500 dark:text-slate-400">Translating to {dialect}…</p>
       )}
       {views.data?.map((view) => (
-        <article key={view.name} className="rounded-xl border border-slate-200 dark:border-slate-800">
+        <article key={view.name} className="rounded-2xl border border-slate-200 dark:border-slate-800">
           <header className="flex flex-wrap items-center gap-2 border-b border-slate-200 px-3 py-2 text-sm dark:border-slate-800">
             <span className="font-mono font-semibold">{view.name}</span>
             <span className="text-slate-500 dark:text-slate-400">from {view.fact_table}</span>
@@ -78,7 +78,7 @@ export function SqlViewer({ runId }: { runId: string }) {
                   ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
                   : view.status === 'repaired'
                     ? 'bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300'
-                    : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                    : 'bg-brand-100 text-slate-800 dark:bg-slate-800 dark:text-brand-300'
               }`}
             >
               {view.status}

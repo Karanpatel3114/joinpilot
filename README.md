@@ -24,6 +24,10 @@ Analysts spend days studying cryptic ERP tables, guessing join keys, writing vie
 
 ## Console
 
+**Home.** What JoinPilot does, with the measured results from the evaluation, then your projects.
+
+![JoinPilot home page](docs/images/projects.png)
+
 **Profile.** Every column's type, nulls, distinct values and uniqueness, the value overlaps between tables, and a glossary search that finds columns by business words.
 
 ![Profile explorer with glossary search](docs/images/profile.png)
@@ -83,6 +87,16 @@ uv sync                                        # backend
 uv run uvicorn joinpilot.api.main:app --reload # API on http://localhost:8000
 cd web && npm install && npm run dev           # console on http://localhost:5173
 ```
+
+Or run the whole stack (Postgres, Redis, worker, API and console) in containers:
+
+```bash
+docker compose -f infra/docker-compose.yml --profile app up -d --build --wait   # console on http://localhost:8080
+```
+
+## Deploy for free
+
+The API runs on Render's free plan and the console on Vercel's, with no payment method on either account. The step-by-step guide is [infra/DEPLOY.md](infra/DEPLOY.md).
 
 ## Evaluation
 

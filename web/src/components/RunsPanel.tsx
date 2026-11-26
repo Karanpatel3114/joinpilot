@@ -39,7 +39,7 @@ export function RunsPanel({ projectId }: { projectId: string }) {
           <button
             type="submit"
             disabled={requirement.trim().length < 3 || start.isPending}
-            className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+            className="btn-primary"
           >
             <Play className="h-4 w-4" /> Start run
           </button>
@@ -48,7 +48,7 @@ export function RunsPanel({ projectId }: { projectId: string }) {
               key={example}
               type="button"
               onClick={() => setRequirement(example)}
-              className="rounded-full border border-slate-300 px-3 py-1 text-xs text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="rounded-md bg-brand-50 px-3 py-1.5 font-mono text-[12px] text-slate-700 hover:bg-brand-100 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               {example.split(',')[0]}
             </button>
@@ -61,7 +61,7 @@ export function RunsPanel({ projectId }: { projectId: string }) {
           <li key={run.run_id}>
             <Link
               to={`/runs/${run.run_id}`}
-              className="flex items-center justify-between gap-4 rounded-lg border border-slate-200 px-3 py-2 text-sm hover:border-brand-500 dark:border-slate-800"
+              className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 px-4 py-3 text-sm hover:border-slate-950 dark:hover:border-brand-300 dark:border-slate-800"
             >
               <span className="truncate">{run.requirement}</span>
               <RunStatusBadge status={run.status} />

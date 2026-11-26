@@ -17,7 +17,7 @@ const REASONS: Record<ReasonCode, string> = {
 export function AnswerView({ answer }: { answer: Answer }) {
   if (answer.blocked) {
     return (
-      <article aria-label={answer.question} className="space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-800 dark:bg-amber-950/40">
+      <article aria-label={answer.question} className="space-y-2 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-800 dark:bg-amber-950/40">
         <h3 className="font-semibold">{answer.question}</h3>
         <p role="alert" className="flex gap-2 text-amber-900 dark:text-amber-200">
           <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
@@ -37,7 +37,7 @@ export function AnswerView({ answer }: { answer: Answer }) {
   const shape = shapeOf(answer)
   const evidence = answer.evidence
   return (
-    <article aria-label={answer.question} className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+    <article aria-label={answer.question} className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
       <header>
         <h3 className="font-semibold">{answer.question}</h3>
         {evidence && <p className="text-sm text-slate-600 dark:text-slate-400">{evidence.explanation}</p>}
@@ -55,7 +55,7 @@ export function AnswerView({ answer }: { answer: Answer }) {
       {shape.kind !== 'number' && (
         <div className="max-h-80 overflow-auto rounded-lg border border-slate-200 dark:border-slate-800">
           <table aria-label="Answer rows" className="w-full text-left text-sm">
-            <thead className="sticky top-0 bg-slate-50 text-xs uppercase text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+            <thead className="sticky top-0 bg-slate-50 font-mono text-[11px] tracking-[0.08em] uppercase text-slate-500 dark:bg-slate-900 dark:text-slate-400">
               <tr>
                 {answer.columns.map((c) => (
                   <th key={c} className="px-3 py-2">{label(c)}</th>

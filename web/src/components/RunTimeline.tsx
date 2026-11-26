@@ -34,7 +34,7 @@ export function RunTimeline({ run }: { run: Run }) {
             {failed ? (
               <X className="h-4 w-4 text-rose-600" />
             ) : done ? (
-              <Check className="h-4 w-4 text-emerald-600" />
+              <Check className="h-4 w-4 text-brand-500 dark:text-brand-300" />
             ) : running ? (
               <Loader2 className="h-4 w-4 animate-spin text-brand-600 dark:text-brand-300" />
             ) : (
