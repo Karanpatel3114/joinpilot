@@ -223,3 +223,25 @@ export interface CheckResult {
 }
 
 export type SqlDialect = 'duckdb' | 'postgres' | 'snowflake' | 'bigquery'
+
+export type MetricChart = 'bar' | 'line' | 'table'
+
+export interface Metric {
+  metric_id: string
+  title: string
+  description: string
+  view: string
+  sql: string
+  chart: MetricChart
+  x: string
+  y: string[]
+  requested: boolean
+  data: Record<string, string | number | null>[]
+  status: 'computed' | 'failed'
+  message: string | null
+}
+
+export interface Dashboard {
+  run_id: string | null
+  metrics: Metric[]
+}

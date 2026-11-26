@@ -167,6 +167,21 @@ class RunViewRow(Base):
     payload: Mapped[dict[str, Any]] = mapped_column()
 
 
+class RunMetricRow(Base):
+    """A dashboard metric a run computed, with its definition and rows."""
+
+    __tablename__ = "run_metrics"
+    __table_args__ = (
+        UniqueConstraint("run_id", "metric_id", name="uq_run_metrics_run_id_metric_id"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    run_id: Mapped[str] = mapped_column(ForeignKey("runs.id", ondelete="CASCADE"), index=True)
+    metric_id: Mapped[str] = mapped_column(String(120))
+    position: Mapped[int] = mapped_column(Integer)
+    payload: Mapped[dict[str, Any]] = mapped_column()
+
+
 class CheckResultRow(Base):
     """The latest result of one check on one of a run's views."""
 

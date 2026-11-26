@@ -24,7 +24,14 @@ from joinpilot.agent.checkpoints import open_checkpointer
 from joinpilot.agent.graph import AgentContext, build_graph
 from joinpilot.agent.requirement import ParsedRequirement
 from joinpilot.config import Settings
-from joinpilot.db.models import CheckResultRow, LLMCallRow, ProposalRow, RunRow, RunViewRow
+from joinpilot.db.models import (
+    CheckResultRow,
+    LLMCallRow,
+    ProposalRow,
+    RunMetricRow,
+    RunRow,
+    RunViewRow,
+)
 from joinpilot.db.session import ensure_migrated, session_scope
 from joinpilot.errors import (
     ConflictError,
@@ -342,7 +349,7 @@ class RunService:
 
     @staticmethod
     def _mirror_outputs(session: Any, run_id: str, values: dict[str, Any]) -> None:
-        """Replace the run's stored views and check results with the latest ones."""
+        """Replace the run's stored views, check results and metrics with the latest ones."""
         if "views" in values:
             session.execute(delete(RunViewRow).where(RunViewRow.run_id == run_id))
             session.add_all(
@@ -357,6 +364,12 @@ class RunService:
                 )
                 for i, c in enumerate(values["checks"])
             )
+        if "metrics" in values:
+            session.execute(delete(RunMetricRow).where(RunMetricRow.run_id == run_id))
+            session.add_all(
+                RunMetricRow(run_id=run_id, metric_id=m["metric_id"], position=i, payload=m)
+                for i, m in enumerate(values["metrics"])
+            )
 
     def views(self, run_id: str) -> list[dict[str, Any]]:
         """The views the run generated, in order."""
@@ -364,6 +377,24 @@ class RunService:
             row = self._row(session, run_id)
             query = select(RunViewRow).where(RunViewRow.run_id == row.id)
             return [dict(v.payload) for v in session.scalars(query.order_by(RunViewRow.position))]
+
+    def dashboard(self, project_id: str) -> tuple[str | None, list[dict[str, Any]]]:
+        """The metrics of the project's newest completed run that has any, and that run."""
+        self.projects.get(project_id)
+        query = (
+            select(RunRow.id)
+            .join(RunMetricRow, RunMetricRow.run_id == RunRow.id)
+            .where(RunRow.project_id == project_id, RunRow.status == "completed")
+            .order_by(RunRow.created_at.desc(), RunRow.id)
+            .limit(1)
+        )
+        with session_scope(self.settings.db_url) as session:
+            run_id = session.scalars(query).first()
+            if run_id is None:
+                return None, []
+            rows = select(RunMetricRow).where(RunMetricRow.run_id == run_id)
+            metrics = session.scalars(rows.order_by(RunMetricRow.position))
+            return run_id, [dict(m.payload) for m in metrics]
 
     def checks(self, run_id: str) -> list[dict[str, Any]]:
         """The latest check results of the run's views, in order."""

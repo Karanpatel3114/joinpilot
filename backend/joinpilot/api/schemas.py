@@ -12,6 +12,7 @@ from joinpilot.agent.ranking import Proposal
 from joinpilot.agent.requirement import ParsedRequirement
 from joinpilot.checks.sit import CheckResult
 from joinpilot.glossary.service import GlossaryMatch
+from joinpilot.kpi.compute import Metric
 from joinpilot.profiling.models import (
     ColumnProfile,
     KeyEvidence,
@@ -27,12 +28,14 @@ __all__ = [
     "ColumnProfile",
     "CreateProjectRequest",
     "CreateRunRequest",
+    "Dashboard",
     "Decision",
     "ErrorDetail",
     "ErrorResponse",
     "GlossaryMatch",
     "HealthResponse",
     "KeyEvidence",
+    "Metric",
     "Overlap",
     "Project",
     "ProjectProfile",
@@ -130,3 +133,10 @@ class ApprovalRequest(BaseModel):
     """Decisions on a paused run's proposals."""
 
     decisions: list[Decision] = Field(min_length=1, max_length=200)
+
+
+class Dashboard(BaseModel):
+    """The KPI metrics of a project's newest completed run (none before the first one)."""
+
+    run_id: str | None
+    metrics: list[Metric]

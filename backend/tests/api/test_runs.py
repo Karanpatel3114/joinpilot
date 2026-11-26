@@ -111,3 +111,39 @@ def test_runs_need_tables_a_requirement_and_a_real_id(client: TestClient) -> Non
     assert client.post(f"/projects/{empty}/runs", json={"requirement": "x"}).status_code == 422
     assert client.get("/runs/8a5b2c3e-0000-4000-8000-000000000000").status_code == 404
     assert client.get("/runs/not-a-uuid").status_code == 422
+
+
+def test_the_dashboard_shows_the_newest_completed_runs_metrics(client: TestClient) -> None:
+    project_id = project_with_sample(client)
+    empty = client.get(f"/projects/{project_id}/dashboard")
+    assert empty.status_code == 200 and empty.json() == {"run_id": None, "metrics": []}
+
+    run = start(client, project_id)
+    proposals = client.get(f"/runs/{run['run_id']}/proposals").json()
+    decisions = [
+        {"edge_id": p["edge_id"], "action": "approve" if p["recommended"] else "reject"}
+        for p in proposals
+    ]
+    client.post(f"/runs/{run['run_id']}/approvals", json={"decisions": decisions})
+    assert client.get(f"/runs/{run['run_id']}").json()["status"] == "completed"
+
+    dashboard = client.get(f"/projects/{project_id}/dashboard").json()
+    assert dashboard["run_id"] == run["run_id"]
+    metrics = {m["metric_id"]: m for m in dashboard["metrics"]}
+    assert dashboard["metrics"][0]["metric_id"] == "aging_buckets"
+    assert {"aging_top_customers", "monthly_order_counts"} <= set(metrics)
+    buckets = metrics["aging_buckets"]
+    assert buckets["status"] == "computed" and buckets["sql"].startswith("SELECT")
+    order = ["not_due", "1-30", "31-60", "61-90", "90+"]
+    shown = [row["bucket"] for row in buckets["data"]]
+    assert shown and shown == sorted(shown, key=order.index)
+
+    later = start(client, project_id)
+    assert later["status"] == "awaiting_approval"
+    still = client.get(f"/projects/{project_id}/dashboard").json()
+    assert still["run_id"] == run["run_id"], "a run still waiting does not replace the dashboard"
+
+
+def test_the_dashboard_of_an_unknown_project_is_not_found(client: TestClient) -> None:
+    response = client.get("/projects/3f0b7c1e-6a2d-4c8e-9b1a-2d5e8f7a9c10/dashboard")
+    assert response.status_code == 404

@@ -8,6 +8,7 @@ from pydantic import TypeAdapter
 
 from joinpilot.api.schemas import (
     CheckResult,
+    Dashboard,
     ErrorResponse,
     GlossaryMatch,
     HealthResponse,
@@ -33,6 +34,7 @@ FIXTURES: dict[str, Any] = {
     "glossary.json": list[GlossaryMatch],
     "views.json": list[View],
     "checks.json": list[CheckResult],
+    "dashboard.json": Dashboard,
 }
 
 
