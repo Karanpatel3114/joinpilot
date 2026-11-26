@@ -10,6 +10,8 @@ describe('Run page: join graph and evidence', () => {
     renderAt(RUN)
     expect(await screen.findByLabelText('Join graph')).toBeInTheDocument()
     const list = screen.getByRole('list', { name: 'Proposed joins' })
+    expect(within(list).getAllByRole('checkbox')).toHaveLength(5)
+    await userEvent.click(screen.getByRole('button', { name: /show 3 other candidates/i }))
     expect(within(list).getAllByRole('checkbox')).toHaveLength(8)
   })
 

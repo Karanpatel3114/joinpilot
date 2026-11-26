@@ -18,7 +18,8 @@ describe('Approval workflow', () => {
       }),
     )
     renderAt(RUN)
-    const list = await screen.findByRole('list', { name: 'Proposed joins' })
+    await userEvent.click(await screen.findByRole('button', { name: /show 3 other candidates/i }))
+    const list = screen.getByRole('list', { name: 'Proposed joins' })
     const boxes = within(list).getAllByRole('checkbox')
     expect(boxes.filter((b) => (b as HTMLInputElement).checked)).toHaveLength(5)
     await userEvent.click(boxes[0])

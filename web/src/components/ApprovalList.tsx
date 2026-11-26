@@ -22,7 +22,11 @@ export function ApprovalList({
     Object.fromEntries(proposals.map((p) => [p.edge_id, p.recommended])),
   )
   const approve = useApprove(runId)
+  const [expanded, setExpanded] = useState(false)
   const approvedCount = Object.values(choices).filter(Boolean).length
+  const main = proposals.filter((p) => p.recommended || p.status === 'approved')
+  const others = proposals.filter((p) => !main.includes(p))
+  const visible = expanded ? proposals : main
 
   function submit() {
     const decisions: Decision[] = proposals.map((p) => ({
@@ -35,7 +39,7 @@ export function ApprovalList({
   return (
     <div className="space-y-3">
       <ul aria-label="Proposed joins" className="divide-y divide-slate-200 rounded-xl border border-slate-200 dark:divide-slate-800 dark:border-slate-800">
-        {proposals.map((p) => (
+        {visible.map((p) => (
           <li key={p.edge_id} className="flex items-center gap-3 px-3 py-2 text-sm">
             {editable ? (
               <input
@@ -65,6 +69,15 @@ export function ApprovalList({
           </li>
         ))}
       </ul>
+      {others.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setExpanded((e) => !e)}
+          className="text-sm text-brand-600 hover:underline"
+        >
+          {expanded ? 'Hide' : 'Show'} {others.length} other candidates the scorer did not recommend
+        </button>
+      )}
       {editable && (
         <div className="flex items-center gap-3">
           <button

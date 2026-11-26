@@ -18,7 +18,8 @@ export default defineConfig({
       env: {
         DATA_DIR: dataDir,
         JOBS_MODE: 'inline',
-        LLM__PROVIDER: 'fake',
+        LLM__PROVIDER: 'gemini',
+        GEMINI_API_KEY: '',
         KPI__REFERENCE_DATE: '2026-06-30',
         DATABASE_URL: '',
         CORS_ORIGINS: '["http://localhost:5173"]',
