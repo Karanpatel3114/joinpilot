@@ -78,7 +78,7 @@ cd web && npm install && npm run dev           # console on http://localhost:517
 
 Every number below comes from a file in [`eval/results/`](eval/results/), which records the split, dataset fingerprints, commit and date. Gold answers are written by the data generator and read only by `eval/`.
 
-**Join discovery, dev split** (4 synthetic ERP datasets, 2026-11-26, commit `3566c20`, [results](eval/results/2026-11-26-3566c20-dev/metrics.md)):
+**Join discovery, dev split** (4 synthetic ERP datasets, 2026-11-26, commit `ff6c032`, [results](eval/results/2026-11-26-ff6c032-dev/metrics.md)):
 
 | System | Precision | Recall | F1 | Normalization recall | Fan-out recall | Decoy rejection |
 |---|---|---|---|---|---|---|
@@ -93,6 +93,8 @@ How to read this honestly:
 - The deterministic scorer was tuned on this split. The held-out test split (new seeds, size M, both naming styles and TPC-H) is run once, at the end, and is where the methods are expected to differ. LLM-based systems are added in M4.
 
 **Views and automated checks, dev split** (same run): every view the agent generated was valid and every check passed on the first try, both when every recommended join was approved without review and when only the true joins were approved (no repairs were needed; repairing bad approvals is covered by tests).
+
+**KPI correctness, dev split** (same run): with the recommended joins approved, the generated dashboard got **416 of 416** gold KPI values right (100%): open receivables by aging bucket, the top 10 customers by open amount per bucket, 2026 revenue by product group, monthly order counts and the top 10 customers by revenue, in both naming styles. Counts must match exactly and money within 0.01%. The metric templates were written against this schema, so the held-out test split is the real check.
 
 **SQL safety:** the guard blocked 100% of 63 red-team attacks (file and URL readers, other databases, recursive and oversized queries, stacked statements, DDL and DML, system functions, Unicode lookalikes and more) and wrongly blocked 0% of 11 ordinary analytics queries ([attacks](eval/redteam/sql_attacks.jsonl)).
 
