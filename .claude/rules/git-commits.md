@@ -34,4 +34,4 @@ Task: M2.3
 - Force-push, rebase or otherwise rewrite history that has been pushed.
 - Change commit dates or authors.
 - Commit secrets, `.env`, generated data (`data/generated/`), DuckDB files, `node_modules/`, `.venv/` or large binaries.
-- Add Co-Authored-By trailers (the owner's choice). The README credits Claude Code openly as the AI pair programmer.
+- Add Co-Authored-By trailers (the owner's choice).
