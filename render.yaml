@@ -1,0 +1,39 @@
+# Render Blueprint for the JoinPilot API (D-036): one free Docker web service.
+# Free instances sleep after 15 idle minutes and wake in about a minute, and their
+# disk is wiped on every restart, so the demo starts fresh each time (D-037).
+# Never add a payment method to the Render account: the free plan then cannot bill.
+services:
+  - type: web
+    name: joinpilot-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./infra/backend.Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: prod
+      # SQLite and in-process jobs: no paid database or Redis needed
+      - key: JOBS_MODE
+        value: thread
+      - key: JOBS_MAX_CONCURRENT
+        value: "1"
+      # Fits the free instance's 512 MB (D-034)
+      - key: DUCKDB_MEMORY_LIMIT
+        value: 256MB
+      - key: DUCKDB_THREADS
+        value: "1"
+      - key: SAMPLE_SIZES
+        value: '["S"]'
+      - key: MAX_UPLOAD_MB
+        value: "10"
+      - key: KPI__REFERENCE_DATE
+        value: "2026-06-30"
+      # Asked for when the Blueprint is created: the Vercel address as a JSON list,
+      # for example ["https://joinpilot.vercel.app"]
+      - key: CORS_ORIGINS
+        sync: false
+      # Optional free key from aistudio.google.com; leave empty to run without the model
+      - key: GEMINI_API_KEY
+        sync: false

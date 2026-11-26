@@ -8,13 +8,13 @@ FROM ghcr.io/astral-sh/uv:0.13.7 AS uv
 
 FROM python:3.12-slim-trixie AS build
 COPY --from=uv /uv /usr/local/bin/uv
-ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never UV_NO_CACHE=1
 WORKDIR /app
 # Dependencies first, so code changes reuse the cached layer.
 COPY pyproject.toml uv.lock ./
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --no-dev --no-install-project
+RUN uv sync --locked --no-dev --no-install-project
 COPY backend/joinpilot ./backend/joinpilot
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --no-dev --no-editable
+RUN uv sync --locked --no-dev --no-editable
 
 FROM python:3.12-slim-trixie
 RUN useradd --create-home --uid 10001 joinpilot && mkdir /data && chown joinpilot /data
