@@ -60,3 +60,14 @@ def test_an_absent_bucket_counts_as_zero() -> None:
     spec = ("bucket", ("amount",), ())
     assert score_rows("aging", gold, rows, spec, absent_is_zero=True).right == 2
     assert score_rows("aging", gold, rows, spec).right == 1
+
+
+def test_extra_rows_and_colliding_keys_cost_values() -> None:
+    gold = [{"product_group": "A", "revenue": "1.00"}]
+    rows = [{"product_group": "A", "revenue": 1.0}, {"product_group": "PHANTOM", "revenue": 2.0}]
+    score = score_rows("rev", gold, rows, ("product_group", ("revenue",), ()))
+    assert (score.right, score.total) == (1, 2)
+    assert score.wrong == ["rev[PHANTOM].revenue (not in gold)"]
+    gold = [{"customer_id": "0001", "revenue": "1.00"}]
+    rows = [{"customer_id": "1", "revenue": 1.0}, {"customer_id": "01", "revenue": 1.0}]
+    assert score_rows("top", gold, rows, ("customer_id", ("revenue",), ())).right == 0

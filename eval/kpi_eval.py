@@ -4,7 +4,8 @@ The run is the real agent graph with the recommended joins approved, as a person
 trusts the recommendations would get it, and with the gold reference date. Every gold
 number is one value to get right (docs/eval-plan.md): counts must match exactly and
 money within 0.01% relative error. Rows are matched on their key, customer ids
-without leading zeros, so a missing or extra row costs the values it should hold.
+without leading zeros: a missing row costs the values it should hold, a row gold does
+not have costs the values it claims, and two rows with one key are both wrong.
 """
 
 from __future__ import annotations
@@ -71,14 +72,23 @@ def score_rows(
     spec: tuple[str, tuple[str, ...], tuple[str, ...]],
     absent_is_zero: bool = False,
 ) -> Score:
-    """Compare every gold value with the metric row that has the same key."""
+    """Compare every gold value with the app row that has the same key.
+
+    App rows whose key gold does not have cost the values they claim, and two app
+    rows with one key (after normalising ids) are both treated as wrong.
+    """
     column, money, counts = spec
-    found = {key(column, r.get(column)): r for r in rows}
+    found: dict[Any, dict[str, Any] | None] = {}
+    for row in rows:
+        label = key(column, row.get(column))
+        found[label] = None if label in found else row
     score = Score()
+    gold_keys = set()
     for row in gold:
         label = key(column, row[column])
+        gold_keys.add(label)
         mine = found.get(label)
-        if mine is None and absent_is_zero:
+        if label not in found and absent_is_zero:
             mine = dict.fromkeys((*money, *counts), 0)
         for c in money:
             score.add(
@@ -86,6 +96,9 @@ def score_rows(
             )
         for c in counts:
             score.add(mine is not None and mine.get(c) == row[c], f"{name}[{label}].{c}")
+    for label in found.keys() - gold_keys:
+        for c in (*money, *counts):
+            score.add(False, f"{name}[{label}].{c} (not in gold)")
     return score
 
 
