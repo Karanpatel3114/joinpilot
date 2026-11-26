@@ -4,15 +4,15 @@
  * so the page never states a number the evaluation did not produce.
  */
 export const EVAL_SOURCE = {
-  commit: 'e376633',
+  commit: '1a22e17',
   date: '2026-11-26',
-  split: 'dev',
-  url: 'https://github.com/Karanpatel3114/joinpilot/tree/main/eval/results/2026-11-26-e376633-dev',
+  split: 'held-out test',
+  url: 'https://github.com/Karanpatel3114/joinpilot/tree/main/eval/results/2026-11-26-1a22e17-test',
 }
 
 export const STATS = {
   // Fan-out recall: joins that would duplicate rows, caught (every baseline scores 0.000)
   fanOut: { value: '1.000', label: 'Fan-out recall · baselines 0.000' },
-  kpis: { value: '416/416', label: 'KPI values correct' },
+  kpis: { value: '1,248/1,248', label: 'KPI values correct' },
   attacks: { value: '71/71', label: 'SQL attacks blocked' },
 }
