@@ -46,3 +46,8 @@ def test_migrations_match_the_models_on_postgres() -> None:
         "TEST_DATABASE_URL", "postgresql+psycopg://joinpilot:joinpilot@localhost:5432/joinpilot"
     )
     check_schema(url)
+
+
+def test_a_missing_data_folder_is_created_on_first_use(tmp_path: Path) -> None:
+    migrate(f"sqlite:///{tmp_path / 'new' / 'nested' / 'app.db'}")
+    assert (tmp_path / "new" / "nested" / "app.db").exists()

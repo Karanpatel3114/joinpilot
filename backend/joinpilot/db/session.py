@@ -28,6 +28,9 @@ def _enable_sqlite_foreign_keys(dbapi_connection: Any, _: Any) -> None:
 def get_engine(url: str) -> Engine:
     """One pooled engine per database URL (SQLite gets foreign keys switched on)."""
     if url.startswith("sqlite"):
+        database = url.split("///", 1)[-1]
+        if database and database != ":memory:":
+            Path(database).parent.mkdir(parents=True, exist_ok=True)
         engine = create_engine(url, connect_args={"check_same_thread": False})
         event.listen(engine, "connect", _enable_sqlite_foreign_keys)
         return engine
