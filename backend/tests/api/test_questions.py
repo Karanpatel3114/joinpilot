@@ -92,7 +92,7 @@ def test_a_question_is_answered_with_its_sql_rows_and_evidence(
     assert evidence["run_id"] == run_id and evidence["views"] == ["v_bsid"]
     assert evidence["attempts"] == 1 and evidence["row_count"] == 5 and not evidence["truncated"]
     prompt = fake.calls[0].user
-    assert '"aging_bucket" VARCHAR: aging bucket of the open item' in prompt
+    assert '"aging_bucket" VARCHAR: "aging bucket of the open item"' in prompt
     assert "-- Open receivables by aging bucket" in prompt, "dashboard queries are examples"
     with session_scope(settings.db_url) as session:
         calls = session.scalar(
@@ -128,3 +128,22 @@ def test_questions_need_a_model_and_a_sensible_length(client: TestClient) -> Non
     built, _ = built_project(client)
     assert ask(client, built, "x" * 600).status_code == 422
     assert ask(client, "3f0b7c1e-6a2d-4c8e-9b1a-2d5e8f7a9c10").status_code == 404
+
+
+def test_answers_name_raw_tables_and_cannot_read_stale_views(
+    client: TestClient, settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from joinpilot.services.projects import ProjectService
+
+    project_id, _ = built_project(client)
+    with ProjectService(settings).warehouse(project_id) as con:
+        con.execute('CREATE VIEW model."v_stale" AS SELECT 1 AS n')
+    model_answers(monkeypatch, 'SELECT COUNT(*) AS customers FROM "KNA1"')
+    body = ask(client, project_id).json()
+    assert body["rows"] == [{"customers": 1000}] and body["evidence"]["views"] == ["KNA1"]
+    fake = model_answers(
+        monkeypatch, 'SELECT n FROM model."v_stale"', 'SELECT n FROM model."v_stale"'
+    )
+    body = ask(client, project_id).json()
+    assert body["blocked"] and body["reason_code"] == "UNKNOWN_IDENTIFIER"
+    assert "v_stale" not in fake.calls[0].user

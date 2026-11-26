@@ -9,6 +9,8 @@ Meanings come from SAP-style field hints or readable names; examples from the pr
 
 from __future__ import annotations
 
+import json
+import re
 from dataclasses import dataclass
 
 import duckdb
@@ -37,6 +39,20 @@ class ViewColumn:
     examples: list[str]
 
 
+CONTROL = re.compile(r"[\x00-\x1f\x7f\u2028\u2029\u202a-\u202e\u2066-\u2069]")
+
+
+def quoted(text: str) -> str:
+    """Data-derived text for the prompt: JSON-quoted, so it can never start a new line or
+    pose as an instruction, with control and direction characters removed."""
+    return json.dumps(CONTROL.sub(" ", text), ensure_ascii=False)
+
+
+def clipped(value: str, max_chars: int) -> str:
+    """An example value cut to `max_chars`."""
+    return value if len(value) <= max_chars else value[: max_chars - 1] + "\u2026"
+
+
 def model_columns(
     con: duckdb.DuckDBPyConnection, views: set[str]
 ) -> list[tuple[str, str, str, str]]:
@@ -57,7 +73,8 @@ def model_columns(
 
 def relation_sql(schema: str, relation: str) -> str:
     """How the prompt and the SQL name a relation: model views qualified, raw tables bare."""
-    return f'model."{relation}"' if schema == SANDBOX_SCHEMA else f'"{relation}"'
+    name = json.dumps(CONTROL.sub(" ", relation), ensure_ascii=False)
+    return f"model.{name}" if schema == SANDBOX_SCHEMA else name
 
 
 def source(
@@ -94,6 +111,7 @@ def describe_columns(
     profile: ProjectProfile,
     kpi: KPISettings,
     example_values: int,
+    example_max_chars: int = 40,
 ) -> list[ViewColumn]:
     """Meaning and examples for every view column."""
     described = []
@@ -117,12 +135,14 @@ def describe_columns(
             else:
                 meaning = meaning_of(table, column, parsed)
                 examples = [] if parsed else column.sample_values[:example_values]
+                examples = [clipped(e, example_max_chars) for e in examples]
         described.append(ViewColumn(schema, view, name, type_, meaning, examples))
     return described
 
 
-def render_model(columns: list[ViewColumn]) -> str:
-    """The prompt text: one block per view, one line per column."""
+def render_model(columns: list[ViewColumn], max_chars: int = 40_000) -> str:
+    """The prompt text: one block per view, one line per column; names, meanings and
+    examples come from the data, so each is quoted. Stops at `max_chars`."""
     lines: list[str] = ["Tested model views (prefer these; their joins are approved and checked):"]
     current: tuple[str, str] | None = None
     for column in columns:
@@ -133,6 +153,11 @@ def render_model(columns: list[ViewColumn]) -> str:
                 lines.append("Raw tables (only for questions about one table's own records):")
             current = (column.schema, column.view)
             lines.append(f"{relation_sql(column.schema, column.view)}:")
-        examples = f" e.g. {', '.join(column.examples)}" if column.examples else ""
-        lines.append(f'  "{column.name}" {column.type}: {column.meaning}.{examples}')
+        examples = (
+            f" e.g. {', '.join(quoted(e) for e in column.examples)}" if column.examples else ""
+        )
+        lines.append(f"  {quoted(column.name)} {column.type}: {quoted(column.meaning)}{examples}")
+        if sum(len(line) + 1 for line in lines) > max_chars:
+            lines.append("(more columns not shown)")
+            break
     return "\n".join(lines)

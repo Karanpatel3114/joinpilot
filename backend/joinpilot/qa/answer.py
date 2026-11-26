@@ -14,7 +14,9 @@ from contextlib import AbstractContextManager
 from typing import Any, Literal, cast
 
 import duckdb
+import sqlglot
 from pydantic import BaseModel, ValidationError
+from sqlglot import exp
 
 from joinpilot.config import Settings
 from joinpilot.errors import JoinPilotError, LLMUnavailableError
@@ -23,7 +25,7 @@ from joinpilot.profiling.models import ProjectProfile
 from joinpilot.qa.execute import run_query
 from joinpilot.qa.generate import Chart, draft_sql
 from joinpilot.qa.semantic import describe_columns, model_columns, render_model
-from joinpilot.sqlgen.guard import SANDBOX_SCHEMA, UnsafeSQLError, catalog_from_connection
+from joinpilot.sqlgen.guard import Catalog, UnsafeSQLError
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +42,7 @@ class Evidence(BaseModel):
     """Where an answer came from and how it was produced."""
 
     run_id: str
+    # The model views and raw tables the query reads
     views: list[str]
     explanation: str
     attempts: int
@@ -78,8 +81,15 @@ def answer_question(
     facts = {v["name"]: v["fact_table"] for v in views if v["status"] != "failed"}
     with open_warehouse() as con:
         columns = model_columns(con, set(facts))
-        catalog = catalog_from_connection(con, (SANDBOX_SCHEMA, "main"))
-    model = render_model(describe_columns(columns, facts, profile, settings.kpi, qa.example_values))
+    # The guard allows exactly what the prompt shows: the newest model's views and the
+    # raw tables, never a stale or failed view an older run left in the schema.
+    catalog = Catalog()
+    for schema, relation, column, type_ in columns:
+        catalog.schemas.setdefault(schema, {}).setdefault(relation, {})[column] = type_
+    described = describe_columns(
+        columns, facts, profile, settings.kpi, qa.example_values, qa.example_max_chars
+    )
+    model = render_model(described)
     examples = "\n\n".join(
         f"-- {m['title']}\n{m['sql']}" for m in metrics if m.get("status") == "computed"
     )
@@ -103,7 +113,10 @@ def answer_question(
             )
     except JoinPilotError as error:
         return blocked(question, error, drafted.sql, run_id)
-    used = sorted(v for v in facts if f'"{v}"' in drafted.sql or f".{v}" in drafted.sql)
+    used = sorted(
+        {t.name for t in sqlglot.parse_one(drafted.sql, read="duckdb").find_all(exp.Table)}
+        - ctes(drafted.sql)
+    )
     logger.info(
         "question answered on run %s: %d rows in %.0f ms after %d attempt(s)",
         run_id,
@@ -130,6 +143,11 @@ def answer_question(
         reason_code=None,
         message=None,
     )
+
+
+def ctes(sql: str) -> set[str]:
+    """Names the query defines itself (WITH ... AS), which are not tables it reads."""
+    return {c.alias for c in sqlglot.parse_one(sql, read="duckdb").find_all(exp.CTE)}
 
 
 def blocked(
