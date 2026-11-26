@@ -147,3 +147,24 @@ def test_answers_name_raw_tables_and_cannot_read_stale_views(
     body = ask(client, project_id).json()
     assert body["blocked"] and body["reason_code"] == "UNKNOWN_IDENTIFIER"
     assert "v_stale" not in fake.calls[0].user
+
+
+def test_no_answers_while_the_model_is_being_rebuilt_or_left_unchecked(
+    client: TestClient, settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from joinpilot.db.models import RunRow, RunViewRow
+
+    project_id, _ = built_project(client)
+    model_answers(monkeypatch, GOOD, GOOD)
+    later = client.post(
+        f"/projects/{project_id}/runs", json={"requirement": "Open receivables by aging bucket"}
+    ).json()
+    with session_scope(settings.db_url) as session:
+        session.get(RunRow, later["run_id"]).status = "checking"  # type: ignore[union-attr]
+    response = ask(client, project_id)
+    assert response.status_code == 409 and "building" in response.json()["error"]["message"]
+    with session_scope(settings.db_url) as session:
+        session.get(RunRow, later["run_id"]).status = "failed"  # type: ignore[union-attr]
+        session.add(RunViewRow(run_id=later["run_id"], name="v_bsid", position=0, payload={}))
+    response = ask(client, project_id)
+    assert response.status_code == 409 and "unchecked" in response.json()["error"]["message"]

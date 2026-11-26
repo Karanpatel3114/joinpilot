@@ -40,6 +40,8 @@ class QuestionService:
                 {"max_question_chars": limit},
             )
         run_id, metrics = self.runs.dashboard(project_id)
+        if conflict := self.runs.model_conflict(project_id):
+            raise ConflictError(conflict)
         views = [v for v in self.runs.views(run_id) if v["status"] != "failed"] if run_id else []
         if run_id is None or not views:
             raise ConflictError("Build and approve a data model before asking questions.")

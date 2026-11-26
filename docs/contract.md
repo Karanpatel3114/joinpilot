@@ -1,6 +1,8 @@
 # JoinPilot API contract
 
-Version: 0.10. Change it only with the `contract-sync` skill, and bump the version.
+Version: 0.11. Change it only with the `contract-sync` skill, and bump the version.
+
+Changes in 0.11 (behaviour): answers may read raw tables as well as the model views (D-031), `evidence.views` names every view and table the query reads, cells and answers have size limits, values are always JSON scalars, and asking gives 409 while the project's model is being rebuilt or was left unchecked by a failed run.
 
 Changes in 0.10 (additive): `POST /projects/{project_id}/ask` is implemented; answers gain `question`, `columns` and `message`, `evidence` is an object, and `QUERY_FAILED` joins the reason codes.
 
@@ -135,8 +137,8 @@ Check kinds: `row_count` (one view row per fact row), `fan_out` (no fact key twi
 ```json
 {"question": "Which 5 customers have the most overdue receivables?", "sql": "SELECT \"KNA1__NAME1\" AS customer, ROUND(SUM(\"DMBTR\"), 2) AS overdue FROM model.\"v_bsid\" WHERE \"days_overdue\" > 0 GROUP BY 1 ORDER BY overdue DESC LIMIT 5", "columns": ["customer", "overdue"], "rows": [{"customer": "South Torfield Logistics AG", "overdue": 3559137.89}], "chart": "bar", "evidence": {"run_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7", "views": ["v_bsid"], "explanation": "Sums the overdue open amounts per customer and keeps the five largest.", "attempts": 1, "row_count": 5, "truncated": false, "elapsed_ms": 4.2}, "blocked": false, "reason_code": null, "message": null}
 ```
-- `sql` is the query that passed the guard (one SELECT over the `model` views only); it ran on a read-only connection with at most `QA__ROW_LIMIT` rows (`evidence.truncated` says whether more existed) and a `QA__TIMEOUT_SECONDS` timeout.
-- `chart` is `number`, `line`, `bar` or `table`. `evidence` names the run whose model answered, the views the query reads, the model's one-line explanation, the attempts it took (a refused draft gets one fix), the row count and the time.
+- `sql` is the query that passed the guard in its question mode (one SELECT over the newest run's `model` views, preferred, and the raw tables; no functions that grow values, D-032). It ran on a read-only connection without file or network access, with at most `QA__ROW_LIMIT` rows and `QA__MAX_RESULT_BYTES` of JSON (`evidence.truncated` says whether more existed), cells cut at `QA__MAX_CELL_CHARS` characters, and a `QA__TIMEOUT_SECONDS` timeout. Every value is a JSON scalar: numbers, text, booleans or null (dates as ISO text; lists and structs as text).
+- `chart` is `number`, `line`, `bar` or `table`. `evidence` names the run whose model answered, the views and raw tables the query reads, the model's one-line explanation, the attempts it took (a refused draft gets one fix), the row count and the time.
 - A question that cannot be answered safely still returns 200, with `blocked: true`, a `reason_code`, a plain `message`, no rows and `evidence: null` (`sql` is set only when a guarded query failed while running).
 
-Reason codes for blocked questions: `UNSAFE_SQL` and `UNKNOWN_IDENTIFIER` (no draft passed the guard), `TIMEOUT`, `QUERY_FAILED` (the database could not run a guarded query), `LLM_UNAVAILABLE` (no key, or the model is down or replied invalidly). A project without a completed model gives 409; an unknown project 404.
+Reason codes for blocked questions: `UNSAFE_SQL` and `UNKNOWN_IDENTIFIER` (no draft passed the guard), `TIMEOUT`, `QUERY_FAILED` (the database could not run a guarded query), `LLM_UNAVAILABLE` (no key, or the model is down or replied invalidly). A project without a completed model gives 409, and so does one whose model is being rebuilt by a run or was left unchecked by a run that failed after creating its views; an unknown project gives 404.

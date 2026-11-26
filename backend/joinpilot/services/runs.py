@@ -420,6 +420,33 @@ class RunService:
             metrics = session.scalars(rows.order_by(RunMetricRow.position))
             return run_id, [dict(m.payload) for m in metrics]
 
+    def model_conflict(self, project_id: str) -> str | None:
+        """Why the warehouse's model views may not match the newest completed run, if so.
+
+        A run that is building has replaced or is replacing the views, and a run that
+        failed after creating views left them unchecked; either way answers would cite
+        one run and read another's views.
+        """
+        newest_with_views = (
+            select(RunRow.status)
+            .join(RunViewRow, RunViewRow.run_id == RunRow.id)
+            .where(RunRow.project_id == project_id)
+            .order_by(RunRow.updated_at.desc(), RunRow.id)
+            .limit(1)
+        )
+        building = select(RunRow.id).where(
+            RunRow.project_id == project_id, RunRow.status.in_(BUILDING)
+        )
+        with session_scope(self.settings.db_url) as session:
+            if session.scalars(building).first() is not None:
+                return "A run is building this project's model; ask again when it finishes."
+            if session.scalars(newest_with_views).first() == "failed":
+                return (
+                    "The newest run failed after creating its views, so they are unchecked; "
+                    "start a new run before asking questions."
+                )
+        return None
+
     def checks(self, run_id: str) -> list[dict[str, Any]]:
         """The latest check results of the run's views, in order."""
         with session_scope(self.settings.db_url) as session:
