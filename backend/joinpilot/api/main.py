@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from joinpilot import __version__
 from joinpilot.api.errors import install_error_handlers
+from joinpilot.api.limits import LimitMiddleware
 from joinpilot.api.projects import router as projects_router
 from joinpilot.api.questions import router as questions_router
 from joinpilot.api.runs import router as runs_router
@@ -60,6 +61,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     logging.basicConfig(level=settings.log_level)
     app = FastAPI(title="JoinPilot API", version=__version__, lifespan=make_lifespan(settings))
     app.state.settings = settings
+    # Limits run inside CORS, so even a refusal carries the CORS headers the console needs.
+    app.add_middleware(LimitMiddleware, settings=settings)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,

@@ -1,6 +1,8 @@
 # JoinPilot API contract
 
-Version: 0.11. Change it only with the `contract-sync` skill, and bump the version.
+Version: 0.12. Change it only with the `contract-sync` skill, and bump the version.
+
+Changes in 0.12 (additive): rate and body-size limits; the `RATE_LIMITED` (429) error code with a `Retry-After` header.
 
 Changes in 0.11 (behaviour): answers may read raw tables as well as the model views (D-031), `evidence.views` names every view and table the query reads, cells and answers have size limits, values are always JSON scalars, and asking gives 409 while the project's model is being rebuilt or was left unchecked by a failed run.
 
@@ -26,7 +28,9 @@ Example responses live in `shared/fixtures/` and are validated against the backe
 
 All responses are JSON. Errors use `{"error": {"code": "STRING_CODE", "message": "plain-language message", "details": {}}}`. IDs are UUID strings. Times are ISO 8601 in UTC.
 
-Error codes: `NOT_FOUND` (404), `INVALID_INPUT` (422, also for malformed requests, with `details.fields`), `CONFLICT` (409), `PAYLOAD_TOO_LARGE` (413), `INTERNAL_ERROR` (500).
+Error codes: `NOT_FOUND` (404), `INVALID_INPUT` (422, also for malformed requests, with `details.fields`), `CONFLICT` (409), `PAYLOAD_TOO_LARGE` (413), `RATE_LIMITED` (429), `INTERNAL_ERROR` (500).
+
+Limits (from config, per client IP): `LIMITS__REQUESTS_PER_MINUTE` for every endpoint except `/health`; starting runs and asking questions, which use the language model, also share `LIMITS__EXPENSIVE_PER_MINUTE` and `LIMITS__EXPENSIVE_PER_DAY`, plus `LIMITS__EXPENSIVE_GLOBAL_PER_DAY` across all clients. A refused request gets 429 `RATE_LIMITED` with a `Retry-After` header and `details.retry_after_seconds`. JSON bodies over `LIMITS__MAX_BODY_KB` get 413 `PAYLOAD_TOO_LARGE`; uploads use `MAX_UPLOAD_MB`.
 
 ## Health
 `GET /health` returns `{"status": "ok", "version": "0.1.0"}`

@@ -56,6 +56,13 @@ class JobQueueUnavailableError(JoinPilotError):
     http_status = 503
 
 
+class RateLimitedError(JoinPilotError):
+    """Too many requests from one client, or the day's language-model budget is spent."""
+
+    code = "RATE_LIMITED"
+    http_status = 429
+
+
 class PayloadTooLargeError(JoinPilotError):
     """An upload or request body is larger than the configured limit."""
 

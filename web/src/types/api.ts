@@ -1,4 +1,4 @@
-// Types for the JoinPilot API. They mirror docs/contract.md (version 0.7) exactly.
+// Types for the JoinPilot API. They mirror docs/contract.md (version 0.12) exactly.
 // Change them only together with the contract, the Pydantic schemas and the fixtures.
 
 export type ErrorCode =
@@ -6,6 +6,7 @@ export type ErrorCode =
   | 'INVALID_INPUT'
   | 'CONFLICT'
   | 'PAYLOAD_TOO_LARGE'
+  | 'RATE_LIMITED'
   | 'INTERNAL_ERROR'
 
 export interface ApiError {
