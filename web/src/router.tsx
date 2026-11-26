@@ -2,7 +2,6 @@ import { createBrowserRouter } from 'react-router'
 import { Layout } from './components/Layout'
 import { ProjectPage } from './pages/ProjectPage'
 import { ProjectsPage } from './pages/ProjectsPage'
-import { RunPage } from './pages/RunPage'
 
 export const routes = [
   {
@@ -11,7 +10,11 @@ export const routes = [
     children: [
       { index: true, element: <ProjectsPage /> },
       { path: 'projects/:projectId', element: <ProjectPage /> },
-      { path: 'runs/:runId', element: <RunPage /> },
+      // The run page carries React Flow, so it loads on first visit.
+      {
+        path: 'runs/:runId',
+        lazy: async () => ({ Component: (await import('./pages/RunPage')).RunPage }),
+      },
     ],
   },
 ]

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type {
   CheckResult,
+  Dashboard,
   Decision,
   GlossaryMatch,
   Project,
@@ -26,6 +27,7 @@ export const keys = {
   views: (id: string, dialect: SqlDialect) => ['views', id, dialect] as const,
   checks: (id: string) => ['checks', id] as const,
   glossary: (id: string, q: string) => ['glossary', id, q] as const,
+  dashboard: (id: string) => ['dashboard', id] as const,
 }
 
 export function useProjects() {
@@ -149,5 +151,12 @@ export function useChecks(runId: string) {
   return useQuery({
     queryKey: keys.checks(runId),
     queryFn: () => getJson<CheckResult[]>(`/runs/${runId}/checks`),
+  })
+}
+
+export function useDashboard(projectId: string) {
+  return useQuery({
+    queryKey: keys.dashboard(projectId),
+    queryFn: () => getJson<Dashboard>(`/projects/${projectId}/dashboard`),
   })
 }

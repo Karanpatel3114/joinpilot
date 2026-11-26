@@ -36,6 +36,10 @@ Analysts spend days studying cryptic ERP tables, guessing join keys, writing vie
 
 ![Generated views and passing checks](docs/images/results.png)
 
+**Dashboard.** KPIs the approved model supports, the ones the requirement asked for first. Every metric can switch to its rows or the guarded SQL behind it.
+
+![KPI dashboard generated from the approved model](docs/images/dashboard.png)
+
 The screenshots are captured from the running app by a Playwright script: `cd web && SCREENSHOTS=1 npx playwright test screenshots`.
 
 ## Architecture
