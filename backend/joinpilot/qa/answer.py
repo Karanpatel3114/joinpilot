@@ -86,14 +86,23 @@ def answer_question(
     try:
         drafted = draft_sql(question, model, examples, llm, catalog, qa.max_attempts)
     except (LLMUnavailableError, UnsafeSQLError) as error:
-        return blocked(question, error)
+        return blocked(question, error, run_id=run_id)
     except ValidationError:
-        return blocked(question, LLMUnavailableError("The model's reply was not valid."))
+        invalid = LLMUnavailableError("The model's reply was not valid.")
+        return blocked(question, invalid, run_id=run_id)
     try:
         with open_warehouse() as con:
-            result = run_query(con, drafted.sql, qa.row_limit, qa.timeout_seconds)
+            result = run_query(
+                con,
+                drafted.sql,
+                qa.row_limit,
+                qa.timeout_seconds,
+                max_cell_chars=qa.max_cell_chars,
+                max_result_bytes=qa.max_result_bytes,
+                label=run_id,
+            )
     except JoinPilotError as error:
-        return blocked(question, error, drafted.sql)
+        return blocked(question, error, drafted.sql, run_id)
     used = sorted(v for v in facts if f'"{v}"' in drafted.sql or f".{v}" in drafted.sql)
     logger.info(
         "question answered on run %s: %d rows in %.0f ms after %d attempt(s)",
@@ -123,10 +132,12 @@ def answer_question(
     )
 
 
-def blocked(question: str, error: JoinPilotError, sql: str | None = None) -> Answer:
+def blocked(
+    question: str, error: JoinPilotError, sql: str | None = None, run_id: str = ""
+) -> Answer:
     """An answer that stops with a reason code and a plain message."""
     code = cast(ReasonCode, error.code if error.code in REASONS else "QUERY_FAILED")
-    logger.info("question blocked: %s", code)
+    logger.info("question blocked on run %s: %s", run_id, code)
     return Answer(
         question=question,
         sql=sql,
