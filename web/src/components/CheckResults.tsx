@@ -22,7 +22,7 @@ export function CheckResults({ runId }: { runId: string }) {
       <h2 className="text-2xl font-semibold">
         Checks{' '}
         {results.length > 0 && (
-          <span className={passed === results.length ? 'text-emerald-600' : 'text-rose-600'}>
+          <span className={passed === results.length ? 'text-brand-500 dark:text-brand-300' : 'text-rose-600 dark:text-rose-400'}>
             {passed} of {results.length} passed
           </span>
         )}
@@ -49,7 +49,7 @@ export function CheckResults({ runId }: { runId: string }) {
                 <tr key={c.check_id}>
                   <td className="px-3 py-2">
                     {c.passed ? (
-                      <CircleCheck className="h-4 w-4 text-emerald-600" aria-label="passed" />
+                      <CircleCheck className="h-4 w-4 text-brand-500 dark:text-brand-300" aria-label="passed" />
                     ) : (
                       <CircleX className="h-4 w-4 text-rose-600" aria-label="failed" />
                     )}

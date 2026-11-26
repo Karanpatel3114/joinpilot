@@ -1,22 +1,22 @@
 /** Chart colours, validated with the dataviz palette checker against the card surfaces.
- * One series uses one blue; aging buckets are ordered, so they get one-hue ordinal ramps
- * (light end clears 2:1 on white, dark end on slate-900). */
+ * One series uses one green; aging buckets are ordered, so they get one-hue ordinal ramps
+ * (light end clears 2:1 on white, dark end on the dark card colour). */
 export const CHART = {
   light: {
-    series: '#257de0',
-    ordinal: ['#84b9f3', '#519ced', '#257de0', '#1b64be', '#0f4a96'],
-    grid: '#e2e8f0',
-    axis: '#64748b',
-    text: '#0f172a',
+    series: '#4a882c',
+    ordinal: ['#8cc260', '#66a43f', '#4a882c', '#33701d', '#1d4c0f'],
+    grid: '#e5e7e1',
+    axis: '#6b7064',
+    text: '#0b1108',
     surface: '#ffffff',
   },
   dark: {
-    series: '#338ced',
-    ordinal: ['#1757ac', '#2370cd', '#338ced', '#6aabf1', '#9dc8f7'],
-    grid: '#1e293b',
-    axis: '#94a3b8',
-    text: '#f1f5f9',
-    surface: '#0f172a',
+    series: '#62a83e',
+    ordinal: ['#2f6a1c', '#43892a', '#62a83e', '#8fcb63', '#bfe988'],
+    grid: '#263020',
+    axis: '#a3a89b',
+    text: '#eff1ec',
+    surface: '#141c0f',
   },
 } as const
 

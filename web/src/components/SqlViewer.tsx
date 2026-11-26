@@ -78,7 +78,7 @@ export function SqlViewer({ runId }: { runId: string }) {
                   ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
                   : view.status === 'repaired'
                     ? 'bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300'
-                    : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                    : 'bg-brand-100 text-slate-800 dark:bg-slate-800 dark:text-brand-300'
               }`}
             >
               {view.status}

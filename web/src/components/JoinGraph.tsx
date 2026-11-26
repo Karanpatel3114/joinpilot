@@ -18,12 +18,14 @@ import { useDarkMode } from './useDarkMode'
 const EDGE_TYPES = { routed: RoutedEdge }
 
 /** React Flow themes its own nodes (its CSS layer loads after Tailwind's), so only the font is set. */
-const NODE_STYLE = { fontFamily: 'var(--font-mono)', fontSize: '0.875rem' }
+const NODE_STYLE = { fontFamily: 'var(--font-mono)', fontSize: '0.875rem', borderRadius: '10px' }
 
-function edgeColor(p: Proposal): string {
-  if (p.status === 'approved') return '#059669'
-  if (p.status === 'rejected') return '#e11d48'
-  return p.recommended ? '#4f46e5' : '#94a3b8'
+/** Edge colours: approved green, rejected red, recommended in the theme's ink, others grey. */
+function edgeColor(p: Proposal, dark: boolean): string {
+  if (p.status === 'approved') return dark ? '#8fcb63' : '#33701d'
+  if (p.status === 'rejected') return dark ? '#fb7185' : '#e11d48'
+  if (p.recommended) return dark ? '#bfe988' : '#1b2811'
+  return dark ? '#6b7064' : '#a3a89b'
 }
 
 /** The proposed join graph, left to right from facts to dimensions; recommended joins only
@@ -63,17 +65,17 @@ export function JoinGraph({
       label: p.recommended || p.status === 'approved' ? `${p.edge_id} · ${pct(p.score)}` : undefined,
       animated: p.edge_id === selected,
       style: {
-        stroke: edgeColor(p),
+        stroke: edgeColor(p, dark),
         strokeWidth: p.edge_id === selected ? 3 : 1.5,
         strokeDasharray: p.recommended ? undefined : '5 5',
       },
-      markerEnd: { type: MarkerType.ArrowClosed, color: edgeColor(p) },
+      markerEnd: { type: MarkerType.ArrowClosed, color: edgeColor(p, dark) },
     }))
     return { nodes, edges }
-  }, [proposals, selected, showAll])
+  }, [proposals, selected, showAll, dark])
   return (
     <div className="relative h-[28rem] rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-      <label className="absolute right-3 top-3 z-10 flex items-center gap-2 rounded-md bg-white/90 px-2 py-1 text-xs shadow-sm dark:bg-slate-900/90">
+      <label className="absolute right-3 top-3 z-10 flex items-center gap-2 rounded-md bg-white/90 px-2 py-1 font-mono text-[11px] shadow-sm dark:bg-slate-900/90">
         <input type="checkbox" checked={showAll} onChange={(e) => setShowAll(e.target.checked)} />
         Show all candidates
       </label>

@@ -53,7 +53,7 @@ export function UploadPanel({ projectId }: { projectId: string }) {
       </div>
       {busy && <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">Loading tables…</p>}
       {upload.data && (
-        <p className="mt-3 text-sm text-emerald-700 dark:text-emerald-400">
+        <p className="mt-3 text-sm text-brand-500 dark:text-brand-300">
           Loaded {upload.data.map((t) => t.name).join(', ')}.
         </p>
       )}
