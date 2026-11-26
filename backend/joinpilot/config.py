@@ -125,6 +125,18 @@ class KPISettings(BaseModel):
     aging_bucket_edges: list[int] = Field(default_factory=lambda: [30, 60, 90])
 
 
+class CheckSettings(BaseModel):
+    """Limits for the automated checks on generated views."""
+
+    max_orphan_rate: float = Field(default=0.05, ge=0, le=1)
+    max_null_rate: float = Field(default=0.05, ge=0, le=1)
+    # Relative difference allowed between money totals in a view and its fact table
+    reconciliation_tolerance: float = 1e-9
+    bucket_labels: list[str] = Field(
+        default_factory=lambda: ["not_due", "1-30", "31-60", "61-90", "90+"]
+    )
+
+
 class Settings(BaseSettings):
     """Typed settings loaded from the environment (prefix-free) and `.env`."""
 
@@ -165,6 +177,9 @@ class Settings(BaseSettings):
 
     # Join candidates
     joins: JoinSettings = Field(default_factory=JoinSettings)
+
+    # Checks on generated views
+    checks: CheckSettings = Field(default_factory=CheckSettings)
 
     # KPIs
     kpi: KPISettings = Field(default_factory=KPISettings)
