@@ -10,19 +10,26 @@ import { JoinGraph } from '../components/JoinGraph'
 import { RunStatusBadge } from '../components/RunStatusBadge'
 import { RunTimeline } from '../components/RunTimeline'
 import { SqlViewer } from '../components/SqlViewer'
+import type { RunStatus } from '../types/api'
+
+/** Statuses before the ranking step has stored any proposals. */
+const BEFORE_PROPOSALS: RunStatus[] = ['queued', 'profiling', 'ranking']
 
 /** One run: live status, the proposed join graph with evidence, and approval. */
 export function RunPage() {
   const { runId = '' } = useParams()
   const run = useRun(runId)
   const status = run.data?.status
-  const ready = status ? SETTLED.includes(status) || status === 'generating' : false
+  const ready = status !== undefined && !BEFORE_PROPOSALS.includes(status)
   const proposals = useProposals(runId, ready)
   const profile = useProfile(run.data?.project_id ?? '', Boolean(run.data))
   const [selected, setSelected] = useState<string | null>(null)
-  if (run.error) return <ErrorNote error={run.error} />
-  if (!run.data) return <p className="text-sm text-slate-500">Loading run…</p>
+  if (!run.data) {
+    if (run.error) return <ErrorNote error={run.error} />
+    return <p className="text-sm text-slate-500 dark:text-slate-400">Loading run…</p>
+  }
   const list = proposals.data ?? []
+  const noCandidates = proposals.isSuccess && list.length === 0 && SETTLED.includes(run.data.status)
   return (
     <section className="space-y-6">
       <Link
@@ -39,15 +46,22 @@ export function RunPage() {
         <RunStatusBadge status={run.data.status} />
       </div>
       <RunTimeline run={run.data} />
+      {run.error && <ErrorNote error={run.error} />}
       {run.data.error && <ErrorNote error={new Error(run.data.error)} />}
       {run.data.warnings.length > 0 && (
         <ul aria-label="Warnings" className="space-y-1 text-sm text-amber-800 dark:text-amber-300">
-          {run.data.warnings.map((w) => (
-            <li key={w} className="flex gap-2">
+          {run.data.warnings.map((w, i) => (
+            <li key={`${i}:${w}`} className="flex gap-2">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> {w}
             </li>
           ))}
         </ul>
+      )}
+      {noCandidates && (
+        <p className="rounded-lg border border-dashed border-slate-300 p-4 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-400">
+          No join candidates were found between these tables, so there is nothing to approve. Check
+          that the key columns share values, or add the tables that connect them.
+        </p>
       )}
       {list.length > 0 && (
         <div className="grid gap-4 lg:grid-cols-[1fr_22rem]">

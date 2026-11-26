@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { describe, expect, it } from 'vitest'
@@ -24,6 +24,7 @@ describe('Approval workflow', () => {
     expect(boxes.filter((b) => (b as HTMLInputElement).checked)).toHaveLength(5)
     await userEvent.click(boxes[0])
     await userEvent.click(screen.getByRole('button', { name: /approve 4 joins/i }))
+    await waitFor(() => expect(sent).not.toBeNull())
     const decisions = (sent as { decisions: { action: string }[] }).decisions
     expect(decisions).toHaveLength(8)
     expect(decisions.filter((d) => d.action === 'approve')).toHaveLength(4)

@@ -12,16 +12,22 @@ const STEPS = [
 
 /** The run's steps with what is done, what is running and how long each took. */
 export function RunTimeline({ run }: { run: Run }) {
+  const failedAt =
+    run.status === 'failed' ? STEPS.findIndex((s) => run.timings_ms[s.key] === undefined) : -1
   return (
     <ol aria-label="Run steps" className="grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
-      {STEPS.map((step) => {
+      {STEPS.map((step, index) => {
         const ms = run.timings_ms[step.key]
-        const running = (step.active as readonly string[]).includes(run.status)
+        // Checks rerun after a repair, so that step keeps spinning while it has a timing.
+        const rerun = step.key === 'check_views'
+        const running =
+          (step.active as readonly string[]).includes(run.status) && (ms === undefined || rerun)
         const done = ms !== undefined && !running
-        const failed = run.status === 'failed' && running
+        const failed = index === failedAt
         return (
           <li
             key={step.key}
+            aria-label={`${step.label}: ${failed ? 'failed' : done ? 'done' : running ? 'running' : 'not started'}`}
             className="flex items-start gap-2 rounded-lg border border-slate-200 p-3 text-sm dark:border-slate-800"
           >
             {failed ? (
