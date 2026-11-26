@@ -22,6 +22,22 @@ Analysts spend days studying cryptic ERP tables, guessing join keys, writing vie
 5. **Approve** joins. Only then are SQL views generated, guarded and checked (row counts, fan-out, orphans, null keys, bucket coverage, reconciliation), with automatic repair.
 6. **Use** the generated KPI dashboard, ask questions in plain English, or connect Claude through MCP.
 
+## Console
+
+**Profile.** Every column's type, nulls, distinct values and uniqueness, the value overlaps between tables, and a glossary search that finds columns by business words.
+
+![Profile explorer with glossary search](docs/images/profile.png)
+
+**Approve.** The proposed join graph. Each join opens its evidence: overlap ratio, key uniqueness, cardinality and the normalization it needed, such as padding customer numbers with zeros. Nothing is built until you approve.
+
+![Join graph with evidence and the approval list](docs/images/approval.png)
+
+**Results.** The generated SQL views (DuckDB, Postgres, Snowflake or BigQuery), ready to copy or download, and the integration checks, each showing what was observed and what was expected.
+
+![Generated views and passing checks](docs/images/results.png)
+
+The screenshots are captured from the running app by a Playwright script: `cd web && SCREENSHOTS=1 npx playwright test screenshots`.
+
 ## Architecture
 
 ```
