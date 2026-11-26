@@ -20,13 +20,14 @@ from eval.gold import GOLD_ROOT, load_joins
 from eval.join_metrics import JoinCounts, PredictedEdge, score_dataset
 from eval.kpi_eval import evaluate_kpis
 from eval.llm_systems import joinpilot_full, llm_only, requirement_for
+from eval.qa_eval import evaluate_qa
 from eval.redteam_eval import evaluate_redteam
 from eval.results import new_report, write_results
 from eval.views_eval import evaluate_views
 from joinpilot.config import Settings, get_settings
 from joinpilot.errors import LLMUnavailableError
 from joinpilot.joins.scoring import score_candidates
-from joinpilot.llm.factory import make_base_provider
+from joinpilot.llm.factory import make_base_provider, make_provider
 from joinpilot.llm.observed import ObservedProvider, UsageLog
 from joinpilot.llm.prompts import PROMPTS_DIR
 from joinpilot.profiling.models import ProjectProfile
@@ -192,6 +193,14 @@ def main(argv: list[str] | None = None) -> None:
         except LLMUnavailableError as error:
             logger.error("LLM systems skipped: %s", error.message)
             report["llm_joins"] = {"skipped": error.message}
+        qa_log = UsageLog()
+        try:
+            report["qa"] = evaluate_qa(datasets, settings, make_provider(settings, qa_log))
+            report["qa"]["usage"] = qa_log.totals()
+            logger.info("qa: %s", json.dumps(report["qa"]["aggregate"]))
+        except LLMUnavailableError as error:
+            logger.error("question answering skipped: %s", error.message)
+            report["qa"] = {"skipped": error.message}
     for system, result in report["joins"].items():
         logger.info("%s: %s", system, json.dumps(result["aggregate"]))
     logger.info("results written to %s", write_results(report))

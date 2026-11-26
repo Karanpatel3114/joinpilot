@@ -115,7 +115,7 @@ Done when: plain-English questions get guarded, read-only SQL answers with the q
 
 - [x] M9.1 `feat(qa): generate SQL from questions over the semantic model`
 - [x] M9.2 `feat(qa): run answers read-only with guard, limit and timeout`
-- [ ] M9.3 `feat(eval): measure question-answering execution accuracy`
+- [x] M9.3 `feat(eval): measure question-answering execution accuracy`
 - [ ] M9.4 `feat(web): add ask panel showing SQL and evidence`
 
 ## M10: MCP server (branch `m10-mcp`)

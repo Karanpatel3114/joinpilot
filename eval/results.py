@@ -98,6 +98,23 @@ def markdown(report: dict[str, Any]) -> str:
             scores = " | ".join(f"{m['right']}/{m['total']}" for m in metrics.values())
             lines.append(f"| {dataset} | {scores} |")
             lines += [f"  - wrong: {w}" for m in metrics.values() for w in m["wrong"]]
+    qa = report.get("qa")
+    if qa and "skipped" in qa:
+        lines += ["", "## Question answering", "", f"- Skipped: {qa['skipped']}"]
+    elif qa:
+        overall = qa["aggregate"]
+        lines += [
+            "",
+            "## Question answering (execution accuracy, recommended joins approved)",
+            "",
+            f"- Right: {overall['right']} of {overall['total']} "
+            f"({overall['execution_accuracy']:.1%}); blocked: {overall['blocked'] or 'none'}; "
+            f"average attempts: {overall['avg_attempts']}",
+            "- By tag: "
+            + ", ".join(f"{t} {v:.1%}" for t, v in qa["by_tag"].items() if v is not None),
+        ]
+        for dataset, result in qa["per_dataset"].items():
+            lines += [f"  - wrong in {dataset}: {w['id']} {w['question']}" for w in result["wrong"]]
     redteam = report.get("redteam")
     if redteam:
         lines += [
