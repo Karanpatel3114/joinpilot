@@ -28,7 +28,6 @@ dependencies = [
     "uvicorn[standard]>=0.54.0",
 ]
 
-
 [project.scripts]
 joinpilot-mcp = "joinpilot.mcp_server.__main__:main"
 
@@ -89,3 +88,7 @@ dev = [
     "pytest>=9.2.0",
     "ruff>=0.17.6",
 ]
+
+[tool.ruff.lint.isort]
+# The repo's mcp/ folder holds docs only; `mcp` is the official SDK (D-033).
+known-third-party = ["mcp"]

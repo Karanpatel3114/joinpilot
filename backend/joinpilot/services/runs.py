@@ -49,6 +49,8 @@ logger = logging.getLogger(__name__)
 
 TERMINAL = frozenset({"completed", "failed"})
 ACTIVE = frozenset({"queued", "profiling", "ranking", "generating", "checking", "repairing"})
+# Same bounds as the API's request model, for every caller (API, MCP).
+MIN_REQUIREMENT_CHARS, MAX_REQUIREMENT_CHARS = 3, 2000
 # Steps that write the project's model views; only one run per project may be in them.
 BUILDING = frozenset({"generating", "checking", "repairing"})
 # Mirroring graph state may only move a run forward along this order.
@@ -140,6 +142,13 @@ class RunService:
 
     def start(self, project_id: str, requirement: str) -> RunRecord:
         """Create a run for a project with tables, and queue its first job."""
+        requirement = requirement.strip()
+        if not MIN_REQUIREMENT_CHARS <= len(requirement) <= MAX_REQUIREMENT_CHARS:
+            raise InvalidInputError(
+                f"A requirement needs {MIN_REQUIREMENT_CHARS} to {MAX_REQUIREMENT_CHARS} "
+                "characters.",
+                {"field": "requirement"},
+            )
         project = self.projects.get(project_id)
         if not project.tables:
             raise ConflictError("Load at least one table before starting a run.")

@@ -11,16 +11,17 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
-from pydantic import BaseModel, Field
+from mcp.types import ToolAnnotations
+from pydantic import BaseModel, Field, StringConstraints
 
 from joinpilot import __version__
 from joinpilot.agent.approval import Decision
 from joinpilot.config import Settings
-from joinpilot.errors import JoinPilotError
+from joinpilot.errors import ConflictError, InvalidInputError, JoinPilotError
 from joinpilot.jobs.queue import InlineJobQueue
 from joinpilot.qa.answer import Answer
 from joinpilot.services.projects import ProjectService
@@ -33,6 +34,15 @@ human-approved data model. Typical flow: list_projects (or create_project and
 load_sample), profile_tables, propose_joins with the requirement, show the user the
 proposals with their evidence, approve_joins only with the user's consent, then
 get_check_results, get_dashboard and ask_question. Never approve joins on your own."""
+
+
+# Input bounds advertised in the tool schemas; the services enforce the same rules.
+Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
+Requirement = Annotated[
+    str, StringConstraints(strip_whitespace=True, min_length=3, max_length=2000)
+]
+Reason = Annotated[str, StringConstraints(strip_whitespace=True, max_length=500)]
+READ_ONLY = ToolAnnotations(read_only_hint=True)
 
 
 class ProjectInfo(BaseModel):
@@ -138,7 +148,7 @@ def build_server(settings: Settings) -> MCPServer:
             failed_checks=[c["message"] for c in checks if not c["passed"]],
         )
 
-    @server.tool()
+    @server.tool(annotations=READ_ONLY)
     @plain_errors
     def list_projects() -> list[ProjectInfo]:
         """List JoinPilot projects with their tables."""
@@ -149,7 +159,7 @@ def build_server(settings: Settings) -> MCPServer:
 
     @server.tool()
     @plain_errors
-    def create_project(name: str) -> ProjectInfo:
+    def create_project(name: Name) -> ProjectInfo:
         """Create an empty project."""
         record = projects.create(name)
         return ProjectInfo(project_id=record.id, name=record.name, tables=[])
@@ -164,7 +174,7 @@ def build_server(settings: Settings) -> MCPServer:
             project_id=record.id, name=record.name, tables=[t.name for t in record.tables]
         )
 
-    @server.tool()
+    @server.tool(annotations=READ_ONLY)
     @plain_errors
     def profile_tables(project_id: str) -> ProfileInfo:
         """Profile every table: row counts, candidate keys, and per column its type, null
@@ -198,20 +208,32 @@ def build_server(settings: Settings) -> MCPServer:
 
     @server.tool()
     @plain_errors
-    def propose_joins(project_id: str, requirement: str) -> RunInfo:
+    def propose_joins(project_id: str, requirement: Requirement) -> RunInfo:
         """Start a run for a business requirement. It profiles the tables, ranks join
-        candidates with evidence and stops for approval; nothing is built yet."""
+        candidates with evidence and stops for approval (status awaiting_approval); nothing
+        is built yet. With no join candidates the run completes at once with no proposals."""
         return run_info(runs.start(project_id, requirement).run_id)
 
     @server.tool()
     @plain_errors
     def approve_joins(
-        run_id: str, approve: list[str] | None = None, reject_reason: str | None = None
+        run_id: str,
+        approve: Annotated[list[str], Field(min_length=1, max_length=200)] | None = None,
+        reject_reason: Reason | None = None,
     ) -> RunInfo:
-        """Approve joins by edge id (default: the recommended ones) and reject the rest,
-        then build the views, run the checks (with repair) and build the dashboard.
-        Only call this after the user has agreed to the joins."""
+        """Approve joins by edge id (omit `approve` for the recommended ones) and reject the
+        rest, then build the views, run the checks (with repair) and build the dashboard.
+        Edge ids must come from propose_joins or get_run. Only call this after the user
+        has agreed to the joins."""
         proposals = runs.proposals(run_id)
+        if not proposals:
+            raise ConflictError("This run has no joins to approve.")
+        known = {p["edge_id"] for p in proposals}
+        if approve is not None and (unknown := sorted(set(approve) - known)):
+            raise InvalidInputError(
+                f"Unknown join ids: {', '.join(unknown)}. "
+                "Use edge_id values from propose_joins or get_run."
+            )
         chosen = (
             set(approve)
             if approve is not None
@@ -228,20 +250,20 @@ def build_server(settings: Settings) -> MCPServer:
         runs.approve(run_id, decisions)
         return run_info(run_id)
 
-    @server.tool()
+    @server.tool(annotations=READ_ONLY)
     @plain_errors
     def get_run(run_id: str) -> RunInfo:
         """A run's status, proposals, views and check summary."""
         return run_info(run_id)
 
-    @server.tool()
+    @server.tool(annotations=READ_ONLY)
     @plain_errors
     def get_check_results(run_id: str) -> list[CheckInfo]:
         """Every automated check on the run's views: row counts, fan-out, orphan and null
         keys, aging bucket coverage and money reconciliation."""
         return [CheckInfo.model_validate(c) for c in runs.checks(run_id)]
 
-    @server.tool()
+    @server.tool(annotations=READ_ONLY)
     @plain_errors
     def get_dashboard(project_id: str) -> DashboardInfo:
         """The KPI dashboard of the project's newest completed run, with each metric's SQL."""
@@ -255,7 +277,7 @@ def build_server(settings: Settings) -> MCPServer:
         The answer includes the SQL, the rows and where they came from."""
         return questions.ask(project_id, question)
 
-    @server.tool()
+    @server.tool(annotations=READ_ONLY)
     @plain_errors
     def export_sql(
         run_id: str, dialect: Literal["duckdb", "postgres", "snowflake", "bigquery"] = "duckdb"

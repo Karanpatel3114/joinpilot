@@ -8,6 +8,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
+import anyio
 import pytest
 from mcp import Client
 from mcp.client.stdio import StdioServerParameters
@@ -159,17 +160,71 @@ def test_questions_are_answered_through_the_guarded_path(
 
 
 def test_the_server_speaks_mcp_over_stdio(tmp_path: Path) -> None:
+    # Run outside the repository with a clean data setup, so a developer's .env
+    # (for example a DATABASE_URL) can never leak into the child process.
     params = StdioServerParameters(
         command=sys.executable,
         args=["-m", "joinpilot.mcp_server"],
-        env={**os.environ, "DATA_DIR": str(tmp_path), "LLM__PROVIDER": "fake"},
-        cwd=str(Path(__file__).resolve().parents[3]),
+        env={
+            **os.environ,
+            "DATA_DIR": str(tmp_path / "data"),
+            "LLM__PROVIDER": "fake",
+            "DATABASE_URL": "",
+            "REDIS_URL": "",
+        },
+        cwd=str(tmp_path),
     )
 
     async def run() -> None:
+        with anyio.fail_after(30):
+            await talk()
+
+    async def talk() -> None:
         async with Client(params) as client:
             assert {t.name for t in (await client.list_tools()).tools} == TOOLS
             result = await client.call_tool("list_projects", {})
             assert not result.is_error and result.structured_content == {"result": []}
 
     asyncio.run(run())
+
+
+def test_approvals_must_name_real_joins_and_inputs_have_limits(settings: Settings) -> None:
+    async def steps(client: Client) -> None:
+        project_id = await sample_project(client)
+        run = await call(client, "propose_joins", project_id=project_id, requirement=REQUIREMENT)
+        typo = await client.call_tool(
+            "approve_joins", {"run_id": run["run_id"], "approve": ["e_does_not_exist"]}
+        )
+        assert typo.is_error and "Unknown join ids: e_does_not_exist" in typo.content[0].text  # type: ignore[union-attr]
+        empty = await client.call_tool("approve_joins", {"run_id": run["run_id"], "approve": []})
+        long = await client.call_tool(
+            "approve_joins", {"run_id": run["run_id"], "reject_reason": "x" * 501}
+        )
+        assert empty.is_error and long.is_error
+        still = await call(client, "get_run", run_id=run["run_id"])
+        assert still["status"] == "awaiting_approval", "a bad call leaves the run waiting"
+        for tool, arguments in (
+            ("create_project", {"name": "   "}),
+            ("create_project", {"name": "x" * 101}),
+            ("propose_joins", {"project_id": project_id, "requirement": "x" * 2001}),
+            ("propose_joins", {"project_id": project_id, "requirement": " a "}),
+        ):
+            assert (await client.call_tool(tool, arguments)).is_error, (tool, arguments)
+
+    session(settings, steps)
+
+
+def test_read_only_tools_say_so(settings: Settings) -> None:
+    async def steps(client: Client) -> None:
+        tools = {t.name: t for t in (await client.list_tools()).tools}
+        read_only = {n for n, t in tools.items() if t.annotations and t.annotations.read_only_hint}
+        assert read_only == {
+            "list_projects",
+            "profile_tables",
+            "get_run",
+            "get_check_results",
+            "get_dashboard",
+            "export_sql",
+        }
+
+    session(settings, steps)

@@ -11,8 +11,11 @@ from joinpilot.mcp_server.server import build_server
 
 def main() -> None:
     """Start the server; logs go to stderr because stdout carries the protocol."""
-    logging.basicConfig(stream=sys.stderr, level=logging.INFO, format="%(levelname)s %(message)s")
-    build_server(get_settings()).run()
+    settings = get_settings()
+    logging.basicConfig(
+        stream=sys.stderr, level=settings.log_level.upper(), format="%(levelname)s %(message)s"
+    )
+    build_server(settings).run()
 
 
 if __name__ == "__main__":
