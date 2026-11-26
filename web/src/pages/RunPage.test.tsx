@@ -10,7 +10,7 @@ describe('Run page: join graph and evidence', () => {
     renderAt(RUN)
     expect(await screen.findByLabelText('Join graph')).toBeInTheDocument()
     const list = screen.getByRole('list', { name: 'Proposed joins' })
-    expect(within(list).getAllByRole('button').length).toBe(8)
+    expect(within(list).getAllByRole('checkbox')).toHaveLength(8)
   })
 
   it('explains a selected join with the numbers behind its evidence ids', async () => {

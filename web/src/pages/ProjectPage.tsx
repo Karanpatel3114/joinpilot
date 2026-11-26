@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { useProjects } from '../api/hooks'
 import { ProfileExplorer } from '../components/ProfileExplorer'
+import { RunsPanel } from '../components/RunsPanel'
 import { UploadPanel } from '../components/UploadPanel'
 
 const TABS = ['Profile', 'Runs'] as const
@@ -40,7 +41,7 @@ export function ProjectPage() {
             ))}
           </div>
           {tab === 'Profile' && <ProfileExplorer projectId={projectId} />}
-          {tab === 'Runs' && <p className="text-sm text-slate-500">Runs arrive in the next step.</p>}
+          {tab === 'Runs' && <RunsPanel projectId={projectId} />}
         </>
       )}
     </section>
