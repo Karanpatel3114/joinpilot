@@ -95,8 +95,8 @@ def markdown(report: dict[str, Any]) -> str:
             "|---|" + "---|" * len(next(iter(kpis["per_dataset"].values()))),
         ]
         for dataset, metrics in kpis["per_dataset"].items():
-            cells = " | ".join(f"{m['right']}/{m['total']}" for m in metrics.values())
-            lines.append(f"| {dataset} | {cells} |")
+            scores = " | ".join(f"{m['right']}/{m['total']}" for m in metrics.values())
+            lines.append(f"| {dataset} | {scores} |")
             lines += [f"  - wrong: {w}" for m in metrics.values() for w in m["wrong"]]
     redteam = report.get("redteam")
     if redteam:
