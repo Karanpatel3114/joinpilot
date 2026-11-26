@@ -42,6 +42,16 @@ Analysts spend days studying cryptic ERP tables, guessing join keys, writing vie
 
 The screenshots are captured from the running app by a Playwright script: `cd web && SCREENSHOTS=1 npx playwright test screenshots`.
 
+## Use it from Claude (MCP)
+
+JoinPilot is also an MCP server. Claude Code or Claude Desktop can list projects, profile tables, propose joins, build and check the model after you approve it, read the dashboard and ask questions:
+
+```bash
+claude mcp add joinpilot -- uv run --directory /absolute/path/to/joinpilot joinpilot-mcp
+```
+
+The [MCP guide](mcp/README.md) covers Claude Desktop, the tools and the safety rules.
+
 ## Architecture
 
 ```

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "joinpilot": {
+      "command": "uv",
+      "args": ["run", "--directory", "/absolute/path/to/joinpilot", "joinpilot-mcp"]
+    }
+  }
+}
