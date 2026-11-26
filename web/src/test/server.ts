@@ -6,6 +6,8 @@ import profile from '../../../shared/fixtures/profile.json'
 import proposals from '../../../shared/fixtures/proposals.json'
 import run from '../../../shared/fixtures/run.json'
 import runs from '../../../shared/fixtures/runs.json'
+import checks from '../../../shared/fixtures/checks.json'
+import views from '../../../shared/fixtures/views.json'
 import tables from '../../../shared/fixtures/tables.json'
 
 const API = 'http://localhost:8000'
@@ -23,6 +25,11 @@ export const handlers = [
   http.get(`${API}/projects/:id/runs`, () => HttpResponse.json(runs)),
   http.get(`${API}/runs/:id`, () => HttpResponse.json(run)),
   http.get(`${API}/runs/:id/proposals`, () => HttpResponse.json(proposals)),
+  http.get(`${API}/runs/:id/views`, ({ request }) => {
+    const dialect = new URL(request.url).searchParams.get('dialect') ?? 'duckdb'
+    return HttpResponse.json(views.map((v) => ({ ...v, dialect })))
+  }),
+  http.get(`${API}/runs/:id/checks`, () => HttpResponse.json(checks)),
 ]
 
 export const server = setupServer(...handlers)

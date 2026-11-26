@@ -3,11 +3,13 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { SETTLED, useProfile, useProposals, useRun } from '../api/hooks'
 import { ApprovalList } from '../components/ApprovalList'
+import { CheckResults } from '../components/CheckResults'
 import { ErrorNote } from '../components/ErrorNote'
 import { EvidencePanel } from '../components/EvidencePanel'
 import { JoinGraph } from '../components/JoinGraph'
 import { RunStatusBadge } from '../components/RunStatusBadge'
 import { RunTimeline } from '../components/RunTimeline'
+import { SqlViewer } from '../components/SqlViewer'
 
 /** One run: live status, the proposed join graph with evidence, and approval. */
 export function RunPage() {
@@ -62,6 +64,12 @@ export function RunPage() {
           selected={selected}
           onSelect={setSelected}
         />
+      )}
+      {run.data.status === 'completed' && list.some((p) => p.status === 'approved') && (
+        <>
+          <SqlViewer runId={runId} />
+          <CheckResults runId={runId} />
+        </>
       )}
     </section>
   )
