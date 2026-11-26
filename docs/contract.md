@@ -1,6 +1,8 @@
 # JoinPilot API contract
 
-Version: 0.9. Change it only with the `contract-sync` skill, and bump the version.
+Version: 0.10. Change it only with the `contract-sync` skill, and bump the version.
+
+Changes in 0.10 (additive): `POST /projects/{project_id}/ask` is implemented; answers gain `question`, `columns` and `message`, `evidence` is an object, and `QUERY_FAILED` joins the reason codes.
 
 Changes in 0.9 (behaviour): the dashboard belongs to the project's most recently completed run, even when that run produced no metrics; approving a run gives 409 while another run of the same project is building its model; metrics on a view that failed a row count, fan-out or reconciliation check come back `failed`.
 
@@ -129,6 +131,12 @@ Check kinds: `row_count` (one view row per fact row), `fan_out` (no fact key twi
 `chart` is `bar`, `line` or `table`; `x` names the category column of each `data` row and `y` the value columns. `requested` is true when the requirement asks for the metric (those come first). Metric ids: `aging_buckets`, `aging_top_customers`, `revenue_<year>_by_product_group` (or `revenue_by_product_group` when the requirement names no year), `monthly_order_counts`, `top_customers_by_revenue`; a metric only appears when the approved model has the columns it needs. `status` is `computed` or `failed` (with `message`, and no rows); a metric whose view still fails a `row_count`, `fan_out` or `reconciliation` check after repairs is `failed`, because its totals would be wrong. At most `KPI__MAX_METRIC_ROWS` rows per metric.
 
 
-`POST /projects/{project_id}/ask` with `{"question": "Which 5 customers have the most overdue receivables?"}` returns `{"sql", "rows", "chart", "evidence", "blocked": false, "reason_code": null}`
+`POST /projects/{project_id}/ask` with `{"question": "Which 5 customers have the most overdue receivables?"}` (3 to `QA__MAX_QUESTION_CHARS` characters) answers over the views of the project's most recently completed run and returns 200 with:
+```json
+{"question": "Which 5 customers have the most overdue receivables?", "sql": "SELECT \"KNA1__NAME1\" AS customer, ROUND(SUM(\"DMBTR\"), 2) AS overdue FROM model.\"v_bsid\" WHERE \"days_overdue\" > 0 GROUP BY 1 ORDER BY overdue DESC LIMIT 5", "columns": ["customer", "overdue"], "rows": [{"customer": "South Torfield Logistics AG", "overdue": 3559137.89}], "chart": "bar", "evidence": {"run_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7", "views": ["v_bsid"], "explanation": "Sums the overdue open amounts per customer and keeps the five largest.", "attempts": 1, "row_count": 5, "truncated": false, "elapsed_ms": 4.2}, "blocked": false, "reason_code": null, "message": null}
+```
+- `sql` is the query that passed the guard (one SELECT over the `model` views only); it ran on a read-only connection with at most `QA__ROW_LIMIT` rows (`evidence.truncated` says whether more existed) and a `QA__TIMEOUT_SECONDS` timeout.
+- `chart` is `number`, `line`, `bar` or `table`. `evidence` names the run whose model answered, the views the query reads, the model's one-line explanation, the attempts it took (a refused draft gets one fix), the row count and the time.
+- A question that cannot be answered safely still returns 200, with `blocked: true`, a `reason_code`, a plain `message`, no rows and `evidence: null` (`sql` is set only when a guarded query failed while running).
 
-Reason codes for blocked questions: `UNSAFE_SQL`, `UNKNOWN_IDENTIFIER`, `TIMEOUT`, `LLM_UNAVAILABLE`.
+Reason codes for blocked questions: `UNSAFE_SQL` and `UNKNOWN_IDENTIFIER` (no draft passed the guard), `TIMEOUT`, `QUERY_FAILED` (the database could not run a guarded query), `LLM_UNAVAILABLE` (no key, or the model is down or replied invalidly). A project without a completed model gives 409; an unknown project 404.

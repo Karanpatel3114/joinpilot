@@ -1,0 +1,45 @@
+{
+  "question": "Which 5 customers have the most overdue receivables?",
+  "sql": "SELECT \"KNA1__NAME1\" AS customer, ROUND(SUM(\"DMBTR\"), 2) AS overdue FROM model.\"v_bsid\" WHERE \"days_overdue\" > 0 GROUP BY 1 ORDER BY overdue DESC LIMIT 5",
+  "columns": [
+    "customer",
+    "overdue"
+  ],
+  "rows": [
+    {
+      "customer": "South Torfield Logistics AG",
+      "overdue": 3559137.89
+    },
+    {
+      "customer": "Kelwood Technologies LLC",
+      "overdue": 1444701.32
+    },
+    {
+      "customer": "United Newstone Trading LLC",
+      "overdue": 1069216.13
+    },
+    {
+      "customer": "North Ulcrest Trading Pvt Ltd",
+      "overdue": 645986.88
+    },
+    {
+      "customer": "Atlantic Kelview Engineering Pvt Ltd",
+      "overdue": 637891.2
+    }
+  ],
+  "chart": "bar",
+  "evidence": {
+    "run_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+    "views": [
+      "v_bsid"
+    ],
+    "explanation": "Sums the overdue open amounts per customer and keeps the five largest.",
+    "attempts": 1,
+    "row_count": 5,
+    "truncated": false,
+    "elapsed_ms": 4.2
+  },
+  "blocked": false,
+  "reason_code": null,
+  "message": null
+}

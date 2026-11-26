@@ -8,6 +8,7 @@ from joinpilot.config import Settings
 from joinpilot.glossary.service import GlossaryService
 from joinpilot.jobs.queue import JobQueue
 from joinpilot.services.projects import ProjectService
+from joinpilot.services.questions import QuestionService
 from joinpilot.services.runs import RunService
 
 
@@ -31,3 +32,8 @@ def get_run_service(request: Request) -> RunService:
 def get_glossary_service(request: Request) -> GlossaryService:
     """A glossary service bound to the app's settings."""
     return GlossaryService(get_settings_from_app(request))
+
+
+def get_question_service(request: Request) -> QuestionService:
+    """A question service that reads models through the run service."""
+    return QuestionService(get_settings_from_app(request), get_run_service(request))

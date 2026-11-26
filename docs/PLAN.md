@@ -114,7 +114,7 @@ Done when: a dashboard is generated from metric definitions, and KPI values matc
 Done when: plain-English questions get guarded, read-only SQL answers with the query shown, and accuracy is evaluated.
 
 - [x] M9.1 `feat(qa): generate SQL from questions over the semantic model`
-- [ ] M9.2 `feat(qa): run answers read-only with guard, limit and timeout`
+- [x] M9.2 `feat(qa): run answers read-only with guard, limit and timeout`
 - [ ] M9.3 `feat(eval): measure question-answering execution accuracy`
 - [ ] M9.4 `feat(web): add ask panel showing SQL and evidence`
 

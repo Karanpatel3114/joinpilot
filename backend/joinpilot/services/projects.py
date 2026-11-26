@@ -169,10 +169,18 @@ class ProjectService:
         with project_lock(project_id), self._connect(project_id) as con:
             yield con
 
-    def _connect(self, project_id: str) -> duckdb.DuckDBPyConnection:
+    @contextmanager
+    def read_only_warehouse(self, project_id: str) -> Iterator[duckdb.DuckDBPyConnection]:
+        """The project's warehouse opened read-only, under the project's lock (for answers)."""
+        self.store.get(project_id)
+        with project_lock(project_id), self._connect(project_id, read_only=True) as con:
+            yield con
+
+    def _connect(self, project_id: str, read_only: bool = False) -> duckdb.DuckDBPyConnection:
         """Open the project's warehouse with the configured memory and thread limits."""
         return connect(
             self.store.project_dir(project_id),
+            read_only=read_only,
             memory_limit=self.settings.duckdb_memory_limit,
             threads=self.settings.duckdb_threads,
         )

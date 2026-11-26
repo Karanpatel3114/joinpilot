@@ -20,10 +20,13 @@ from joinpilot.profiling.models import (
     ProjectProfile,
     TableProfile,
 )
+from joinpilot.services.questions import Answer, Evidence
 from joinpilot.sqlgen.views import View
 
 __all__ = [
+    "Answer",
     "ApprovalRequest",
+    "AskRequest",
     "CheckResult",
     "ColumnProfile",
     "CreateProjectRequest",
@@ -32,6 +35,7 @@ __all__ = [
     "Decision",
     "ErrorDetail",
     "ErrorResponse",
+    "Evidence",
     "GlossaryMatch",
     "HealthResponse",
     "KeyEvidence",
@@ -140,3 +144,9 @@ class Dashboard(BaseModel):
 
     run_id: str | None
     metrics: list[Metric]
+
+
+class AskRequest(BaseModel):
+    """A plain-English question about the project's tested model."""
+
+    question: str = Field(min_length=3, max_length=5000)
