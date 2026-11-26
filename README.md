@@ -24,6 +24,10 @@ Analysts spend days studying cryptic ERP tables, guessing join keys, writing vie
 
 ## Console
 
+**Home.** What JoinPilot does, with the measured results from the evaluation, then your projects.
+
+![JoinPilot home page](docs/images/projects.png)
+
 **Profile.** Every column's type, nulls, distinct values and uniqueness, the value overlaps between tables, and a glossary search that finds columns by business words.
 
 ![Profile explorer with glossary search](docs/images/profile.png)
