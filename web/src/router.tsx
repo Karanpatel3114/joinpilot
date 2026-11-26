@@ -2,11 +2,13 @@ import { createBrowserRouter } from 'react-router'
 import { Layout } from './components/Layout'
 import { ProjectPage } from './pages/ProjectPage'
 import { ProjectsPage } from './pages/ProjectsPage'
+import { RouteError } from './pages/RouteError'
 
 export const routes = [
   {
     path: '/',
     element: <Layout />,
+    errorElement: <RouteError />,
     children: [
       { index: true, element: <ProjectsPage /> },
       { path: 'projects/:projectId', element: <ProjectPage /> },
