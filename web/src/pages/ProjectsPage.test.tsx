@@ -7,6 +7,14 @@ import { renderAt } from '../test/render'
 import { API, server } from '../test/server'
 
 describe('Projects page', () => {
+  it('opens with the pitch and measured results that name their source', () => {
+    renderAt('/')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('From raw ERP tables to a tested data model')
+    expect(screen.getByText('71/71')).toBeInTheDocument()
+    expect(screen.getByText('416/416')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'e376633' })).toHaveAttribute('href', expect.stringContaining('eval/results'))
+  })
+
   it('lists projects from the API', async () => {
     renderAt('/')
     expect(await screen.findByText('Demo ERP')).toBeInTheDocument()
