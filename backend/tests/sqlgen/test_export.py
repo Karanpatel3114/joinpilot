@@ -46,3 +46,17 @@ def test_the_duckdb_script_runs_against_the_raw_tables(
         if statement.strip() and not statement.strip().startswith("--"):
             sample_duckdb.execute(statement.split("\n\n")[-1])
     assert sample_duckdb.execute("SELECT COUNT(*) FROM model.v_vbap").fetchone() == (30116,)
+
+
+def test_pretty_duckdb_sql_returns_exactly_the_rows_of_the_sql_that_ran(
+    sample_duckdb: duckdb.DuckDBPyConnection,
+) -> None:
+    sample_duckdb.execute("CREATE SCHEMA IF NOT EXISTS model")
+    for view in VIEWS:
+        pretty, notes = export_sql(view["sql"], "duckdb")
+        assert not notes and pretty != view["sql"]
+        name = f'model."{view["name"]}"'
+        sample_duckdb.execute(view["sql"])
+        ran = sample_duckdb.execute(f"SELECT * FROM {name} ORDER BY ALL").fetchall()
+        sample_duckdb.execute(pretty)
+        assert sample_duckdb.execute(f"SELECT * FROM {name} ORDER BY ALL").fetchall() == ran

@@ -33,7 +33,7 @@ def portable(node: exp.Expression) -> exp.Expression:
 def export_sql(sql: str, dialect: Dialect) -> tuple[str, list[str]]:
     """The statement in `dialect`, with notes about anything that may need a manual change."""
     if dialect == "duckdb":
-        return sql, []
+        return sqlglot.parse_one(sql, read="duckdb").sql(dialect="duckdb", pretty=True), []
     tree = sqlglot.parse_one(sql, read="duckdb").transform(portable)
     notes = []
     try:
@@ -50,7 +50,7 @@ def export_views(views: list[dict[str, Any]], dialect: Dialect) -> list[dict[str
     """Views with their SQL in `dialect`; notes go into `message` (failed views unchanged)."""
     exported = []
     for view in views:
-        if view.get("status") == "failed" or dialect == "duckdb":
+        if view.get("status") == "failed":
             exported.append(view)
             continue
         sql, notes = export_sql(view["sql"], dialect)
