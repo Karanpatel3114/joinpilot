@@ -10,7 +10,7 @@ const REASONS: Record<ReasonCode, string> = {
   UNKNOWN_IDENTIFIER: 'The model named a table or column the project does not have, so nothing ran.',
   TIMEOUT: 'The query took too long and was stopped.',
   QUERY_FAILED: 'The database could not run the query.',
-  LLM_UNAVAILABLE: 'The language model is not available. Add GEMINI_API_KEY to .env (free, no billing) and restart the API.',
+  LLM_UNAVAILABLE: 'The language model did not answer.',
 }
 
 /** One answer: the result, how it was produced and the guarded SQL behind it. */
@@ -23,6 +23,11 @@ export function AnswerView({ answer }: { answer: Answer }) {
           <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
           <span>
             {answer.reason_code && REASONS[answer.reason_code]} <span className="opacity-80">({answer.message})</span>
+            {answer.message?.includes('GEMINI_API_KEY') && (
+              <span className="mt-1 block">
+                Add GEMINI_API_KEY to .env (a free key, no billing) and restart the API.
+              </span>
+            )}
           </span>
         </p>
         {answer.sql && <pre className="overflow-auto rounded-lg bg-white/70 p-3 font-mono text-xs dark:bg-slate-950">{answer.sql}</pre>}

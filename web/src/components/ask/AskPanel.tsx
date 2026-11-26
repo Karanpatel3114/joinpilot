@@ -66,6 +66,9 @@ export function AskPanel({ projectId }: { projectId: string }) {
         stopped if it takes too long.
       </p>
       <ErrorNote error={ask.error} />
+      <p aria-live="polite" className="sr-only">
+        {answers[0] && (answers[0].blocked ? 'The question was blocked.' : `Answered with ${answers[0].rows.length} rows.`)}
+      </p>
       {answers.map((answer, i) => (
         <AnswerView key={answers.length - i} answer={answer} />
       ))}
