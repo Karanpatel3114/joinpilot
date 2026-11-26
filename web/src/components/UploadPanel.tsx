@@ -17,8 +17,8 @@ export function UploadPanel({ projectId }: { projectId: string }) {
 
   const busy = upload.isPending || sample.isPending
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
-      <h2 className="font-semibold">Add tables</h2>
+    <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+      <h2 className="text-xl font-semibold">Add tables</h2>
       <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
         Upload CSV or Parquet extracts, or load a synthetic SAP-style ERP sample with planted
         data-quality issues.
@@ -38,7 +38,7 @@ export function UploadPanel({ projectId }: { projectId: string }) {
           type="button"
           onClick={() => input.current?.click()}
           disabled={busy}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 font-medium hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800"
+          className="btn-secondary"
         >
           <Upload className="h-4 w-4" /> Upload files
         </button>

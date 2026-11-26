@@ -10,7 +10,7 @@ export function MetricCard({ metric }: { metric: Metric }) {
   return (
     <article
       aria-label={metric.title}
-      className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+      className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
     >
       <header className="flex flex-wrap items-start gap-2">
         <div className="min-w-0 flex-1">
@@ -57,7 +57,7 @@ export function MetricCard({ metric }: { metric: Metric }) {
           {show === 'table' && (
             <div className="max-h-72 overflow-auto rounded-lg border border-slate-200 dark:border-slate-800">
               <table aria-label={`${metric.title} data`} className="w-full text-left text-sm">
-                <thead className="sticky top-0 bg-slate-50 text-xs uppercase text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+                <thead className="sticky top-0 bg-slate-50 font-mono text-[11px] tracking-[0.08em] uppercase text-slate-500 dark:bg-slate-900 dark:text-slate-400">
                   <tr>
                     {columns.map((c) => (
                       <th key={c} className="px-3 py-2">

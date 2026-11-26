@@ -1,7 +1,7 @@
-import { ArrowLeft } from 'lucide-react'
 import { type KeyboardEvent, Suspense, lazy, useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router'
+import { useParams, useSearchParams } from 'react-router'
 import { useProjects } from '../api/hooks'
+import { PageHeader } from '../components/PageHeader'
 import { ProfileExplorer } from '../components/ProfileExplorer'
 import { RunsPanel } from '../components/RunsPanel'
 import { UploadPanel } from '../components/UploadPanel'
@@ -36,15 +36,19 @@ export function ProjectPage() {
     document.getElementById(`tab-${name}`)?.focus()
   }
   return (
-    <section className="space-y-6">
-      <Link to="/" className="inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-300">
-        <ArrowLeft className="h-4 w-4" /> All projects
-      </Link>
-      <h1 className="text-2xl font-bold tracking-tight">{project?.name ?? 'Project'}</h1>
+    <section className="space-y-8">
+      <PageHeader back={{ to: '/#projects', label: 'All projects' }} eyebrow="Project" title={project?.name ?? 'Project'}>
+        {project && (
+          <p className="font-mono text-[12px] text-slate-600 dark:text-slate-400">
+            {project.table_count} {project.table_count === 1 ? 'table' : 'tables'} · created{' '}
+            {new Date(project.created_at).toLocaleDateString()}
+          </p>
+        )}
+      </PageHeader>
       <UploadPanel projectId={projectId} />
       {hasTables && (
         <>
-          <div role="tablist" aria-label="Project views" onKeyDown={onKey} className="flex gap-2 border-b border-slate-200 dark:border-slate-800">
+          <div role="tablist" aria-label="Project views" onKeyDown={onKey} className="inline-flex flex-wrap gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-900">
             {TABS.map((name) => (
               <button
                 key={name}
@@ -55,15 +59,17 @@ export function ProjectPage() {
                 aria-controls={`panel-${name}`}
                 tabIndex={tab === name ? 0 : -1}
                 onClick={() => setTab(name)}
-                className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${
-                  tab === name ? 'border-brand-600 text-brand-600 dark:text-brand-300' : 'border-transparent text-slate-500 dark:text-slate-400'
+                className={`rounded-md px-4 py-1.5 font-mono text-[13px] transition-colors ${
+                  tab === name
+                    ? 'bg-white text-slate-950 shadow-[0_1px_2px_rgba(11,17,8,0.08)] dark:bg-slate-800 dark:text-white'
+                    : 'text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'
                 }`}
               >
                 {name}
               </button>
             ))}
           </div>
-          <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
+          <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="pt-2">
             {tab === 'Profile' && <ProfileExplorer projectId={projectId} />}
             {tab === 'Runs' && <RunsPanel projectId={projectId} />}
             {tab === 'Dashboard' && (

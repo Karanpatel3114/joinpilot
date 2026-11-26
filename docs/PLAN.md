@@ -134,7 +134,7 @@ Done when: JoinPilot runs at a public URL with CI building Docker images and run
 - [x] M11.3 `feat(api): add rate limits and request size limits`
 - [x] M11.3a `feat(web): add the new visual theme, fonts and buttons`
 - [x] M11.3b `feat(web): redesign the home page with a hero and features`
-- [ ] M11.3c `feat(web): restyle the project and run pages`
+- [x] M11.3c `feat(web): restyle the project and run pages`
 - [ ] M11.3d `feat(web): recolour charts, join graph and status badges`
 - [ ] M11.3e `docs: refresh console screenshots after the redesign`
 - [ ] M11.4 `build(infra): deploy database, Redis, API and web`

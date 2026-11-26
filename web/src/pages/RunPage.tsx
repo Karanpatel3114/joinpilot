@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowLeft, LayoutDashboard } from 'lucide-react'
+import { AlertTriangle, LayoutDashboard } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { SETTLED, useProfile, useProposals, useRun } from '../api/hooks'
@@ -7,6 +7,7 @@ import { CheckResults } from '../components/CheckResults'
 import { ErrorNote } from '../components/ErrorNote'
 import { EvidencePanel } from '../components/EvidencePanel'
 import { JoinGraph } from '../components/JoinGraph'
+import { PageHeader } from '../components/PageHeader'
 import { RunStatusBadge } from '../components/RunStatusBadge'
 import { RunTimeline } from '../components/RunTimeline'
 import { SqlViewer } from '../components/SqlViewer'
@@ -14,6 +15,19 @@ import type { RunStatus } from '../types/api'
 
 /** Statuses before the ranking step has stored any proposals. */
 const BEFORE_PROPOSALS: RunStatus[] = ['queued', 'profiling', 'ranking']
+
+/** The run page's headline for each status, in plain words. */
+const HEADLINES: Record<RunStatus, string> = {
+  queued: 'Queued',
+  profiling: 'Profiling the tables',
+  ranking: 'Ranking the joins',
+  awaiting_approval: 'Waiting for your approval',
+  generating: 'Generating views',
+  checking: 'Running checks',
+  repairing: 'Repairing views',
+  completed: 'Model ready',
+  failed: 'Run failed',
+}
 
 /** One run: live status, the proposed join graph with evidence, and approval. */
 export function RunPage() {
@@ -31,20 +45,15 @@ export function RunPage() {
   const list = proposals.data ?? []
   const noCandidates = proposals.isSuccess && list.length === 0 && SETTLED.includes(run.data.status)
   return (
-    <section className="space-y-6">
-      <Link
-        to={`/projects/${run.data.project_id}`}
-        className="inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-300"
+    <section className="space-y-8">
+      <PageHeader
+        back={{ to: `/projects/${run.data.project_id}?tab=Runs`, label: 'Back to project' }}
+        eyebrow="Agent run"
+        title={HEADLINES[run.data.status]}
+        aside={<RunStatusBadge status={run.data.status} />}
       >
-        <ArrowLeft className="h-4 w-4" /> Back to project
-      </Link>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Run</h1>
-          <p className="mt-1 max-w-3xl text-slate-600 dark:text-slate-400">{run.data.requirement}</p>
-        </div>
-        <RunStatusBadge status={run.data.status} />
-      </div>
+        <p className="max-w-3xl text-[17px] leading-relaxed text-slate-600 dark:text-slate-300">{run.data.requirement}</p>
+      </PageHeader>
       <RunTimeline run={run.data} />
       {run.error && <ErrorNote error={run.error} />}
       {run.data.error && <ErrorNote error={new Error(run.data.error)} />}

@@ -38,7 +38,7 @@ export function ApprovalList({
 
   return (
     <div className="space-y-3">
-      <ul aria-label="Proposed joins" className="divide-y divide-slate-200 rounded-xl border border-slate-200 dark:divide-slate-800 dark:border-slate-800">
+      <ul aria-label="Proposed joins" className="divide-y divide-slate-200 rounded-2xl border border-slate-200 dark:divide-slate-800 dark:border-slate-800">
         {visible.map((p) => (
           <li key={p.edge_id} className="flex items-center gap-3 px-3 py-2 text-sm">
             {editable ? (

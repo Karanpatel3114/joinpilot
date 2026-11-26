@@ -72,7 +72,7 @@ export function JoinGraph({
     return { nodes, edges }
   }, [proposals, selected, showAll])
   return (
-    <div className="relative h-[28rem] rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+    <div className="relative h-[28rem] rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
       <label className="absolute right-3 top-3 z-10 flex items-center gap-2 rounded-md bg-white/90 px-2 py-1 text-xs shadow-sm dark:bg-slate-900/90">
         <input type="checkbox" checked={showAll} onChange={(e) => setShowAll(e.target.checked)} />
         Show all candidates
