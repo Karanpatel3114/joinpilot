@@ -113,10 +113,10 @@ Done when: a dashboard is generated from metric definitions, and KPI values matc
 ## M9: Ask questions (branch `m9-qa`)
 Done when: plain-English questions get guarded, read-only SQL answers with the query shown, and accuracy is evaluated.
 
-- [ ] M9.1 `feat(qa): generate SQL from questions over the semantic model`
-- [ ] M9.2 `feat(qa): run answers read-only with guard, limit and timeout`
-- [ ] M9.3 `feat(eval): measure question-answering execution accuracy`
-- [ ] M9.4 `feat(web): add ask panel showing SQL and evidence`
+- [x] M9.1 `feat(qa): generate SQL from questions over the semantic model`
+- [x] M9.2 `feat(qa): run answers read-only with guard, limit and timeout`
+- [x] M9.3 `feat(eval): measure question-answering execution accuracy`
+- [x] M9.4 `feat(web): add ask panel showing SQL and evidence`
 
 ## M10: MCP server (branch `m10-mcp`)
 Done when: Claude Desktop or Claude Code can list projects, profile tables, propose joins, run checks and ask questions through JoinPilot.

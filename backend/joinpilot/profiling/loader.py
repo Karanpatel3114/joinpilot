@@ -44,16 +44,23 @@ def connect(
     project_dir: Path,
     *,
     read_only: bool = False,
+    sealed: bool = False,
     memory_limit: str = "1GB",
     threads: int = 2,
 ) -> duckdb.DuckDBPyConnection:
-    """Open the project's DuckDB file with bounded memory and threads."""
+    """Open the project's DuckDB file with bounded memory and threads.
+
+    A sealed connection (for answering questions) cannot touch files or the network
+    and cannot change its own settings, whatever SQL reaches it.
+    """
     project_dir.mkdir(parents=True, exist_ok=True)
-    return duckdb.connect(
-        str(project_dir / WAREHOUSE_FILE),
-        read_only=read_only,
-        config={"memory_limit": memory_limit, "threads": threads},
-    )
+    config: dict[str, str | bool | int | float | list[str]] = {
+        "memory_limit": memory_limit,
+        "threads": threads,
+    }
+    if sealed:
+        config |= {"enable_external_access": False, "lock_configuration": True}
+    return duckdb.connect(str(project_dir / WAREHOUSE_FILE), read_only=read_only, config=config)
 
 
 def table_name_from_filename(filename: str) -> str:

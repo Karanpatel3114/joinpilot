@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from joinpilot import __version__
 from joinpilot.api.errors import install_error_handlers
 from joinpilot.api.projects import router as projects_router
+from joinpilot.api.questions import router as questions_router
 from joinpilot.api.runs import router as runs_router
 from joinpilot.api.schemas import HealthResponse
 from joinpilot.config import Settings, get_settings
@@ -68,6 +69,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     install_error_handlers(app)
     app.include_router(projects_router)
     app.include_router(runs_router)
+    app.include_router(questions_router)
     app.state.jobs = make_job_queue(settings)
 
     @app.get("/health", response_model=HealthResponse)

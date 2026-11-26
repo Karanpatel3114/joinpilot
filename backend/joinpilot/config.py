@@ -108,6 +108,27 @@ class LLMSettings(BaseModel):
     prices_per_million: dict[str, tuple[float, float]] = Field(default_factory=dict)
 
 
+class QASettings(BaseModel):
+    """Plain-English questions answered with guarded, read-only SQL."""
+
+    # Longest question accepted, in characters
+    max_question_chars: int = Field(default=500, ge=10, le=5000)
+    # Example values per column shown to the model
+    example_values: int = Field(default=3, ge=0, le=10)
+    # Model attempts per question: the first draft plus fixes after a guard refusal
+    max_attempts: int = Field(default=2, ge=1, le=5)
+    # Most rows an answer returns
+    row_limit: int = Field(default=1000, ge=1, le=100_000)
+    # Seconds a question's query may run before it is cancelled
+    timeout_seconds: float = Field(default=10.0, gt=0, le=300)
+    # Longest text kept in one answer cell (longer text is cut with an ellipsis)
+    max_cell_chars: int = Field(default=1000, ge=10, le=100_000)
+    # Largest answer, in bytes of JSON; rows past it are left out and the answer is marked cut
+    max_result_bytes: int = Field(default=2_000_000, ge=10_000, le=100_000_000)
+    # Longest example value shown to the model, in characters
+    example_max_chars: int = Field(default=40, ge=5, le=500)
+
+
 class AgentSettings(BaseModel):
     """Tunables for the agent's ranking and its evidence checks."""
 
@@ -197,6 +218,9 @@ class Settings(BaseSettings):
 
     # Agent
     agent: AgentSettings = Field(default_factory=AgentSettings)
+
+    # Questions in plain English
+    qa: QASettings = Field(default_factory=QASettings)
 
     # Language model
     llm: LLMSettings = Field(default_factory=LLMSettings)

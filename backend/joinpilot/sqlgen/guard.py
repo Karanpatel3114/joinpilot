@@ -20,7 +20,7 @@ from sqlglot.optimizer.qualify import qualify
 
 from joinpilot.errors import JoinPilotError
 
-Mode = Literal["select", "create_view"]
+Mode = Literal["select", "question", "create_view"]
 SANDBOX_SCHEMA = "model"
 DIALECT = "duckdb"
 
@@ -148,6 +148,22 @@ ALLOWED_FUNCTIONS = frozenset(
 
 # Largest padded or repeated string a query may build (guards against memory blow-ups).
 MAX_STRING_SIZE = 10_000
+# Functions that can grow a value far beyond their input (nested replace, padding with a
+# computed length, aggregating text over a cross join). Questions come from a language
+# model, so they may not use them; the generated views and metrics never need them.
+QUESTION_DENIED_FUNCTIONS = frozenset(
+    {
+        "lpad",
+        "rpad",
+        "pad",
+        "replace",
+        "regexp_replace",
+        "string_agg",
+        "group_concat",
+        "array_agg",
+        "concat_ws",
+    }
+)
 
 
 class UnsafeSQLError(JoinPilotError):
@@ -198,7 +214,7 @@ def parse_one_statement(sql: str) -> exp.Expression:
 
 def query_of(statement: exp.Expression, mode: Mode) -> exp.Query:
     """The SELECT to check: the statement itself, or the body of an allowed view."""
-    if mode == "select":
+    if mode in ("select", "question"):
         if not isinstance(statement, exp.Query):
             raise UnsafeSQLError("Only SELECT queries are allowed.", {"statement": statement.key})
         return statement
@@ -218,7 +234,7 @@ def query_of(statement: exp.Expression, mode: Mode) -> exp.Query:
     return body
 
 
-def check_nodes(query: exp.Query) -> None:
+def check_nodes(query: exp.Query, mode: Mode = "select") -> None:
     """Refuse statements hidden inside the query, table functions and unknown functions."""
     for node in query.walk():
         if isinstance(
@@ -251,10 +267,24 @@ def check_nodes(query: exp.Query) -> None:
                 "Other databases cannot be queried.", {"database": node.catalog}
             )
         if isinstance(node, (exp.Pad, exp.Repeat)):
-            for arg in node.args.values():
-                if isinstance(arg, exp.Literal) and arg.is_int and int(arg.this) > MAX_STRING_SIZE:
-                    raise UnsafeSQLError("The query asks for an oversized string.")
+            size = node.args.get("expression" if isinstance(node, exp.Pad) else "times")
+            fixed = isinstance(size, exp.Literal) and size.is_int
+            if not (fixed and isinstance(size, exp.Literal) and int(size.this) <= MAX_STRING_SIZE):
+                raise UnsafeSQLError(
+                    "Padding and repeating need a fixed length of at most "
+                    f"{MAX_STRING_SIZE:,} characters."
+                )
         is_operator = isinstance(node, (exp.Connector, exp.Binary, exp.Unary))
+        if (
+            mode == "question"
+            and isinstance(node, exp.Func)
+            and not is_operator
+            and function_name(node) in QUESTION_DENIED_FUNCTIONS
+        ):
+            raise UnsafeSQLError(
+                "Questions may not build large text values; that function is not allowed here.",
+                {"function": function_name(node)},
+            )
         if (
             isinstance(node, exp.Func)
             and not is_operator
@@ -296,12 +326,24 @@ def check_identifiers(query: exp.Query, catalog: Catalog) -> exp.Query:
 
 
 def guard_sql(sql: str, catalog: Catalog, mode: Mode = "select") -> str:
-    """Return the statement as safe, normalized DuckDB SQL, or raise UnsafeSQLError."""
-    statement = parse_one_statement(sql)
-    query = query_of(statement, mode)
-    check_nodes(query)
-    check_identifiers(query, catalog)
-    return statement.sql(dialect=DIALECT)
+    """Return the statement as safe, normalized DuckDB SQL, or raise UnsafeSQLError.
+
+    Anything unexpected while checking (a parser or optimizer bug, a statement nested
+    deeply enough to exhaust the stack) is a refusal too, never a crash.
+    """
+    try:
+        statement = parse_one_statement(sql)
+        query = query_of(statement, mode)
+        check_nodes(query, mode)
+        check_identifiers(query, catalog)
+        return statement.sql(dialect=DIALECT)
+    except UnsafeSQLError:
+        raise
+    except (Exception, RecursionError) as error:  # the guard fails closed
+        raise UnsafeSQLError(
+            "The SQL could not be checked, so it was refused.",
+            {"reason": type(error).__name__},
+        ) from error
 
 
 def catalog_from_connection(con: duckdb.DuckDBPyConnection, schemas: tuple[str, ...]) -> Catalog:

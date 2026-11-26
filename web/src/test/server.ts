@@ -10,6 +10,7 @@ import checks from '../../../shared/fixtures/checks.json'
 import views from '../../../shared/fixtures/views.json'
 import tables from '../../../shared/fixtures/tables.json'
 import dashboard from '../../../shared/fixtures/dashboard.json'
+import answer from '../../../shared/fixtures/answer.json'
 
 const API = 'http://localhost:8000'
 
@@ -32,6 +33,7 @@ export const handlers = [
   }),
   http.get(`${API}/runs/:id/checks`, () => HttpResponse.json(checks)),
   http.get(`${API}/projects/:id/dashboard`, () => HttpResponse.json(dashboard)),
+  http.post(`${API}/projects/:id/ask`, () => HttpResponse.json(answer)),
 ]
 
 export const server = setupServer(...handlers)

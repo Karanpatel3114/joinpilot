@@ -64,3 +64,29 @@ def test_markdown_reports_kpi_correctness_per_dataset() -> None:
     assert "Values right: 1 of 2 (50.0%)" in text
     assert "| erp_s1_sap | 1/2 |" in text
     assert "wrong: aging_buckets[90+].amount" in text
+
+
+def test_markdown_reports_question_answering_or_why_it_was_skipped() -> None:
+    base = {
+        "split": "dev",
+        "date": "2026-11-26T00:00:00+00:00",
+        "commit": "abc1234",
+        "dirty": False,
+        "datasets": [{"dataset_id": "erp_s1_sap"}],
+    }
+    skipped = markdown({**base, "qa": {"skipped": "GEMINI_API_KEY is not set"}})
+    assert "- Skipped: GEMINI_API_KEY is not set" in skipped
+    qa = {
+        "aggregate": {
+            "execution_accuracy": 0.75,
+            "right": 3,
+            "total": 4,
+            "blocked": {"TIMEOUT": 1},
+            "avg_attempts": 1.25,
+        },
+        "by_tag": {"orphans": 0.5, "none": None},
+        "per_dataset": {"erp_s1_sap": {"wrong": [{"id": "q004", "question": "Q?", "sql": None}]}},
+    }
+    text = markdown({**base, "qa": qa})
+    assert "Right: 3 of 4 (75.0%); blocked: {'TIMEOUT': 1}; average attempts: 1.25" in text
+    assert "By tag: orphans 50.0%" in text and "wrong in erp_s1_sap: q004 Q?" in text

@@ -100,3 +100,11 @@ def load_kpis(dataset_id: str, root: Path = GOLD_ROOT) -> dict[str, Any] | None:
         return None
     kpis: dict[str, Any] = json.loads(path.read_text())
     return kpis
+
+
+def load_questions(dataset_id: str, root: Path = GOLD_ROOT) -> list[dict[str, Any]] | None:
+    """The question and answer pairs of an ERP dataset (TPC-H has none)."""
+    path = gold_dir(dataset_id, root) / "qa.jsonl"
+    if not path.exists():
+        return None
+    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type {
+  Answer,
   CheckResult,
   Dashboard,
   Decision,
@@ -158,5 +159,11 @@ export function useDashboard(projectId: string) {
   return useQuery({
     queryKey: keys.dashboard(projectId),
     queryFn: () => getJson<Dashboard>(`/projects/${projectId}/dashboard`),
+  })
+}
+
+export function useAsk(projectId: string) {
+  return useMutation({
+    mutationFn: (question: string) => postJson<Answer>(`/projects/${projectId}/ask`, { question }),
   })
 }

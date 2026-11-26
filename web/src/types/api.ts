@@ -245,3 +245,38 @@ export interface Dashboard {
   run_id: string | null
   metrics: Metric[]
 }
+
+export type AnswerChart = 'number' | 'line' | 'bar' | 'table'
+
+export type ReasonCode =
+  | 'UNSAFE_SQL'
+  | 'UNKNOWN_IDENTIFIER'
+  | 'TIMEOUT'
+  | 'LLM_UNAVAILABLE'
+  | 'QUERY_FAILED'
+
+export interface AskRequest {
+  question: string
+}
+
+export interface Evidence {
+  run_id: string
+  views: string[]
+  explanation: string
+  attempts: number
+  row_count: number
+  truncated: boolean
+  elapsed_ms: number
+}
+
+export interface Answer {
+  question: string
+  sql: string | null
+  columns: string[]
+  rows: Record<string, string | number | boolean | null>[]
+  chart: AnswerChart
+  evidence: Evidence | null
+  blocked: boolean
+  reason_code: ReasonCode | null
+  message: string | null
+}

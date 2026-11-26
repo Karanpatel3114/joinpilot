@@ -7,6 +7,7 @@ import pytest
 from pydantic import TypeAdapter
 
 from joinpilot.api.schemas import (
+    Answer,
     CheckResult,
     Dashboard,
     ErrorResponse,
@@ -35,6 +36,7 @@ FIXTURES: dict[str, Any] = {
     "views.json": list[View],
     "checks.json": list[CheckResult],
     "dashboard.json": Dashboard,
+    "answer.json": Answer,
 }
 
 

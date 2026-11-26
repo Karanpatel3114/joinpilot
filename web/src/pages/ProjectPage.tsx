@@ -6,11 +6,14 @@ import { ProfileExplorer } from '../components/ProfileExplorer'
 import { RunsPanel } from '../components/RunsPanel'
 import { UploadPanel } from '../components/UploadPanel'
 
-const TABS = ['Profile', 'Runs', 'Dashboard'] as const
+const TABS = ['Profile', 'Runs', 'Dashboard', 'Ask'] as const
 
-// Recharts is large, so the dashboard loads when its tab first opens.
+// Recharts is large, so the dashboard and the ask panel load when their tab first opens.
 const DashboardPanel = lazy(async () => ({
   default: (await import('../components/dashboard/DashboardPanel')).DashboardPanel,
+}))
+const AskPanel = lazy(async () => ({
+  default: (await import('../components/ask/AskPanel')).AskPanel,
 }))
 type Tab = (typeof TABS)[number]
 
@@ -66,6 +69,11 @@ export function ProjectPage() {
             {tab === 'Dashboard' && (
               <Suspense fallback={<p className="text-sm text-slate-500 dark:text-slate-400">Loading dashboard…</p>}>
                 <DashboardPanel projectId={projectId} />
+              </Suspense>
+            )}
+            {tab === 'Ask' && (
+              <Suspense fallback={<p className="text-sm text-slate-500 dark:text-slate-400">Loading…</p>}>
+                <AskPanel projectId={projectId} />
               </Suspense>
             )}
           </div>
