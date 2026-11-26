@@ -1,7 +1,7 @@
 # Evaluation: dev split
 
-- Date: 2026-11-26T00:21:14+00:00
-- Commit: `2c3b967`
+- Date: 2026-11-26T01:25:34+00:00
+- Commit: `3566c20`
 - Datasets: `erp_s1_sap`, `erp_s2_sap`, `erp_s3_sap`, `erp_s1_friendly`
 - Settings: recorded in metrics.json
 
@@ -49,5 +49,5 @@
 
 ## SQL safety
 
-- Attacks blocked: 100.0% of 56
-- Harmless queries wrongly blocked: 0.0% of 10
+- Attacks blocked: 100.0% of 63
+- Harmless queries wrongly blocked: 0.0% of 11
