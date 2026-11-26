@@ -1,6 +1,8 @@
 # JoinPilot API contract
 
-Version: 0.6. Change it only with the `contract-sync` skill, and bump the version.
+Version: 0.7. Change it only with the `contract-sync` skill, and bump the version.
+
+Changes in 0.7 (additive): `GET /runs/{run_id}/views` takes `?dialect=`; `GET /runs/{run_id}/export` downloads the model as one SQL script.
 
 Changes in 0.6 (additive): the views and checks endpoints are implemented; `View` gains `fact_table`, `joins`, `derived_columns` and `message`.
 
@@ -98,7 +100,9 @@ After approval the run generates one view per fact table and checks it (status `
   "status": "created", "fact_table": "BSID", "joins": ["e5"],
   "derived_columns": ["due_date", "days_overdue", "aging_bucket"], "message": null}]
 ```
-`status` is `created`, `repaired` or `failed` (with `message`). `joins` lists the approved edge ids the view uses.
+`status` is `created`, `repaired` or `failed` (with `message`). `joins` lists the approved edge ids the view uses. Add `?dialect=postgres`, `snowflake` or `bigquery` (default `duckdb`) to get the SQL translated with sqlglot; notes about anything that may need a manual change are in `message`.
+
+`GET /runs/{run_id}/export?dialect=snowflake` returns the whole model as one `text/plain` SQL script (`Content-Disposition: attachment`), one `CREATE OR REPLACE VIEW` per created view, with notes as SQL comments. Unknown dialects give 422.
 
 `GET /runs/{run_id}/checks` returns:
 ```json

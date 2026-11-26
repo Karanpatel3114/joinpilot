@@ -149,3 +149,9 @@ One entry per design choice that had real alternatives. Newest at the bottom. Fo
 - **Decision:** only structural failures are repaired: row counts, duplicate fact keys and totals that do not reconcile. For each join whose target is not unique, the repair either filters the target to one row per key (when a small code column such as a language fills every key, choosing the configured preferred value) or removes the join and the branch that hung on it, then re-renders the view through the guard and re-runs the checks. Orphan and null keys describe the data, so they are reported, not "fixed". Each repair is explained in the run's warnings and the view is marked `repaired`.
 - **Alternatives:** asking the model to rewrite the SQL (harder to guarantee, needs a key); failing the run (leaves the person with nothing usable).
 - **Consequences:** repairs are predictable and testable; a test shows a bad approval repaired with `SPRAS = 'E'` and every structural check passing afterwards.
+
+## D-027: Export to other warehouses by transpiling with sqlglot
+- **Context:** views are built and tested in DuckDB, but teams run models in Postgres, Snowflake or BigQuery.
+- **Decision:** transpile each view with sqlglot after rewriting DuckDB-only functions into sqlglot's typed equivalents (`try_strptime` becomes a safe date parse, which Snowflake renders as `TRY_TO_TIMESTAMP` and BigQuery as `SAFE_CAST ... FORMAT`). Anything a dialect cannot express is reported next to the SQL rather than dropped; Postgres gets a note that its date parsing is not safe.
+- **Alternatives:** hand-written templates per dialect (more code and drift); dbt project export (a planned stretch goal).
+- **Consequences:** one source of truth with checked translations; tests parse every exported view back in its dialect and re-run the DuckDB script against the raw tables.

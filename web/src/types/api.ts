@@ -1,4 +1,4 @@
-// Types for the JoinPilot API. They mirror docs/contract.md (version 0.6) exactly.
+// Types for the JoinPilot API. They mirror docs/contract.md (version 0.7) exactly.
 // Change them only together with the contract, the Pydantic schemas and the fixtures.
 
 export type ErrorCode =
@@ -221,3 +221,5 @@ export interface CheckResult {
   expected: number | string | null
   message: string
 }
+
+export type SqlDialect = 'duckdb' | 'postgres' | 'snowflake' | 'bigquery'
