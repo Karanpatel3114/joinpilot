@@ -9,6 +9,7 @@ joins go straight to finish.
 
 from __future__ import annotations
 
+import logging
 import time
 from collections.abc import Callable
 from contextlib import AbstractContextManager
@@ -30,7 +31,7 @@ from joinpilot.checks.sit import run_checks
 from joinpilot.config import Settings
 from joinpilot.joins.models import JoinCandidate
 from joinpilot.joins.scoring import score_candidates
-from joinpilot.kpi.compute import compute_metrics
+from joinpilot.kpi.compute import Metric, compute_metrics
 from joinpilot.kpi.metrics import define_metrics
 from joinpilot.llm.provider import LLMProvider
 from joinpilot.profiling.models import ProjectProfile
@@ -41,6 +42,8 @@ from joinpilot.sqlgen.views import (
     spec_from_dict,
     spec_to_dict,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class Node(Protocol):
@@ -236,17 +239,46 @@ class AgentNodes:
         return "build_dashboard"
 
     def build_dashboard(self, state: RunState) -> dict[str, Any]:
-        """Define the KPI metrics the model supports and compute them on its views."""
+        """Define the KPI metrics the model supports and compute them on its views.
+
+        A view that still fails a structural check (lost or duplicated rows) would give
+        wrong totals, so its metrics are reported as failed instead of computed. A problem
+        here never fails a run whose views and checks are done.
+        """
         created = {v["name"] for v in state.get("views", []) if v["status"] != "failed"}
         specs = [spec_from_dict(s) for s in state.get("view_specs", []) if s["name"] in created]
+        broken: dict[str, set[str]] = {}
+        for check in state.get("checks", []):
+            if not check["passed"] and check["kind"] in STRUCTURAL:
+                broken.setdefault(check["view"], set()).add(check["kind"])
         kpi = self.ctx.settings.kpi
-        metrics = define_metrics(specs, self.profile_data(), state.get("requirement", ""), kpi)
-        with self.open_warehouse() as con:
-            computed = compute_metrics(con, metrics, kpi.max_metric_rows)
-        failed = [m.title for m in computed if m.status == "failed"]
+        try:
+            metrics = define_metrics(specs, self.profile_data(), state.get("requirement", ""), kpi)
+            usable = [m for m in metrics if m.view not in broken]
+            with self.open_warehouse() as con:
+                computed = {
+                    m.metric_id: m for m in compute_metrics(con, usable, kpi.max_metric_rows)
+                }
+        except Exception as error:  # the model is done; the dashboard is extra
+            logger.warning("dashboard failed: %s", type(error).__name__)
+            return {"metrics": [], "warnings": ["The KPI dashboard could not be built."]}
+        results = [
+            computed.get(m.metric_id)
+            or Metric(
+                **m.model_dump(),
+                data=[],
+                status="failed",
+                message=(
+                    f"Not computed: the view {m.view} failed its "
+                    f"{', '.join(sorted(broken[m.view]))} checks, so its totals would be wrong."
+                ),
+            )
+            for m in metrics
+        ]
+        failed = [m.title for m in results if m.status == "failed"]
         return {
-            "metrics": [m.model_dump() for m in computed],
-            "warnings": [f"The metric {title!r} could not be computed." for title in failed],
+            "metrics": [m.model_dump() for m in results],
+            "warnings": [f"The metric {title!r} was not computed." for title in failed],
         }
 
     def finish(self, state: RunState) -> dict[str, Any]:
