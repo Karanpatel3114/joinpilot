@@ -93,7 +93,7 @@ Done when: approved joins become guarded SQL views that pass SIT checks, and eva
 ## M7: Web console (branch `m7-console`)
 Done when: the whole flow, from upload to approved views, works in the browser.
 
-- [ ] M7.1 `feat(web): add project list and upload flow`
+- [x] M7.1 `feat(web): add project list and upload flow`
 - [ ] M7.2 `feat(web): add profile explorer`
 - [ ] M7.3 `feat(web): add join graph view with evidence panel`
 - [ ] M7.4 `feat(web): add approval workflow and run status`
