@@ -185,3 +185,9 @@ One entry per design choice that had real alternatives. Newest at the bottom. Fo
 - **Decision:** in every mode, padding and repeating need an integer literal length of at most 10,000. Questions use a `question` mode that also refuses the value-growing functions (`lpad`, `rpad`, `replace`, `regexp_replace`, `string_agg`, `group_concat`, `array_agg`, `concat_ws`); generated views and metrics never need them from the model. Any unexpected error while checking is a refusal.
 - **Alternatives:** limit only at execution (a 1 GB string is built before any row is returned); bound growth per function (complex and easy to get wrong).
 - **Consequences:** questions cannot normalize keys themselves; the views already do. The red-team eval reports the harmless queries the question mode refuses, alongside the select-mode rate.
+
+## D-033: The MCP server lives in the package and runs jobs inline
+- **Context:** M10 lets Claude Desktop, Claude Code and other MCP clients drive JoinPilot. The repo map reserved `mcp/`, but a top-level `mcp` Python package would shadow the official SDK, which is also imported as `mcp`.
+- **Decision:** the server is `joinpilot.mcp_server` (run with `python -m joinpilot.mcp_server` or `joinpilot-mcp`) on the official SDK's `MCPServer` over stdio; `mcp/` holds only the setup guide and client config. Tools call the same services as the API and run jobs inline, so each tool returns when its step is done. Approval stays a separate tool whose description tells the assistant to ask the user first.
+- **Alternatives:** call the HTTP API from the MCP server (a second process to run and keep in step); a background queue (the assistant would have to poll).
+- **Consequences:** long steps block the tool call for seconds, which MCP clients handle. The MCP server and the API can share a data folder, but DuckDB allows one writer per warehouse file at a time, so the same project should not be modified from both at once.
