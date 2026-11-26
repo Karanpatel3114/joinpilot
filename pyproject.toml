@@ -14,6 +14,7 @@ dependencies = [
     "langgraph>=1.2.24",
     "langgraph-checkpoint-postgres>=3.2.1",
     "langgraph-checkpoint-sqlite>=3.1.3",
+    "mcp==2.3.0",
     "numpy>=2.5.5",
     "pgvector>=0.5.1",
     "psycopg-pool>=3.3.3",
@@ -26,6 +27,9 @@ dependencies = [
     "sqlglot>=30.35.0",
     "uvicorn[standard]>=0.54.0",
 ]
+
+[project.scripts]
+joinpilot-mcp = "joinpilot.mcp_server.__main__:main"
 
 [project.optional-dependencies]
 tracing = [
@@ -84,3 +88,7 @@ dev = [
     "pytest>=9.2.0",
     "ruff>=0.17.6",
 ]
+
+[tool.ruff.lint.isort]
+# The repo's mcp/ folder holds docs only; `mcp` is the official SDK (D-033).
+known-third-party = ["mcp"]

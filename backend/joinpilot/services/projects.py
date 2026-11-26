@@ -53,6 +53,10 @@ def existing_name(record: ProjectRecord, name: str) -> str:
     return name
 
 
+# Same bounds as the API's request models, for every caller (API, MCP).
+MAX_NAME_CHARS = 100
+
+
 class ProjectService:
     """Every project operation the API, worker, MCP server and evaluation need."""
 
@@ -61,8 +65,13 @@ class ProjectService:
         self.store = ProjectStore(settings.projects_dir, settings.db_url)
 
     def create(self, name: str) -> ProjectRecord:
-        """Create an empty project."""
-        return self.store.create(name.strip())
+        """Create an empty project (a name of 1 to 100 characters)."""
+        name = name.strip()
+        if not 1 <= len(name) <= MAX_NAME_CHARS:
+            raise InvalidInputError(
+                f"A project name needs 1 to {MAX_NAME_CHARS} characters.", {"field": "name"}
+            )
+        return self.store.create(name)
 
     def list_projects(self) -> list[ProjectRecord]:
         """All projects, newest first."""

@@ -45,7 +45,7 @@ Owner: Karan Patel. This is a portfolio project for AI, data and software engine
 backend/joinpilot/  Python package: api, services (the one service layer), agent, profiling, joins, sqlgen, checks, kpi, qa, llm, db, jobs, synth, config
 backend/tests/      pytest, one test file per module
 web/                React + TypeScript + Vite + Tailwind console
-mcp/                MCP server exposing JoinPilot tools
+mcp/                MCP setup guide and client config (the server is backend/joinpilot/mcp_server, D-033)
 shared/fixtures/     example API responses used by the mock API and web tests
 data/               generated/ (gitignored), gold/ (committed, small), benchmarks/ (each with its license)
 eval/               evaluation scripts; results/ is written by the run-eval skill
@@ -65,6 +65,7 @@ Fill these in as each tool is set up in M0, and keep them accurate afterwards.
 - End-to-end (starts the API and Vite itself): `cd web && npx playwright install chromium && npm run e2e`
 - Services: `docker compose -f infra/docker-compose.yml up -d --wait` (Postgres + pgvector, Redis); stop with `down`
 - Run locally: start the services, set `DATABASE_URL`, `REDIS_URL` and `JOBS_MODE=arq` in `.env`, then `uv run uvicorn joinpilot.api.main:app --reload` and `cd web && npm run dev` (without Docker, leave both empty: SQLite and in-process jobs)
+- MCP server (stdio): `uv run joinpilot-mcp`; setup for Claude Code and Claude Desktop in mcp/README.md
 - Migrations: applied on API startup; by hand `uv run alembic upgrade head`
 - Generate data: `uv run python -m joinpilot.synth.generate --seed 1 --size S --naming sap --out data/generated/erp_s1_sap`
 - Regenerate gold (M1 only): `uv run python -m joinpilot.synth.splits --gold data/gold` and `uv run python -m joinpilot.synth.tpch --sf 0.1 --gold data/gold`
