@@ -54,7 +54,7 @@ def draft_sql(
     for attempt in range(1, max_attempts + 1):
         draft = llm.generate(prompt, SQLDraft).value
         try:
-            sql = guard_sql(draft.sql, catalog)
+            sql = guard_sql(draft.sql, catalog, mode="question")
         except UnsafeSQLError as error:
             refusal = error
             correction = snippet("fix_sql", error=error.message, sql=draft.sql)

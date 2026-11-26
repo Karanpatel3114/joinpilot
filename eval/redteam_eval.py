@@ -38,6 +38,8 @@ def evaluate_redteam() -> dict[str, Any]:
     harmless = [json.loads(line) for line in HARMLESS.read_text().splitlines() if line.strip()]
     missed = [a["id"] for a in attacks if not blocked(a["sql"], a["mode"])]
     wrongly = [h["id"] for h in harmless if blocked(h["sql"], "select")]
+    # Questions use the stricter mode; report what it costs on ordinary queries.
+    wrongly_questions = [h["id"] for h in harmless if blocked(h["sql"], "question")]
     return {
         "attacks": len(attacks),
         "block_rate": round(1 - len(missed) / len(attacks), 4),
@@ -45,4 +47,6 @@ def evaluate_redteam() -> dict[str, Any]:
         "harmless": len(harmless),
         "false_block_rate": round(len(wrongly) / len(harmless), 4),
         "wrongly_blocked": wrongly,
+        "false_block_rate_questions": round(len(wrongly_questions) / len(harmless), 4),
+        "wrongly_blocked_questions": wrongly_questions,
     }

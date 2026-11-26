@@ -179,3 +179,9 @@ One entry per design choice that had real alternatives. Newest at the bottom. Fo
 - **Decision:** the semantic model lists the newest run's views first, as the preferred source, then the raw tables, marked for questions about one table's own records only. The guard's catalog is the model schema plus the raw tables; both run read-only under the same row limit and timeout. One function, `qa.answer.answer_question`, is shared by the API, the MCP server and the evaluation.
 - **Alternatives:** views only (wrong answers for master-data questions); generating a view per master table (more objects to keep in step, for little gain).
 - **Consequences:** the model could re-join raw tables itself and skip an approved normalization; the prompt forbids it and the evaluation's normalization-tagged questions measure it.
+
+## D-032: A stricter guard mode for questions, and a guard that fails closed
+- **Context:** the guard stopped every read and write, but a model-written query could still build gigabyte strings from tiny input (padding to a computed length, nested `replace`, aggregating text over a cross join) and exhaust the API's memory within the row limit and timeout. Some inputs also crashed the parser and returned 500.
+- **Decision:** in every mode, padding and repeating need an integer literal length of at most 10,000. Questions use a `question` mode that also refuses the value-growing functions (`lpad`, `rpad`, `replace`, `regexp_replace`, `string_agg`, `group_concat`, `array_agg`, `concat_ws`); generated views and metrics never need them from the model. Any unexpected error while checking is a refusal.
+- **Alternatives:** limit only at execution (a 1 GB string is built before any row is returned); bound growth per function (complex and easy to get wrong).
+- **Consequences:** questions cannot normalize keys themselves; the views already do. The red-team eval reports the harmless queries the question mode refuses, alongside the select-mode rate.
