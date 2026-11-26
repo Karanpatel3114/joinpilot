@@ -88,7 +88,7 @@ Done when: approved joins become guarded SQL views that pass SIT checks, and eva
 - [x] M6.5 `feat(agent): repair failing views using check results`
 - [x] M6.6 `feat(sqlgen): export the model to Postgres, Snowflake and BigQuery dialects`
 - [x] M6.7 `test(sqlgen): add SQL red-team cases and prove they are blocked`
-- [ ] M6.8 `feat(eval): measure view validity and SIT pass rates`
+- [x] M6.8 `feat(eval): measure view validity and SIT pass rates`
 
 ## M7: Web console (branch `m7-console`)
 Done when: the whole flow, from upload to approved views, works in the browser.

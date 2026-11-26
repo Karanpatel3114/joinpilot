@@ -13,16 +13,10 @@ ATTACKS: list[dict[str, Any]] = [
     for line in (REPO_ROOT / "eval" / "redteam" / "sql_attacks.jsonl").read_text().splitlines()
     if line.strip()
 ]
-HARMLESS = [
-    "SELECT COUNT(*) FROM KNA1",
-    "SELECT LAND1, COUNT(*) AS customers FROM KNA1 GROUP BY LAND1 ORDER BY customers DESC",
-    "SELECT k.NAME1, SUM(b.DMBTR) FROM BSID b JOIN KNA1 k ON lpad(b.KUNNR, 10, '0') = k.KUNNR "
-    "GROUP BY 1 ORDER BY 2 DESC LIMIT 5",
-    "WITH totals AS (SELECT KUNNR, SUM(DMBTR) AS t FROM BSID GROUP BY 1) SELECT AVG(t) FROM totals",
-    "SELECT * FROM model.v_bsid WHERE aging_bucket = '90+'",
-    "SELECT strftime(ZFBDT, '%Y-%m') AS month, COUNT(*) FROM BSID GROUP BY 1",
-    "SELECT NAME1 FROM KNA1 WHERE NAME1 LIKE '%Supply%' AND LAND1 IN ('DE', 'FR')",
-    "SELECT KUNNR, RANK() OVER (ORDER BY KUNNR) FROM KNA1",
+HARMLESS: list[str] = [
+    json.loads(line)["sql"]
+    for line in (REPO_ROOT / "eval" / "redteam" / "harmless.jsonl").read_text().splitlines()
+    if line.strip()
 ]
 
 

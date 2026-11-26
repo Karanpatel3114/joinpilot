@@ -64,6 +64,34 @@ def markdown(report: dict[str, Any]) -> str:
             fp, fn = len(result["false_positives"]), len(result["false_negatives"])
             lines.append(f"- **{system}**: {fp} false positives, {fn} false negatives")
             lines += [f"  - {e}" for e in errors]
+    views = report.get("views")
+    if views:
+        lines += [
+            "",
+            "## Views and SIT checks (deterministic agent, no model)",
+            "",
+            "| Reviewer | Views valid | Checks passed (first try) | Checks passed (final) "
+            "| Avg repair attempts | Views repaired |",
+            "|---|---|---|---|---|---|",
+        ]
+        for mode, result in views.items():
+            m = result["aggregate"]
+            cells = [m["view_validity"], m["check_pass_first"], m["check_pass_final"]]
+            shown = " | ".join("n/a" if c is None else f"{c:.3f}" for c in cells)
+            lines.append(
+                f"| {mode} | {shown} | {m['avg_repair_attempts']} | {m['views_repaired']} |"
+            )
+    redteam = report.get("redteam")
+    if redteam:
+        lines += [
+            "",
+            "## SQL safety",
+            "",
+            f"- Attacks blocked: {redteam['block_rate']:.1%} of {redteam['attacks']}"
+            + (f" (missed: {', '.join(redteam['missed'])})" if redteam["missed"] else ""),
+            f"- Harmless queries wrongly blocked: {redteam['false_block_rate']:.1%} "
+            f"of {redteam['harmless']}",
+        ]
     return "\n".join(lines) + "\n"
 
 

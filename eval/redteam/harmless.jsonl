@@ -1,0 +1,10 @@
+{"id": "h01", "sql": "SELECT COUNT(*) FROM KNA1"}
+{"id": "h02", "sql": "SELECT LAND1, COUNT(*) AS customers FROM KNA1 GROUP BY LAND1 ORDER BY customers DESC"}
+{"id": "h03", "sql": "SELECT k.NAME1, SUM(b.DMBTR) FROM BSID b JOIN KNA1 k ON lpad(b.KUNNR, 10, '0') = k.KUNNR GROUP BY 1 ORDER BY 2 DESC LIMIT 5"}
+{"id": "h04", "sql": "WITH totals AS (SELECT KUNNR, SUM(DMBTR) AS t FROM BSID GROUP BY 1) SELECT AVG(t) FROM totals"}
+{"id": "h05", "sql": "SELECT * FROM model.v_bsid WHERE aging_bucket = '90+'"}
+{"id": "h06", "sql": "SELECT strftime(ZFBDT, '%Y-%m') AS month, COUNT(*) FROM BSID GROUP BY 1"}
+{"id": "h07", "sql": "SELECT NAME1 FROM KNA1 WHERE NAME1 LIKE '%Supply%' AND LAND1 IN ('DE', 'FR')"}
+{"id": "h08", "sql": "SELECT KUNNR, RANK() OVER (ORDER BY KUNNR) FROM KNA1"}
+{"id": "h09", "sql": "SELECT aging_bucket, ROUND(SUM(DMBTR), 2) FROM model.v_bsid GROUP BY aging_bucket"}
+{"id": "h10", "sql": "SELECT COUNT(DISTINCT KUNNR) FILTER (WHERE DMBTR > 1000) FROM BSID"}

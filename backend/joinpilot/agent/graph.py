@@ -167,8 +167,15 @@ class AgentNodes:
             results = run_checks(con, specs, self.profile_data(), self.ctx.settings.checks)
         failed = [r for r in results if not r.passed]
         warnings = [f"{len(failed)} of {len(results)} checks failed."] if failed else []
+        round_number = len(state.get("check_rounds", [])) + 1
+        summary = {
+            "round": round_number,
+            "passed": len(results) - len(failed),
+            "failed": len(failed),
+        }
         return {
             "checks": [r.model_dump() for r in results],
+            "check_rounds": [summary],
             "warnings": warnings,
             "status": "checking",
         }
