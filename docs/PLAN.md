@@ -84,10 +84,11 @@ Done when: approved joins become guarded SQL views that pass SIT checks, and eva
 - [x] M6.1 `feat(sqlgen): add sqlglot guard with statement and identifier allowlists`
 - [x] M6.2 `feat(sqlgen): generate views from approved joins and the requirement`
 - [x] M6.3 `feat(checks): add SIT suite for counts, fan-out, orphans, null keys, buckets and totals`
-- [ ] M6.4 `feat(agent): repair failing views using check results`
-- [ ] M6.5 `feat(sqlgen): export the model to Postgres, Snowflake and BigQuery dialects`
-- [ ] M6.6 `test(sqlgen): add SQL red-team cases and prove they are blocked`
-- [ ] M6.7 `feat(eval): measure view validity and SIT pass rates`
+- [ ] M6.4 `feat(agent): build, check and store views after approval`
+- [ ] M6.5 `feat(agent): repair failing views using check results`
+- [ ] M6.6 `feat(sqlgen): export the model to Postgres, Snowflake and BigQuery dialects`
+- [ ] M6.7 `test(sqlgen): add SQL red-team cases and prove they are blocked`
+- [ ] M6.8 `feat(eval): measure view validity and SIT pass rates`
 
 ## M7: Web console (branch `m7-console`)
 Done when: the whole flow, from upload to approved views, works in the browser.
