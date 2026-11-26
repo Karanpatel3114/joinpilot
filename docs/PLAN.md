@@ -98,7 +98,7 @@ Done when: the whole flow, from upload to approved views, works in the browser.
 - [x] M7.3 `feat(web): add join graph view with evidence panel`
 - [x] M7.4 `feat(web): add approval workflow and run status`
 - [x] M7.5 `feat(web): add SQL viewer with check results`
-- [ ] M7.6 `test(web): add component tests and a Playwright happy-path test`
+- [x] M7.6 `test(web): add component tests and a Playwright happy-path test`
 - [ ] M7.7 `docs: add console screenshots to README`
 
 ## M8: KPI dashboard (branch `m8-dashboard`)
