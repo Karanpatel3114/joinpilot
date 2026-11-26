@@ -41,14 +41,14 @@ export function GlossarySearch({ projectId }: { projectId: string }) {
             <li key={m.column} className="flex items-center justify-between gap-4 px-3 py-2 text-sm">
               <span>
                 <span className="font-mono font-medium">{m.column}</span>
-                <span className="ml-2 text-slate-500">{m.description}</span>
+                <span className="ml-2 text-slate-500 dark:text-slate-400">{m.description}</span>
               </span>
-              <span className="tabular-nums text-slate-500" title="Cosine similarity">
+              <span className="tabular-nums text-slate-500 dark:text-slate-400" title="Cosine similarity">
                 {m.score.toFixed(2)}
               </span>
             </li>
           ))}
-          {matches.data.length === 0 && <li className="px-3 py-2 text-sm text-slate-500">No match.</li>}
+          {matches.data.length === 0 && <li className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">No match.</li>}
         </ul>
       )}
     </div>

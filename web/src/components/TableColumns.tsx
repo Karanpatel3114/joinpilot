@@ -12,7 +12,7 @@ export function TableColumns({ table, keys }: { table: TableProfile; keys: KeyEv
     <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
       <table className="w-full text-left text-sm">
         <caption className="sr-only">Columns of {table.name}</caption>
-        <thead className="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-slate-900">
+        <thead className="bg-slate-50 text-xs uppercase text-slate-500 dark:text-slate-400 dark:bg-slate-900">
           <tr>
             <th className="px-3 py-2">Column</th>
             <th className="px-3 py-2">Type</th>
@@ -35,7 +35,7 @@ export function TableColumns({ table, keys }: { table: TableProfile; keys: KeyEv
                     {c.name}
                   </span>
                 </td>
-                <td className="px-3 py-2 text-slate-500">{c.type}</td>
+                <td className="px-3 py-2 text-slate-500 dark:text-slate-400">{c.type}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{pct(c.null_pct)}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{count(c.distinct_count)}</td>
                 <td className="px-3 py-2">
@@ -44,10 +44,10 @@ export function TableColumns({ table, keys }: { table: TableProfile; keys: KeyEv
                       {pct(key.uniqueness)} <EvidenceId id={key.evidence_id} />
                     </span>
                   ) : (
-                    <span className="text-slate-400">n/a</span>
+                    <span className="text-slate-500 dark:text-slate-400">n/a</span>
                   )}
                 </td>
-                <td className="max-w-xs truncate px-3 py-2 font-mono text-xs text-slate-500">
+                <td className="max-w-xs truncate px-3 py-2 font-mono text-xs text-slate-500 dark:text-slate-400">
                   {c.sample_values.slice(0, 3).join(', ')}
                 </td>
               </tr>

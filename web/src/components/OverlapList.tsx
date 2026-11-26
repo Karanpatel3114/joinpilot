@@ -7,7 +7,7 @@ export function OverlapList({ table, overlaps }: { table: string; overlaps: Over
   const mine = overlaps
     .filter((o) => o.from.startsWith(`${table}.`))
     .sort((a, b) => b.inclusion_ratio - a.inclusion_ratio)
-  if (!mine.length) return <p className="text-sm text-slate-500">No overlaps from {table}.</p>
+  if (!mine.length) return <p className="text-sm text-slate-500 dark:text-slate-400">No overlaps from {table}.</p>
   return (
     <ul className="space-y-2">
       {mine.map((o) => (
@@ -25,7 +25,7 @@ export function OverlapList({ table, overlaps }: { table: string; overlaps: Over
               {o.normalization} (raw {pct(o.raw_inclusion_ratio)})
             </span>
           )}
-          {o.sampled && <span className="text-xs text-slate-500">sampled</span>}
+          {o.sampled && <span className="text-xs text-slate-500 dark:text-slate-400">sampled</span>}
         </li>
       ))}
     </ul>

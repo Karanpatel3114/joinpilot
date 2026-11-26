@@ -29,7 +29,7 @@ export function CheckResults({ runId }: { runId: string }) {
       <ErrorNote error={checks.error} />
       <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
         <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-slate-900">
+          <thead className="bg-slate-50 text-xs uppercase text-slate-500 dark:text-slate-400 dark:bg-slate-900">
             <tr>
               <th className="px-3 py-2">Result</th>
               <th className="px-3 py-2">View</th>

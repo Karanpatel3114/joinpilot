@@ -12,6 +12,10 @@ import { useMemo, useState } from 'react'
 import type { Proposal } from '../types/api'
 import { pct } from './format'
 import { layout, tableOf } from './graphLayout'
+import { useDarkMode } from './useDarkMode'
+
+/** React Flow themes its own nodes (its CSS layer loads after Tailwind's), so only the font is set. */
+const NODE_STYLE = { fontFamily: 'var(--font-mono)', fontSize: '0.875rem' }
 
 function edgeColor(p: Proposal): string {
   if (p.status === 'approved') return '#059669'
@@ -31,6 +35,7 @@ export function JoinGraph({
   onSelect: (edgeId: string) => void
 }) {
   const [showAll, setShowAll] = useState(false)
+  const dark = useDarkMode()
   const { nodes, edges } = useMemo(() => {
     const shown = showAll
       ? proposals
@@ -42,7 +47,7 @@ export function JoinGraph({
       data: { label: table },
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
-      className: 'rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-sm shadow-sm',
+      style: NODE_STYLE,
     }))
     const edges: Edge[] = shown.map((p) => ({
       id: p.edge_id,
@@ -70,6 +75,7 @@ export function JoinGraph({
         edges={edges}
         onEdgeClick={(_, edge) => onSelect(edge.id)}
         fitView
+        className={dark ? 'dark' : 'light'}
         proOptions={{ hideAttribution: true }}
         aria-label="Join graph"
       >

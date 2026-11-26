@@ -62,7 +62,7 @@ export function SqlViewer({ runId }: { runId: string }) {
         <article key={view.name} className="rounded-xl border border-slate-200 dark:border-slate-800">
           <header className="flex flex-wrap items-center gap-2 border-b border-slate-200 px-3 py-2 text-sm dark:border-slate-800">
             <span className="font-mono font-semibold">{view.name}</span>
-            <span className="text-slate-500">from {view.fact_table}</span>
+            <span className="text-slate-500 dark:text-slate-400">from {view.fact_table}</span>
             <span
               className={`rounded-full px-2 py-0.5 text-xs ${
                 view.status === 'failed'
@@ -75,7 +75,7 @@ export function SqlViewer({ runId }: { runId: string }) {
               {view.status}
             </span>
             {view.derived_columns.length > 0 && (
-              <span className="text-xs text-slate-500">derived: {view.derived_columns.join(', ')}</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">derived: {view.derived_columns.join(', ')}</span>
             )}
             <span className="ml-auto">
               <CopyButton text={view.sql} />

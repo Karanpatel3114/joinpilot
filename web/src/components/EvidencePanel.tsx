@@ -25,7 +25,7 @@ export function EvidencePanel({
 }) {
   if (!proposal) {
     return (
-      <aside className="rounded-xl border border-slate-200 p-4 text-sm text-slate-500 dark:border-slate-800">
+      <aside className="rounded-xl border border-slate-200 p-4 text-sm text-slate-500 dark:text-slate-400 dark:border-slate-800">
         Select a join in the graph or the list to see its evidence.
       </aside>
     )
@@ -59,10 +59,10 @@ export function EvidencePanel({
       {proposal.filter && (
         <p>
           Filter: <code className="font-mono">{proposal.filter.column} = '{proposal.filter.value}'</code>{' '}
-          <span className="text-slate-500">(choices: {proposal.filter.choices.join(', ')})</span>
+          <span className="text-slate-500 dark:text-slate-400">(choices: {proposal.filter.choices.join(', ')})</span>
         </p>
       )}
-      {proposal.rejection_reason && <p className="text-slate-500">Not recommended: {proposal.rejection_reason}.</p>}
+      {proposal.rejection_reason && <p className="text-slate-500 dark:text-slate-400">Not recommended: {proposal.rejection_reason}.</p>}
       <ul className="space-y-1">
         {proposal.evidence_ids.map((id) => (
           <li key={id} className="flex items-start gap-2">

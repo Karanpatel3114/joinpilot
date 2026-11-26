@@ -7,13 +7,18 @@
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   --color-brand-50: oklch(0.97 0.02 265);
   --color-brand-100: oklch(0.93 0.04 265);
+  --color-brand-300: oklch(0.78 0.11 265);
   --color-brand-500: oklch(0.58 0.2 265);
   --color-brand-600: oklch(0.51 0.21 265);
   --color-brand-700: oklch(0.44 0.19 265);
 }
 
 html {
-  color-scheme: light dark;
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 body {
@@ -22,4 +27,9 @@ body {
 
 :focus-visible {
   @apply outline-2 outline-offset-2 outline-brand-500;
+}
+
+/* Let the join graph sit on its card's colour in both themes. */
+.react-flow {
+  --xy-background-color: transparent;
 }

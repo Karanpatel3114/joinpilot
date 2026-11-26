@@ -35,13 +35,13 @@ export function RunTimeline({ run }: { run: Run }) {
             ) : done ? (
               <Check className="h-4 w-4 text-emerald-600" />
             ) : running ? (
-              <Loader2 className="h-4 w-4 animate-spin text-brand-600" />
+              <Loader2 className="h-4 w-4 animate-spin text-brand-600 dark:text-brand-300" />
             ) : (
               <Circle className="h-4 w-4 text-slate-300" />
             )}
             <span>
               {step.label}
-              {done && <span className="block text-xs text-slate-500">{Math.round(ms)} ms</span>}
+              {done && <span className="block text-xs text-slate-500 dark:text-slate-400">{Math.round(ms)} ms</span>}
             </span>
           </li>
         )

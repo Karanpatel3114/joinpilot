@@ -16,9 +16,9 @@ export function ProjectsPage() {
       </div>
       <CreateProjectForm />
       <ErrorNote error={projects.error} />
-      {projects.isLoading && <p className="text-sm text-slate-500">Loading projects…</p>}
+      {projects.isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">Loading projects…</p>}
       {projects.data?.length === 0 && (
-        <p className="text-sm text-slate-500">No projects yet. Create one to get started.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">No projects yet. Create one to get started.</p>
       )}
       <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {projects.data?.map((project) => (

@@ -10,10 +10,10 @@ import { count } from './format'
 export function ProfileExplorer({ projectId }: { projectId: string }) {
   const profile = useProfile(projectId)
   const [selected, setSelected] = useState<string | null>(null)
-  if (profile.isLoading) return <p className="text-sm text-slate-500">Profiling tables…</p>
+  if (profile.isLoading) return <p className="text-sm text-slate-500 dark:text-slate-400">Profiling tables…</p>
   if (profile.error) return <ErrorNote error={profile.error} />
   const tables = profile.data?.tables ?? []
-  if (!tables.length) return <p className="text-sm text-slate-500">Add tables to see their profile.</p>
+  if (!tables.length) return <p className="text-sm text-slate-500 dark:text-slate-400">Add tables to see their profile.</p>
   const current = tables.find((t) => t.name === selected) ?? tables[0]
   return (
     <div className="space-y-4">
@@ -45,7 +45,7 @@ export function ProfileExplorer({ projectId }: { projectId: string }) {
             <h3 className="font-semibold">
               <span className="font-mono">{current.name}</span>: {count(current.row_count)} rows
             </h3>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               Keys:{' '}
               {current.candidate_keys.length
                 ? current.candidate_keys.map((k) => `(${k.join(', ')})`).join(' ')

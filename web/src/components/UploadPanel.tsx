@@ -31,6 +31,7 @@ export function UploadPanel({ projectId }: { projectId: string }) {
           accept=".csv,.parquet"
           onChange={onFiles}
           className="sr-only"
+          tabIndex={-1}
           aria-label="Upload CSV or Parquet files"
         />
         <button
@@ -50,7 +51,7 @@ export function UploadPanel({ projectId }: { projectId: string }) {
           <Sparkles className="h-4 w-4" /> Load ERP sample
         </button>
       </div>
-      {busy && <p className="mt-3 text-sm text-slate-500">Loading tables…</p>}
+      {busy && <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">Loading tables…</p>}
       {upload.data && (
         <p className="mt-3 text-sm text-emerald-700 dark:text-emerald-400">
           Loaded {upload.data.map((t) => t.name).join(', ')}.

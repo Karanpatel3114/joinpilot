@@ -50,17 +50,17 @@ export function ApprovalList({
                 className="h-4 w-4 accent-brand-600"
               />
             ) : (
-              <span className="w-16 text-xs font-medium uppercase text-slate-500">{p.status}</span>
+              <span className="w-16 text-xs font-medium uppercase text-slate-500 dark:text-slate-400">{p.status}</span>
             )}
             <button
               type="button"
               onClick={() => onSelect(p.edge_id)}
               aria-pressed={selected === p.edge_id}
-              className="flex-1 text-left font-mono hover:text-brand-600"
+              className="flex-1 text-left font-mono hover:text-brand-600 dark:hover:text-brand-300"
             >
               {p.edge_id} {p.from} → {p.to}
             </button>
-            <span className="tabular-nums text-slate-500">{pct(p.score)}</span>
+            <span className="tabular-nums text-slate-500 dark:text-slate-400">{pct(p.score)}</span>
             {p.recommended && (
               <span className="rounded-full bg-brand-100 px-2 py-0.5 text-xs text-brand-700 dark:bg-slate-800 dark:text-brand-100">
                 recommended
@@ -73,7 +73,7 @@ export function ApprovalList({
         <button
           type="button"
           onClick={() => setExpanded((e) => !e)}
-          className="text-sm text-brand-600 hover:underline"
+          className="text-sm text-brand-600 dark:text-brand-300 hover:underline"
         >
           {expanded ? 'Hide' : 'Show'} {others.length} other candidates the scorer did not recommend
         </button>
@@ -88,7 +88,7 @@ export function ApprovalList({
           >
             Approve {approvedCount} {approvedCount === 1 ? 'join' : 'joins'} and build the model
           </button>
-          <span className="text-sm text-slate-500">Nothing is built until you approve.</span>
+          <span className="text-sm text-slate-500 dark:text-slate-400">Nothing is built until you approve.</span>
         </div>
       )}
       <ErrorNote error={approve.error} />

@@ -34,7 +34,7 @@ export function RunPage() {
     <section className="space-y-6">
       <Link
         to={`/projects/${run.data.project_id}`}
-        className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-brand-600"
+        className="inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-300"
       >
         <ArrowLeft className="h-4 w-4" /> Back to project
       </Link>
