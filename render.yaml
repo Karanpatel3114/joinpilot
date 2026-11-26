@@ -14,6 +14,9 @@ services:
     envVars:
       - key: APP_ENV
         value: prod
+      # Build the read-only sample project at every start (the disk is wiped on restart)
+      - key: DEMO_MODE
+        value: "true"
       # SQLite and in-process jobs: no paid database or Redis needed
       - key: JOBS_MODE
         value: thread

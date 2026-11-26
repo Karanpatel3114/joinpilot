@@ -209,6 +209,8 @@ class Settings(BaseSettings):
     db_pool_size: int = 5
     db_max_overflow: int = 5
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
+    # Build the read-only sample project at startup, for the public demo (D-037)
+    demo_mode: bool = False
 
     # Limits
     max_upload_mb: float = 50

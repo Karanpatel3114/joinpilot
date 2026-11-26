@@ -12,6 +12,11 @@ export function ProjectCard({ project }: { project: Project }) {
       <div className="flex items-center gap-2 text-lg font-semibold tracking-tight">
         <Database className="h-4 w-4 text-brand-600 dark:text-brand-300" />
         {project.name}
+        {project.read_only && (
+          <span className="ml-auto rounded-md bg-brand-50 px-2 py-0.5 font-mono text-[11px] font-normal text-slate-700 dark:bg-slate-800 dark:text-brand-300">
+            sample · read-only
+          </span>
+        )}
       </div>
       <p className="mt-2 font-mono text-[12px] text-slate-500 dark:text-slate-400">
         {project.table_count} {project.table_count === 1 ? 'table' : 'tables'} · created{' '}

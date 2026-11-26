@@ -1,4 +1,5 @@
 import { CheckCircle2 } from 'lucide-react'
+import { Link } from 'react-router'
 import { HeroArt } from './HeroArt'
 
 /** Fine ruler ticks down one side of the hero, as a quiet "measured" motif. */
@@ -32,8 +33,9 @@ function DataLabel({ title, lines, className }: { title: string; lines: string[]
   )
 }
 
-/** The home page's opening panel: headline, illustration, one-line pitch and actions. */
-export function Hero() {
+/** The home page's opening panel: headline, illustration, one-line pitch and actions.
+ * With a shared sample project, the main action opens its dashboard. */
+export function Hero({ sampleId }: { sampleId?: string }) {
   return (
     <section className="relative overflow-hidden rounded-[28px] bg-brand-50 px-6 pt-16 pb-14 text-center sm:pt-24 dark:bg-slate-900">
       <Ruler side="left" />
@@ -68,9 +70,20 @@ export function Hero() {
         dashboard, with an AI agent that waits for your approval.
       </p>
       <div className="mt-8 flex flex-wrap justify-center gap-3">
-        <a href="#projects" className="btn-primary">
-          Start a project
-        </a>
+        {sampleId ? (
+          <>
+            <Link to={`/projects/${sampleId}?tab=Dashboard`} className="btn-primary">
+              Open the sample project
+            </Link>
+            <a href="#projects" className="btn-secondary">
+              Start your own
+            </a>
+          </>
+        ) : (
+          <a href="#projects" className="btn-primary">
+            Start a project
+          </a>
+        )}
         <a href="#how" className="btn-secondary">
           How it works
         </a>
