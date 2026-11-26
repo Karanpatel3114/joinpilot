@@ -12,7 +12,10 @@ import { useMemo, useState } from 'react'
 import type { Proposal } from '../types/api'
 import { pct } from './format'
 import { layout, tableOf } from './graphLayout'
+import { RoutedEdge } from './RoutedEdge'
 import { useDarkMode } from './useDarkMode'
+
+const EDGE_TYPES = { routed: RoutedEdge }
 
 /** React Flow themes its own nodes (its CSS layer loads after Tailwind's), so only the font is set. */
 const NODE_STYLE = { fontFamily: 'var(--font-mono)', fontSize: '0.875rem' }
@@ -40,7 +43,7 @@ export function JoinGraph({
     const shown = showAll
       ? proposals
       : proposals.filter((p) => p.recommended || p.status === 'approved' || p.edge_id === selected)
-    const positions = layout(shown.length ? shown : proposals)
+    const { positions, waypoints } = layout(shown.length ? shown : proposals)
     const nodes: Node[] = [...positions].map(([table, position]) => ({
       id: table,
       position,
@@ -51,6 +54,10 @@ export function JoinGraph({
     }))
     const edges: Edge[] = shown.map((p) => ({
       id: p.edge_id,
+      ...(waypoints.has(p.edge_id) && {
+        type: 'routed',
+        data: { waypoints: waypoints.get(p.edge_id), origin: positions.get(tableOf(p.from)) },
+      }),
       source: tableOf(p.from),
       target: tableOf(p.to),
       label: p.recommended || p.status === 'approved' ? `${p.edge_id} · ${pct(p.score)}` : undefined,
@@ -73,6 +80,7 @@ export function JoinGraph({
       <ReactFlow
         nodes={nodes}
         edges={edges}
+        edgeTypes={EDGE_TYPES}
         onEdgeClick={(_, edge) => onSelect(edge.id)}
         fitView
         className={dark ? 'dark' : 'light'}
