@@ -6,7 +6,8 @@ and the gold reference date; every gold question then goes through
 equal the gold rows (docs/eval-plan.md): as a multiset unless the question asks for
 an order, with numbers compared at two decimals, digit-only ids without leading
 zeros, and answer columns matched to gold columns by their values (names and extra
-columns are free). Needs a language model, so it runs only with `--llm`.
+columns are free, which can let a one-row answer match by coincidence). Needs a language
+model, so it runs only with `--llm`; failures of that model count as blocked answers.
 """
 
 from __future__ import annotations
@@ -14,7 +15,7 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 from contextlib import nullcontext
 from datetime import date
-from decimal import Decimal, InvalidOperation
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from itertools import product
 from pathlib import Path
 from typing import Any
@@ -25,11 +26,23 @@ from eval.datasets import EvalDataset
 from eval.gold import GOLD_ROOT, load_kpis, load_questions
 from eval.views_eval import rate, run_graph
 from joinpilot.config import Settings
-from joinpilot.errors import LLMUnavailableError
+from joinpilot.llm.factory import UnavailableProvider, make_base_provider
 from joinpilot.llm.provider import LLMProvider
 from joinpilot.qa.answer import OpenWarehouse, answer_question
 
 CENT = Decimal("0.01")
+
+
+def skip_reason(settings: Settings) -> str | None:
+    """Why question answering cannot be evaluated at all (no model configured), if so.
+
+    Only a missing model skips the evaluation; a model that fails or replies badly on
+    some questions is part of what is measured, as blocked answers.
+    """
+    base = make_base_provider(settings)
+    if isinstance(base, UnavailableProvider):
+        return base.reason
+    return None
 
 
 def shared(con: duckdb.DuckDBPyConnection) -> OpenWarehouse:
@@ -42,7 +55,7 @@ def normalize(value: Any) -> Any:
     if value is None or isinstance(value, bool):
         return value
     try:
-        return Decimal(str(value).strip()).quantize(CENT)
+        return Decimal(str(value).strip()).quantize(CENT, rounding=ROUND_HALF_UP)
     except (InvalidOperation, ValueError):
         return str(value).strip()
 
@@ -104,8 +117,6 @@ def evaluate_qa(
                 llm=llm,
                 settings=settings,
             )
-            if answer.reason_code == "LLM_UNAVAILABLE":
-                raise LLMUnavailableError(answer.message or "The language model is unavailable.")
             ok = not answer.blocked and rows_match(
                 q["rows"], answer.columns, answer.rows, q["ordered"]
             )

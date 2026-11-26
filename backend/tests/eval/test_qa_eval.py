@@ -2,12 +2,10 @@ from pathlib import Path
 from typing import Any
 
 import duckdb
-import pytest
 
 from eval.datasets import EvalDataset
 from eval.qa_eval import evaluate_qa, rows_match
 from joinpilot.config import LLMSettings, ProfilingSettings, Settings, SynthSettings
-from joinpilot.errors import LLMUnavailableError
 from joinpilot.llm.fake import FakeProvider
 from joinpilot.llm.provider import Prompt
 from joinpilot.profiling.loader import load_arrow
@@ -64,7 +62,18 @@ def test_questions_run_through_the_shared_answer_path(tmp_path: Path) -> None:
     assert result["by_tag"]["orphans"] is not None
 
 
-def test_without_a_model_the_evaluation_is_skipped(tmp_path: Path) -> None:
+def test_only_a_missing_model_skips_and_model_failures_count_as_blocked(
+    tmp_path: Path,
+) -> None:
+    from eval.qa_eval import skip_reason
+
+    assert "GEMINI_API_KEY" in (skip_reason(Settings(_env_file=None, gemini_api_key="")) or "")
+    assert skip_reason(Settings(_env_file=None, llm=LLMSettings(provider="fake"))) is None
     settings = Settings(_env_file=None, llm=LLMSettings(provider="fake"))
-    with pytest.raises(LLMUnavailableError):
-        evaluate_qa([dataset_with_gold(tmp_path)], settings, FakeProvider(), tmp_path)
+    result = evaluate_qa([dataset_with_gold(tmp_path)], settings, FakeProvider(), tmp_path)
+    assert result["aggregate"]["right"] == 0
+    assert result["aggregate"]["blocked"] == {"LLM_UNAVAILABLE": result["aggregate"]["total"]}
+
+
+def test_ties_round_half_up_like_duckdb() -> None:
+    assert rows_match([["2.345"]], ["n"], [{"n": 2.35}], ordered=False)

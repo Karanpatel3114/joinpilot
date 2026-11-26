@@ -107,6 +107,9 @@ def markdown(report: dict[str, Any]) -> str:
             "",
             "## Question answering (execution accuracy, recommended joins approved)",
             "",
+            "Rows must equal gold's; answer columns are matched to gold columns by value, and "
+            "extra columns are allowed.",
+            "",
             f"- Right: {overall['right']} of {overall['total']} "
             f"({overall['execution_accuracy']:.1%}); blocked: {overall['blocked'] or 'none'}; "
             f"average attempts: {overall['avg_attempts']}",
