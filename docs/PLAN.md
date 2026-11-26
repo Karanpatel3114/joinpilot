@@ -129,7 +129,7 @@ Done when: Claude Desktop or Claude Code can list projects, profile tables, prop
 ## M11: Ship it (branch `m11-deploy`)
 Done when: JoinPilot runs at a public URL with CI building Docker images and running an evaluation smoke test. **Add the live link to the resumes.**
 
-- [ ] M11.1 `build(infra): add Dockerfiles for API, worker and web`
+- [x] M11.1 `build(infra): add Dockerfiles for API, worker and web`
 - [ ] M11.2 `ci: build Docker images and run an evaluation smoke test`
 - [ ] M11.3 `feat(api): add rate limits and request size limits`
 - [ ] M11.4 `build(infra): deploy database, Redis, API and web`

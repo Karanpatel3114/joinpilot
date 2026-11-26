@@ -65,6 +65,7 @@ Fill these in as each tool is set up in M0, and keep them accurate afterwards.
 - End-to-end (starts the API and Vite itself): `cd web && npx playwright install chromium && npm run e2e`
 - Services: `docker compose -f infra/docker-compose.yml up -d --wait` (Postgres + pgvector, Redis); stop with `down`
 - Run locally: start the services, set `DATABASE_URL`, `REDIS_URL` and `JOBS_MODE=arq` in `.env`, then `uv run uvicorn joinpilot.api.main:app --reload` and `cd web && npm run dev` (without Docker, leave both empty: SQLite and in-process jobs)
+- Whole app in containers: `docker compose -f infra/docker-compose.yml --profile app up -d --build --wait` (console on :8080, API on :8000); e2e against it: `cd web && E2E_BASE_URL=http://localhost:8080 npx playwright test happy-path`
 - MCP server (stdio): `uv run joinpilot-mcp`; setup for Claude Code and Claude Desktop in mcp/README.md
 - Migrations: applied on API startup; by hand `uv run alembic upgrade head`
 - Generate data: `uv run python -m joinpilot.synth.generate --seed 1 --size S --naming sap --out data/generated/erp_s1_sap`
