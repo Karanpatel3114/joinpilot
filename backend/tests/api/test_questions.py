@@ -101,11 +101,13 @@ def test_a_question_is_answered_with_its_sql_rows_and_evidence(
     assert calls == 1
 
 
-def test_sql_outside_the_model_is_blocked_after_one_fix(
+def test_sql_outside_the_catalog_is_blocked_after_one_fix(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     project_id, _ = built_project(client)
-    fake = model_answers(monkeypatch, "SELECT * FROM BSID", "SELECT * FROM KNA1")
+    fake = model_answers(
+        monkeypatch, "SELECT * FROM read_csv('/etc/passwd')", 'SELECT * FROM "SECRETS"'
+    )
     body = ask(client, project_id).json()
     assert body["blocked"] and body["rows"] == [] and body["sql"] is None
     assert body["reason_code"] in {"UNSAFE_SQL", "UNKNOWN_IDENTIFIER"}

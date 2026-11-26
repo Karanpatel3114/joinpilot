@@ -34,12 +34,12 @@ def test_a_guarded_draft_comes_back_with_its_chart(model: Any) -> None:
 
 
 def test_a_refused_draft_gets_one_fix_with_the_reason(model: Any) -> None:
-    replies = iter([answer("SELECT * FROM BSID"), answer(GOOD)])
+    replies = iter([answer("SELECT * FROM model.v_nope"), answer(GOOD)])
     llm = FakeProvider({"qa_sql": lambda _: next(replies)})
     drafted = ask(model, llm)
     assert drafted.attempts == 2
     fix: Prompt = llm.calls[1]
-    assert "was refused before it ran" in fix.user and "SELECT * FROM BSID" in fix.user
+    assert "was refused before it ran" in fix.user and "v_nope" in fix.user
 
 
 def test_sql_that_never_passes_the_guard_is_not_returned(model: Any) -> None:

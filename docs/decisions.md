@@ -173,3 +173,9 @@ One entry per design choice that had real alternatives. Newest at the bottom. Fo
 - **Decision:** approving a run gives 409 while another run of the same project is generating, checking or repairing, checked under a per-project lock in the service. Starting runs and waiting for approval stay unrestricted, so an abandoned run never blocks the project. The dashboard belongs to the most recently completed run, because its model is the one in the warehouse.
 - **Alternatives:** a schema per run (more storage and a moving target for questions and MCP); a queue that serialises builds (more moving parts for a rare case).
 - **Consequences:** numbers are always stored under the run whose views produced them. The lock is per process, which fits the single API process with an in-process worker; several API processes would need a database lock instead.
+
+## D-031: Questions read the tested views first and raw tables for single-table facts
+- **Context:** each model view keeps every row of one fact table, so a question about one table's own records ("how many customers are in Germany?") cannot be answered from the views without undercounting (customers with no open items disappear).
+- **Decision:** the semantic model lists the newest run's views first, as the preferred source, then the raw tables, marked for questions about one table's own records only. The guard's catalog is the model schema plus the raw tables; both run read-only under the same row limit and timeout. One function, `qa.answer.answer_question`, is shared by the API, the MCP server and the evaluation.
+- **Alternatives:** views only (wrong answers for master-data questions); generating a view per master table (more objects to keep in step, for little gain).
+- **Consequences:** the model could re-join raw tables itself and skip an approved normalization; the prompt forbids it and the evaluation's normalization-tagged questions measure it.

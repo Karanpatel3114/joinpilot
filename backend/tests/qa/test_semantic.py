@@ -12,7 +12,8 @@ def test_every_view_column_gets_a_meaning_and_examples(model: Model) -> None:
     con, profile, specs = model
     facts = {s.name: s.fact for s in specs}
     columns = {
-        (c.view, c.name): c for c in describe_columns(model_columns(con), facts, profile, KPI, 2)
+        (c.view, c.name): c
+        for c in describe_columns(model_columns(con, set(facts)), facts, profile, KPI, 2)
     }
     name = columns[("v_bsid", "KNA1__NAME1")]
     assert name.meaning == "name (customer master)" and len(name.examples) == 2
@@ -32,6 +33,17 @@ def test_every_view_column_gets_a_meaning_and_examples(model: Model) -> None:
 def test_the_prompt_text_lists_each_view_once(model: Model) -> None:
     con, profile, specs = model
     facts = {s.name: s.fact for s in specs}
-    text = render_model(describe_columns(model_columns(con), facts, profile, KPI, 1))
+    text = render_model(describe_columns(model_columns(con, set(facts)), facts, profile, KPI, 1))
     assert text.count('model."v_bsid":') == 1 and text.count('model."v_vbap":') == 1
     assert '  "MARA__MATKL" VARCHAR: material product group (material product master).' in text
+
+
+def test_raw_tables_follow_the_views_for_single_table_questions(model: Model) -> None:
+    con, profile, specs = model
+    facts = {s.name: s.fact for s in specs}
+    text = render_model(describe_columns(model_columns(con, set(facts)), facts, profile, KPI, 1))
+    views_at, raw_at = text.index('model."v_bsid":'), text.index("Raw tables")
+    assert views_at < raw_at < text.index('"KNA1":')
+    assert '  "LAND1" VARCHAR: country (customer master).' in text.split('"KNA1":')[1]
+    only_one = model_columns(con, {"v_bsid"})
+    assert {r for s, r, *_ in only_one if s == "model"} == {"v_bsid"}
