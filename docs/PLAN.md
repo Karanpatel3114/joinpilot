@@ -177,4 +177,4 @@ Done when: every finding from the post-release audit (correctness, public-demo a
 - [x] M13.16 `fix(web): fix small console issues found in the audit`
 - [x] M13.17 `docs: correct stack, plan, spec and CI notes`
 - [x] M13.18 `build: pin CI actions and base images and harden ignores`
-- [ ] M13.19 `chore: release v1.1.0 with changelog`
+- [x] M13.19 `chore: release v1.1.0 with changelog`
