@@ -9,7 +9,8 @@ import { API, server } from '../../test/server'
 const PROJECT = '/projects/3f0b7c1e-6a2d-4c8e-9b1a-2d5e8f7a9c10?tab=Ask'
 
 async function askQuestion(text: string) {
-  await userEvent.type(await screen.findByLabelText('Your question'), text)
+  // The Ask tab loads its code lazily, which can take over a second in a busy test run.
+  await userEvent.type(await screen.findByLabelText('Your question', {}, { timeout: 5000 }), text)
   await userEvent.click(screen.getByRole('button', { name: 'Ask' }))
 }
 
