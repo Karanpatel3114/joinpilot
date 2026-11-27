@@ -182,20 +182,26 @@ class ViewChecker:
         ]
 
     def bucket_coverage(self, spec: ViewSpec, view: str) -> list[CheckResult]:
-        """Every row with a due date lands in exactly one known aging bucket."""
+        """Every open item lands in exactly one known aging bucket.
+
+        Items without a due date (an unreadable baseline date or empty payment days) get
+        no bucket, so they count as missing: they would drop out of the aging totals.
+        """
         if "aging_bucket" not in spec.derived:
             return []
         labels = ", ".join(literal(label) for label in bucket_labels(self.aging_edges))
         missing = int(
             self.value(
-                f"SELECT COUNT(*) FROM {view} WHERE due_date IS NOT NULL "
-                f"AND (aging_bucket IS NULL OR aging_bucket NOT IN ({labels}))"
+                f"SELECT COUNT(*) FROM {view} "
+                f"WHERE aging_bucket IS NULL OR aging_bucket NOT IN ({labels})"
             )
         )
+        no_due_date = int(self.value(f"SELECT COUNT(*) FROM {view} WHERE due_date IS NULL"))
         message = (
-            "Every open item with a due date is in an aging bucket."
+            "Every open item is in an aging bucket."
             if not missing
-            else f"{missing} open items with a due date have no valid aging bucket."
+            else f"{missing} open items have no valid aging bucket "
+            f"({no_due_date} of them have no due date)."
         )
         return [self.result(spec, "bucket_coverage", "", missing == 0, missing, 0, message)]
 
