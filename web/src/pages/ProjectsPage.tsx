@@ -15,9 +15,10 @@ import { Statement } from '../components/home/Statement'
 /** Home: what JoinPilot does, the measured results, then the user's projects. */
 export function ProjectsPage() {
   const projects = useProjects()
+  const sample = projects.data?.find((p) => p.read_only)
   return (
     <>
-      <Hero />
+      <Hero sampleId={sample?.id} />
       <StackStrip />
       <Statement />
 

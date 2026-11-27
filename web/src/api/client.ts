@@ -1,4 +1,5 @@
 import type { ApiError } from '../types/api'
+import { WORKSPACE_HEADER, workspaceId } from './workspace'
 
 /** Base URL of the JoinPilot API (set VITE_API_URL for deployments). */
 export const API_URL: string = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/+$/, '')
@@ -30,9 +31,20 @@ async function parse<T>(response: Response): Promise<T> {
   return (await response.json()) as T
 }
 
+/** Headers every request carries: the browser's private workspace. */
+function baseHeaders(): Record<string, string> {
+  return { [WORKSPACE_HEADER]: workspaceId() }
+}
+
+/** A link to an API download, carrying the workspace (links cannot set headers). */
+export function downloadUrl(path: string): string {
+  const separator = path.includes('?') ? '&' : '?'
+  return `${API_URL}${path}${separator}workspace=${encodeURIComponent(workspaceId())}`
+}
+
 /** GET a JSON resource. */
 export async function getJson<T>(path: string): Promise<T> {
-  return parse<T>(await fetch(`${API_URL}${path}`))
+  return parse<T>(await fetch(`${API_URL}${path}`, { headers: baseHeaders() }))
 }
 
 /** POST JSON and read a JSON response. */
@@ -40,7 +52,7 @@ export async function postJson<T>(path: string, body: unknown): Promise<T> {
   return parse<T>(
     await fetch(`${API_URL}${path}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...baseHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     }),
   )
@@ -50,5 +62,5 @@ export async function postJson<T>(path: string, body: unknown): Promise<T> {
 export async function postFiles<T>(path: string, files: File[]): Promise<T> {
   const form = new FormData()
   for (const file of files) form.append('files', file, file.name)
-  return parse<T>(await fetch(`${API_URL}${path}`, { method: 'POST', body: form }))
+  return parse<T>(await fetch(`${API_URL}${path}`, { method: 'POST', headers: baseHeaders(), body: form }))
 }

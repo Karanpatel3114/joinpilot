@@ -5,9 +5,11 @@
 
 **Turn raw ERP tables and a plain-English requirement into a tested, human-approved data model.**
 
+**Live demo: [joinpilot.vercel.app](https://joinpilot.vercel.app)**. Open the read-only sample project, or create your own and load the synthetic ERP data. No login; the free API may take about a minute to wake up on the first visit.
+
 JoinPilot profiles your tables, proposes how they should be joined *with the numbers that prove it*, waits for a person to approve, then generates guarded SQL views, runs automated system-integration checks, builds a KPI dashboard and answers business questions in plain English. Other AI tools can drive it through an MCP server.
 
-> Status: under active development. See the [build plan](docs/PLAN.md) for progress.
+> Status: v1 complete. See the [build plan](docs/PLAN.md) for how it was built, one task per commit.
 
 ## Why
 
@@ -58,13 +60,39 @@ The [MCP guide](mcp/README.md) covers Claude Desktop, the tools and the safety r
 
 ## Architecture
 
+```mermaid
+flowchart LR
+  subgraph clients[Clients]
+    web["React console<br/>(Vercel)"]
+    claude["Claude Desktop / Code<br/>(MCP, stdio)"]
+  end
+  subgraph api["FastAPI on Render (one service layer)"]
+    routes["api/<br/>workspaces · rate limits"]
+    services["services/<br/>projects · runs · questions"]
+    agent["agent/ (LangGraph)"]
+  end
+  web -- "HTTPS + X-Workspace" --> routes --> services
+  claude --> mcp["mcp_server/"] --> services
+  services --> agent
+  services --> duck[("DuckDB per project<br/>tables · views · profile")]
+  services --> appdb[("App DB<br/>SQLite or Postgres + pgvector")]
+  agent --> llm["llm/<br/>Gemini (free tier) · fake"]
+  services -. "optional" .-> redis[("Redis + arq jobs")]
 ```
- web/ React console ──HTTP──▶ FastAPI (api/) ◀── mcp/ MCP server
-                                  │
-   profiling/ (DuckDB) · joins/ (candidates, scoring) · agent/ (LangGraph, human approval)
-   sqlgen/ + guard (sqlglot) → sandbox DuckDB · checks/ · kpi/ · qa/ (text-to-SQL)
-   db/ (Postgres + pgvector) · jobs/ (arq + Redis) · llm/ (Gemini · fake · Ollama)
+
+The agent is a LangGraph state machine that stops for a person before anything is built:
+
+```mermaid
+flowchart LR
+  A[Profile tables] --> B[Parse the requirement] --> C[Rank and explain joins] --> D{{Human approval}}
+  D --> E[Generate views<br/>guarded SQL] --> F[Run checks]
+  F -- "rows lost or duplicated" --> G[Repair views] --> F
+  F -- "passed" --> H[Build the KPI dashboard]
 ```
+
+- **Deterministic first.** Profiling and join candidates are plain code with evidence ids; the model only ranks and explains candidates, and it cannot add a join that profiling did not find.
+- **Every SQL statement is guarded.** Generated views and model-written questions pass a sqlglot allowlist, and questions run on a sealed, read-only DuckDB connection with no file or network access.
+- **One service layer.** The API, the MCP server, the background jobs and the evaluation call the same functions, so the reported numbers come from the code that runs.
 
 ## Tech stack
 
@@ -96,11 +124,30 @@ docker compose -f infra/docker-compose.yml --profile app up -d --build --wait   
 
 ## Deploy for free
 
-The API runs on Render's free plan and the console on Vercel's, with no payment method on either account. The step-by-step guide is [infra/DEPLOY.md](infra/DEPLOY.md).
+The live demo runs this way: the console on Vercel ([joinpilot.vercel.app](https://joinpilot.vercel.app)) and the API on Render's free plan ([health check](https://joinpilot-api.onrender.com/health)), with no payment method on either account. The step-by-step guide is [infra/DEPLOY.md](infra/DEPLOY.md).
 
 ## Evaluation
 
 Every number below comes from a file in [`eval/results/`](eval/results/), which records the split, dataset fingerprints, commit and date. Gold answers are written by the data generator and read only by `eval/`.
+
+### Final results: held-out test split
+
+Run once, at the end, on data the heuristics were never tuned on: 12 synthetic ERP datasets (new seeds 101–103, encoded in the dataset ids; sizes S and M; both naming styles) plus TPC-H at scale factor 0.1 (2026-11-26, commit `1a22e17`, [results](eval/results/2026-11-26-1a22e17-test/metrics.md)). That is 13 datasets but only three schemas: the two ERP naming styles were also in dev, so only seeds and size are new there, and TPC-H is the one unseen schema (10 gold joins).
+
+| System | Precision | Recall | F1 | Normalization recall | Fan-out recall | Decoy rejection |
+|---|---|---|---|---|---|---|
+| Name-only baseline | 0.274 | 0.986 | 0.429 | 0.000 | 0.000 | 0.800 |
+| Overlap-only baseline | 0.213 | 0.871 | 0.343 | 1.000 | 0.000 | 0.600 |
+| Inclusion-dependency baseline | 0.775 | 0.986 | 0.868 | 1.000 | 0.000 | 1.000 |
+| JoinPilot, deterministic (no LLM) | **1.000** | 0.986 | **0.993** | 1.000 | **1.000** | 1.000 |
+
+- **Joins:** 69 of 70 true joins found with no false positives. The one miss is TPC-H's two-column join from `lineitem (partkey, suppkey)` to `partsupp`: JoinPilot proposes single-column joins only (it uses two-column keys to spot fan-out), so no system can find it yet. The inclusion-dependency baseline, which matched JoinPilot on dev, proposes 20 wrong TPC-H joins here (small integer columns such as `l_linenumber` fit inside every key range).
+- **Views and checks:** 26 of 26 generated views were valid and 209 of 209 checks passed on the first try, both with every recommended join approved and with only the true joins approved.
+- **KPIs:** **1,248 of 1,248** gold values right across the 12 ERP datasets (TPC-H has no KPI templates).
+- **SQL safety:** 71 of 71 attacks blocked and 0 of 11 ordinary queries wrongly blocked; the stricter mode for model-written questions refuses 2 of the 11 (both pad keys by hand). These are the same fixed queries as on dev, so they test the guard, not generalisation.
+- **Not measured yet:** question answering and the LLM-ranked join systems need a Gemini key, so they, their latency and cost are still to come. TPC-H numbers here are not official TPC-H benchmark results.
+
+### Development results: dev split
 
 **Join discovery, dev split** (4 synthetic ERP datasets, 2026-11-26, commit `e376633`, [results](eval/results/2026-11-26-e376633-dev/metrics.md)):
 
@@ -114,7 +161,7 @@ Every number below comes from a file in [`eval/results/`](eval/results/), which 
 How to read this honestly:
 - The 20 true joins are one 5-join schema seen 4 times (3 seeds and 2 naming styles), so normalization and fan-out each rest on a single planted case.
 - On dev, the textbook inclusion-dependency rule finds the same joins; uniqueness does most of the work. What JoinPilot adds here is flagging the fan-out trap (product texts in two languages) with the right filter, and an explanation for every decision.
-- The deterministic scorer was tuned on this split. The held-out test split (new seeds, size M, both naming styles and TPC-H) is run once, at the end, and is where the methods are expected to differ. LLM-based systems are added in M4.
+- The deterministic scorer was tuned on this split. The held-out test split above was run once, at the end.
 
 **Views and automated checks, dev split** (same run): every view the agent generated was valid and every check passed on the first try, both when every recommended join was approved without review and when only the true joins were approved (no repairs were needed; repairing bad approvals is covered by tests).
 
@@ -123,6 +170,15 @@ How to read this honestly:
 **SQL safety** (same run): the guard blocked 100% of 71 red-team attacks (file and URL readers, other databases, recursive queries, values grown to gigabytes from tiny input, parser crashes, stacked statements, DDL and DML, system functions, Unicode lookalikes and more) and wrongly blocked 0% of 11 ordinary analytics queries ([attacks](eval/redteam/sql_attacks.jsonl)). The stricter mode used for model-written questions also refuses 2 of those 11, both of which pad customer keys by hand; the model views already do that.
 
 **Question answering:** measured with a language model only (`--llm`); the first run is pending a free Gemini key.
+
+## Limitations
+
+- **Synthetic data.** The ERP data is generated, with planted issues, so that the right answers are known. Real ERP systems have hundreds of tables and messier names; JoinPilot caps a project at 30 tables and 200 columns per table.
+- **Narrow test coverage.** The test split is one 5-join ERP schema (new seeds, two sizes, two naming styles) plus TPC-H, so normalization and fan-out each rest on a few planted cases. Composite (two-column) joins are not proposed yet, which is the one join missed on TPC-H.
+- **KPI templates** are written for the receivables and sales schema; on other schemas the dashboard may have no metrics.
+- **Question answering** has not been measured yet: it needs a Gemini key, and the free tier's daily quota limits how many questions the demo can answer.
+- **Workspaces are not accounts.** The public demo keeps visitors apart with a random id stored in the browser, like an unguessable link. Clearing browser storage loses the projects, and the free host wipes everything when it restarts.
+- **Free hosting** sleeps after 15 idle minutes, so the first visit can take about a minute.
 
 ## Data
 

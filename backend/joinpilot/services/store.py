@@ -19,6 +19,7 @@ from sqlalchemy.orm import selectinload
 from joinpilot.db.models import ProjectRow, TableRow
 from joinpilot.db.session import ensure_migrated, session_scope
 from joinpilot.errors import NotFoundError
+from joinpilot.workspaces import LOCAL
 
 _LOCKS: dict[str, threading.RLock] = {}
 _LOCKS_GUARD = threading.Lock()
@@ -61,6 +62,7 @@ class ProjectRecord(BaseModel):
     id: str
     name: str
     created_at: datetime
+    workspace: str = LOCAL
     tables: list[TableRecord] = Field(default_factory=list)
 
 
@@ -71,6 +73,7 @@ def to_record(row: ProjectRow) -> ProjectRecord:
         id=row.id,
         name=row.name,
         created_at=created,
+        workspace=row.workspace_id,
         tables=[
             TableRecord(
                 table_id=t.id, name=t.name, row_count=t.row_count, column_count=t.column_count
@@ -100,9 +103,11 @@ class ProjectStore:
         """The project's folder; the id must be a UUID, which also blocks path tricks."""
         return self.root / parse_id(project_id)
 
-    def create(self, name: str) -> ProjectRecord:
-        """Create and save a new, empty project."""
-        row = ProjectRow(id=str(uuid.uuid4()), name=name, created_at=datetime.now(UTC))
+    def create(self, name: str, workspace: str = LOCAL) -> ProjectRecord:
+        """Create and save a new, empty project in a workspace."""
+        row = ProjectRow(
+            id=str(uuid.uuid4()), name=name, workspace_id=workspace, created_at=datetime.now(UTC)
+        )
         with session_scope(self.db_url) as session:
             session.add(row)
             session.flush()
@@ -117,15 +122,24 @@ class ProjectStore:
                 raise NotFoundError("Project not found.", {"project_id": project_id})
             return to_record(row)
 
-    def list_projects(self) -> list[ProjectRecord]:
-        """All projects, newest first."""
+    def list_projects(self, workspaces: list[str]) -> list[ProjectRecord]:
+        """The projects in these workspaces, newest first."""
         query = (
             select(ProjectRow)
+            .where(ProjectRow.workspace_id.in_(workspaces))
             .options(selectinload(ProjectRow.tables))
             .order_by(ProjectRow.created_at.desc(), ProjectRow.id)
         )
         with session_scope(self.db_url) as session:
             return [to_record(row) for row in session.scalars(query)]
+
+    def move(self, project_id: str, workspace: str) -> None:
+        """Put a project in another workspace."""
+        with session_scope(self.db_url) as session:
+            row = session.get(ProjectRow, parse_id(project_id))
+            if row is None:
+                raise NotFoundError("Project not found.", {"project_id": project_id})
+            row.workspace_id = workspace
 
     def save(self, record: ProjectRecord) -> None:
         """Write the project's name and table list in one transaction."""

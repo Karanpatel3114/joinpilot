@@ -23,6 +23,7 @@ export function ProjectPage() {
   const project = useProjects().data?.find((p) => p.id === projectId)
   const [params] = useSearchParams()
   const [tab, setTab] = useState<Tab>(() => TABS.find((t) => t === params.get('tab')) ?? 'Profile')
+  const readOnly = project?.read_only ?? false
   const hasTables = (project?.table_count ?? 0) > 0
 
   /** Arrow keys, Home and End move between tabs, as in the ARIA tabs pattern. */
@@ -44,8 +45,14 @@ export function ProjectPage() {
             {new Date(project.created_at).toLocaleDateString()}
           </p>
         )}
+        {readOnly && (
+          <p className="mt-3 max-w-2xl text-[15px] text-slate-600 dark:text-slate-300">
+            A shared sample, built when the demo started: its joins were approved automatically. Look around
+            freely; to upload, run and approve yourself, create your own project from the home page.
+          </p>
+        )}
       </PageHeader>
-      <UploadPanel projectId={projectId} />
+      {!readOnly && <UploadPanel projectId={projectId} />}
       {hasTables && (
         <>
           <div role="tablist" aria-label="Project views" onKeyDown={onKey} className="inline-flex flex-wrap gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-900">
@@ -71,7 +78,7 @@ export function ProjectPage() {
           </div>
           <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="pt-2">
             {tab === 'Profile' && <ProfileExplorer projectId={projectId} />}
-            {tab === 'Runs' && <RunsPanel projectId={projectId} />}
+            {tab === 'Runs' && <RunsPanel projectId={projectId} readOnly={readOnly} />}
             {tab === 'Dashboard' && (
               <Suspense fallback={<p className="text-sm text-slate-500 dark:text-slate-400">Loading dashboard…</p>}>
                 <DashboardPanel projectId={projectId} />

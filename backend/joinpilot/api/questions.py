@@ -8,11 +8,11 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from fastapi.concurrency import run_in_threadpool
 
-from joinpilot.api.deps import get_question_service
+from joinpilot.api.deps import get_question_service, guard_project_access
 from joinpilot.api.schemas import Answer, AskRequest
 from joinpilot.services.questions import QuestionService
 
-router = APIRouter(tags=["questions"])
+router = APIRouter(tags=["questions"], dependencies=[Depends(guard_project_access)])
 Questions = Annotated[QuestionService, Depends(get_question_service)]
 
 

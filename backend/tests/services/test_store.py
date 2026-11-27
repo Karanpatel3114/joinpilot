@@ -24,7 +24,7 @@ def test_projects_and_their_tables_round_trip(store: ProjectStore) -> None:
     loaded = store.get(second.id)
     assert {t.name for t in loaded.tables} == {"KNA1", "BSID"}
     assert loaded.created_at.tzinfo is not None
-    assert [p.id for p in store.list_projects()] == [second.id, first.id]
+    assert [p.id for p in store.list_projects(["local"])] == [second.id, first.id]
 
 
 def test_saving_replaces_updates_and_removes_tables(store: ProjectStore) -> None:
@@ -49,7 +49,7 @@ def test_unknown_or_malformed_ids_are_not_found(store: ProjectStore, project_id:
 
 
 def test_an_empty_database_lists_nothing(store: ProjectStore) -> None:
-    assert store.list_projects() == []
+    assert store.list_projects(["local"]) == []
 
 
 @pytest.mark.integration
@@ -66,4 +66,4 @@ def test_store_works_on_postgres(tmp_path: Path) -> None:
     ]
     store.save(project)
     assert store.get(project.id).tables[0].name == "KNA1"
-    assert project.id in {p.id for p in store.list_projects()}
+    assert project.id in {p.id for p in store.list_projects(["local"])}

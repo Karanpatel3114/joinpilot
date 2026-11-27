@@ -1,6 +1,6 @@
 [project]
 name = "joinpilot"
-version = "0.1.0"
+version = "1.0.0"
 description = "Turn raw ERP tables and a plain-English requirement into a tested, human-approved data model."
 requires-python = ">=3.12,<3.13"
 license = "MIT"

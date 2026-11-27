@@ -10,7 +10,12 @@ from fastapi.concurrency import run_in_threadpool
 from pydantic import ValidationError
 from starlette.datastructures import UploadFile
 
-from joinpilot.api.deps import get_glossary_service, get_project_service
+from joinpilot.api.deps import (
+    get_glossary_service,
+    get_project_service,
+    get_workspace,
+    guard_project_access,
+)
 from joinpilot.api.schemas import (
     CreateProjectRequest,
     Project,
@@ -23,8 +28,9 @@ from joinpilot.glossary.service import GlossaryMatch, GlossaryService
 from joinpilot.services.projects import ProjectService
 from joinpilot.services.store import ProjectRecord, TableRecord
 
-router = APIRouter(tags=["projects"])
+router = APIRouter(tags=["projects"], dependencies=[Depends(guard_project_access)])
 Service = Annotated[ProjectService, Depends(get_project_service)]
+Workspace = Annotated[str, Depends(get_workspace)]
 
 UPLOAD_DOC = {
     "requestBody": {
@@ -43,26 +49,31 @@ UPLOAD_DOC = {
 }
 
 
-def to_project(record: ProjectRecord) -> Project:
-    """Map a stored record to the contract's Project shape."""
+def to_project(record: ProjectRecord, workspace: str) -> Project:
+    """Map a stored record to the contract's Project shape, as `workspace` sees it."""
     return Project(
         id=record.id,
         name=record.name,
         created_at=record.created_at,
         table_count=len(record.tables),
+        read_only=record.workspace != workspace,
     )
 
 
 @router.post("/projects", response_model=Project, status_code=status.HTTP_201_CREATED)
-async def create_project(body: CreateProjectRequest, service: Service) -> Project:
-    """Create an empty project."""
-    return to_project(await run_in_threadpool(service.create, body.name))
+async def create_project(
+    body: CreateProjectRequest, service: Service, workspace: Workspace
+) -> Project:
+    """Create an empty project in the caller's workspace."""
+    record = await run_in_threadpool(service.create, body.name, workspace)
+    return to_project(record, workspace)
 
 
 @router.get("/projects", response_model=list[Project])
-async def list_projects(service: Service) -> list[Project]:
-    """List projects, newest first."""
-    return [to_project(r) for r in await run_in_threadpool(service.list_projects)]
+async def list_projects(service: Service, workspace: Workspace) -> list[Project]:
+    """The caller's projects and the shared demo project, newest first."""
+    records = await run_in_threadpool(service.list_projects, workspace)
+    return [to_project(r, workspace) for r in records]
 
 
 @router.post(

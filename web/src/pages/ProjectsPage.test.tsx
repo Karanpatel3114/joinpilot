@@ -11,8 +11,8 @@ describe('Projects page', () => {
     renderAt('/')
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('From raw ERP tables to a tested data model')
     expect(screen.getByText('71/71')).toBeInTheDocument()
-    expect(screen.getByText('416/416')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'e376633' })).toHaveAttribute('href', expect.stringContaining('eval/results'))
+    expect(screen.getByText('1,248/1,248')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '1a22e17' })).toHaveAttribute('href', expect.stringContaining('eval/results'))
   })
 
   it('lists projects from the API', async () => {

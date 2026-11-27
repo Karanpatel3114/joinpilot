@@ -15,7 +15,12 @@ from sqlalchemy import delete
 from joinpilot.config import Settings
 from joinpilot.db.models import GlossaryRow
 from joinpilot.db.session import session_scope
-from joinpilot.errors import InvalidInputError, PayloadTooLargeError
+from joinpilot.errors import (
+    ConflictError,
+    InvalidInputError,
+    NotFoundError,
+    PayloadTooLargeError,
+)
 from joinpilot.profiling.loader import (
     SUPPORTED_SUFFIXES,
     LoadedTable,
@@ -35,6 +40,7 @@ from joinpilot.services.store import (
 )
 from joinpilot.synth.dataset import build_dataset
 from joinpilot.synth.naming import Naming
+from joinpilot.workspaces import DEMO, LOCAL, visible_workspaces
 
 PROFILE_FILE = "profile.json"
 SAMPLE_PATTERN = re.compile(r"^erp_(?P<size>[a-z])(?P<seed>\d{1,4})_(?P<naming>sap|friendly)$")
@@ -64,18 +70,36 @@ class ProjectService:
         self.settings = settings
         self.store = ProjectStore(settings.projects_dir, settings.db_url)
 
-    def create(self, name: str) -> ProjectRecord:
+    def create(self, name: str, workspace: str = LOCAL) -> ProjectRecord:
         """Create an empty project (a name of 1 to 100 characters)."""
         name = name.strip()
         if not 1 <= len(name) <= MAX_NAME_CHARS:
             raise InvalidInputError(
                 f"A project name needs 1 to {MAX_NAME_CHARS} characters.", {"field": "name"}
             )
-        return self.store.create(name)
+        return self.store.create(name, workspace)
 
-    def list_projects(self) -> list[ProjectRecord]:
-        """All projects, newest first."""
-        return self.store.list_projects()
+    def list_projects(self, workspace: str = LOCAL) -> list[ProjectRecord]:
+        """The workspace's projects and the shared demo project, newest first."""
+        return self.store.list_projects(visible_workspaces(workspace))
+
+    def check_access(self, project_id: str, workspace: str, write: bool) -> ProjectRecord:
+        """The project if this workspace may use it; another workspace's is not found.
+
+        Everyone may read the demo project, but only its own workspace may change it.
+        """
+        record = self.store.get(project_id)
+        if record.workspace == workspace:
+            return record
+        if record.workspace == DEMO:
+            if not write:
+                return record
+            raise ConflictError(
+                "The sample project is read-only. Create your own project and load the "
+                "sample to try every step.",
+                {"project_id": record.id},
+            )
+        raise NotFoundError("Project not found.", {"project_id": project_id})
 
     def get(self, project_id: str) -> ProjectRecord:
         """One project, or NotFoundError."""

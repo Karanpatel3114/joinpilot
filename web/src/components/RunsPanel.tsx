@@ -11,7 +11,7 @@ const EXAMPLES = [
 ]
 
 /** Start a run from a plain-English requirement, and list earlier runs. */
-export function RunsPanel({ projectId }: { projectId: string }) {
+export function RunsPanel({ projectId, readOnly = false }: { projectId: string; readOnly?: boolean }) {
   const [requirement, setRequirement] = useState(EXAMPLES[0])
   const start = useStartRun(projectId)
   const runs = useRuns(projectId)
@@ -24,38 +24,40 @@ export function RunsPanel({ projectId }: { projectId: string }) {
 
   return (
     <div className="space-y-6">
-      <form onSubmit={submit} className="space-y-2">
-        <label className="flex flex-col gap-1 text-sm font-medium">
-          What should the data model answer?
-          <textarea
-            value={requirement}
-            onChange={(e) => setRequirement(e.target.value)}
-            rows={3}
-            maxLength={2000}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 font-normal dark:border-slate-700 dark:bg-slate-900"
-          />
-        </label>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="submit"
-            disabled={requirement.trim().length < 3 || start.isPending}
-            className="btn-primary"
-          >
-            <Play className="h-4 w-4" /> Start run
-          </button>
-          {EXAMPLES.map((example) => (
+      {!readOnly && (
+        <form onSubmit={submit} className="space-y-2">
+          <label className="flex flex-col gap-1 text-sm font-medium">
+            What should the data model answer?
+            <textarea
+              value={requirement}
+              onChange={(e) => setRequirement(e.target.value)}
+              rows={3}
+              maxLength={2000}
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2 font-normal dark:border-slate-700 dark:bg-slate-900"
+            />
+          </label>
+          <div className="flex flex-wrap items-center gap-2">
             <button
-              key={example}
-              type="button"
-              onClick={() => setRequirement(example)}
-              className="rounded-md bg-brand-50 px-3 py-1.5 font-mono text-[12px] text-slate-700 hover:bg-brand-100 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+              type="submit"
+              disabled={requirement.trim().length < 3 || start.isPending}
+              className="btn-primary"
             >
-              {example.split(',')[0]}
+              <Play className="h-4 w-4" /> Start run
             </button>
-          ))}
-        </div>
-        <ErrorNote error={start.error} />
-      </form>
+            {EXAMPLES.map((example) => (
+              <button
+                key={example}
+                type="button"
+                onClick={() => setRequirement(example)}
+                className="rounded-md bg-brand-50 px-3 py-1.5 font-mono text-[12px] text-slate-700 hover:bg-brand-100 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                {example.split(',')[0]}
+              </button>
+            ))}
+          </div>
+          <ErrorNote error={start.error} />
+        </form>
+      )}
       <ul aria-label="Runs" className="space-y-2">
         {runs.data?.map((run) => (
           <li key={run.run_id}>

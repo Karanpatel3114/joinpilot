@@ -1,6 +1,8 @@
 # JoinPilot API contract
 
-Version: 0.12. Change it only with the `contract-sync` skill, and bump the version.
+Version: 0.13. Change it only with the `contract-sync` skill, and bump the version.
+
+Changes in 0.13 (additive): private workspaces without login (D-037). Requests may send an `X-Workspace` header; projects belong to the workspace that created them, and another workspace's projects and runs are not found. `Project` gains `read_only`, true for the shared demo project.
 
 Changes in 0.12 (additive): rate and body-size limits; the `RATE_LIMITED` (429) error code with a `Retry-After` header.
 
@@ -32,11 +34,20 @@ Error codes: `NOT_FOUND` (404), `INVALID_INPUT` (422, also for malformed request
 
 Limits (from config, per client IP): `LIMITS__REQUESTS_PER_MINUTE` for every endpoint except `/health`; starting runs and asking questions, which use the language model, also share `LIMITS__EXPENSIVE_PER_MINUTE` and `LIMITS__EXPENSIVE_PER_DAY`, plus `LIMITS__EXPENSIVE_GLOBAL_PER_DAY` across all clients. A refused request gets 429 `RATE_LIMITED` with a `Retry-After` header and `details.retry_after_seconds`. JSON bodies over `LIMITS__MAX_BODY_KB` get 413 `PAYLOAD_TOO_LARGE`; uploads use `MAX_UPLOAD_MB`.
 
+## Workspaces
+Each browser makes a random workspace id once and sends it with every request as `X-Workspace: <id>`: 16 to 64 letters, digits, `-` or `_`. Download links, which cannot set headers, may send `?workspace=<id>` instead. A request without one uses the `local` workspace (scripts, the MCP server, tests); a malformed id gives 422 `INVALID_INPUT`.
+
+- `POST /projects` creates the project in the caller's workspace, and `GET /projects` lists that workspace's projects plus the shared demo project.
+- Every endpoint with a `project_id` or `run_id` answers 404 `NOT_FOUND` for a project (or a run of a project) in another workspace.
+- The demo project can be read and asked questions by every workspace (`read_only: true`); uploading to it, starting a run on it or approving its runs gives 409 `CONFLICT`.
+
+The id keeps visitors of the public demo apart like an unguessable link; it is not an account.
+
 ## Health
-`GET /health` returns `{"status": "ok", "version": "0.1.0"}`
+`GET /health` returns `{"status": "ok", "version": "1.0.0"}`
 
 ## Projects and tables
-`POST /projects` with `{"name": "Demo ERP"}` (1–100 characters, trimmed) returns 201 and `Project {id, name, created_at, table_count}`
+`POST /projects` with `{"name": "Demo ERP"}` (1–100 characters, trimmed) returns 201 and `Project {id, name, created_at, table_count, read_only}`. `read_only` is true only for the shared demo project when another workspace reads it.
 
 `GET /projects` returns `[Project]`, newest first.
 

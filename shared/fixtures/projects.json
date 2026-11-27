@@ -3,6 +3,7 @@
     "id": "3f0b7c1e-6a2d-4c8e-9b1a-2d5e8f7a9c10",
     "name": "Demo ERP",
     "created_at": "2026-11-25T21:00:00Z",
-    "table_count": 6
+    "table_count": 6,
+    "read_only": false
   }
 ]
