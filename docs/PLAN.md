@@ -158,7 +158,7 @@ Done when: every finding from the post-release audit (correctness, public-demo a
 - [x] M13.4 `fix(checks): keep long check ids within their database column`
 - [x] M13.5 `fix(jobs): give every resume its own job id`
 - [x] M13.6 `fix(sqlgen): keep derived columns from clashing with uploaded ones`
-- [ ] M13.7 `feat(api): refuse tables past a row limit and time-limit heavy queries`
+- [x] M13.7 `feat(api): refuse tables past a row limit and time-limit heavy queries`
 - [ ] M13.8 `feat(api): cap projects and stored bytes per workspace`
 - [ ] M13.9 `fix(web): download exports with the workspace header, not the URL`
 - [ ] M13.10 `fix(api): refuse malformed ids in the access guard`

@@ -31,6 +31,11 @@ services:
         value: '["S"]'
       - key: MAX_UPLOAD_MB
         value: "10"
+      # A small Parquet file can expand to millions of rows; one free CPU stops here
+      - key: MAX_ROWS_PER_TABLE
+        value: "1000000"
+      - key: DUCKDB_TIME_LIMIT_SECONDS
+        value: "180"
       - key: KPI__REFERENCE_DATE
         value: "2026-06-30"
       # Render's proxy adds the visitor's address as the last X-Forwarded-For entry

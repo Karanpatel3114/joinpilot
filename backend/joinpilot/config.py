@@ -216,6 +216,11 @@ class Settings(BaseSettings):
     max_upload_mb: float = 50
     max_tables_per_project: int = 30
     max_columns_per_table: int = 200
+    # Uploads with more rows are refused before they are loaded (Parquet compresses well)
+    max_rows_per_table: int = Field(default=2_000_000, ge=1)
+    # Any work on a project's warehouse (load, profile, views, checks, KPIs) is stopped
+    # after this long, so one heavy project can not hold the only worker
+    duckdb_time_limit_seconds: float = Field(default=300, gt=0)
     duckdb_memory_limit: str = "1GB"
     duckdb_threads: int = 2
     sample_sizes: list[str] = Field(default_factory=lambda: ["S", "M"])

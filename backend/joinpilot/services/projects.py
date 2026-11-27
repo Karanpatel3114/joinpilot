@@ -28,6 +28,7 @@ from joinpilot.profiling.loader import (
     load_arrow,
     load_file,
     table_name_from_filename,
+    time_limit,
 )
 from joinpilot.profiling.models import ProjectProfile
 from joinpilot.profiling.service import profile_project
@@ -134,6 +135,7 @@ class ProjectService:
                         table,
                         display_name=filename,
                         max_columns=self.settings.max_columns_per_table,
+                        max_rows=self.settings.max_rows_per_table,
                     )
                 return self._register(record, [loaded])
         finally:
@@ -209,15 +211,23 @@ class ProjectService:
         with project_lock(project_id), self._connect(project_id, read_only=True) as con:
             yield con
 
-    def _connect(self, project_id: str, read_only: bool = False) -> duckdb.DuckDBPyConnection:
-        """Open the project's warehouse with the configured memory and thread limits."""
-        return connect(
+    @contextmanager
+    def _connect(
+        self, project_id: str, read_only: bool = False
+    ) -> Iterator[duckdb.DuckDBPyConnection]:
+        """Open the project's warehouse with the configured memory, thread and time limits."""
+        con = connect(
             self.store.project_dir(project_id),
             read_only=read_only,
             sealed=read_only,
             memory_limit=self.settings.duckdb_memory_limit,
             threads=self.settings.duckdb_threads,
         )
+        try:
+            with time_limit(con, self.settings.duckdb_time_limit_seconds):
+                yield con
+        finally:
+            con.close()
 
     def _check_capacity(self, record: ProjectRecord, new_tables: list[str]) -> None:
         """Refuse loads that would push the project past the table limit."""

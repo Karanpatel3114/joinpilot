@@ -2,7 +2,8 @@
 
 Each project has one DuckDB database (D-001). CSV files are read as text first and
 typed column by column, so ids such as `0000012345` keep their leading zeros.
-Uploads are untrusted: their width is checked before any table is created, and
+Uploads are untrusted: their width and row count are checked before any table is
+created (a few KB of compressed Parquet can hold hundreds of millions of rows), and
 error messages name the user's file but never server paths or cell values.
 """
 
@@ -10,6 +11,9 @@ from __future__ import annotations
 
 import logging
 import re
+import threading
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -63,6 +67,37 @@ def connect(
     return duckdb.connect(str(project_dir / WAREHOUSE_FILE), read_only=read_only, config=config)
 
 
+@contextmanager
+def time_limit(con: duckdb.DuckDBPyConnection, seconds: float) -> Iterator[None]:
+    """Stop the connection's work once `seconds` have passed.
+
+    After the deadline every running statement is interrupted (checked twice a second),
+    so a heavy upload can not keep the server's only worker busy. The interruption is
+    reported as a plain-language error.
+    """
+    stop = threading.Event()
+
+    def watch() -> None:
+        if stop.wait(seconds):
+            return
+        while not stop.is_set():
+            con.interrupt()
+            stop.wait(0.5)
+
+    watcher = threading.Thread(target=watch, name="joinpilot-time-limit", daemon=True)
+    watcher.start()
+    try:
+        yield
+    except duckdb.InterruptException as error:
+        raise InvalidInputError(
+            f"The data took longer than {seconds:g} seconds to process and was stopped.",
+            {"timeout_seconds": seconds},
+        ) from error
+    finally:
+        stop.set()
+        watcher.join()
+
+
 def table_name_from_filename(filename: str) -> str:
     """Turn an uploaded file name into a safe table name, for example `vbak (2).csv` -> `vbak_2`."""
     stem = Path(filename).stem
@@ -98,6 +133,7 @@ def load_file(
     *,
     display_name: str | None = None,
     max_columns: int = 200,
+    max_rows: int = 2_000_000,
 ) -> LoadedTable:
     """Create (or replace) `table` from a CSV or Parquet file and return its size.
 
@@ -112,9 +148,11 @@ def load_file(
         raise InvalidInputError("The file is empty.", {"file": shown})
     try:
         if suffix == ".parquet":
-            load_parquet(con, path, table, shown, max_columns)
+            load_parquet(con, path, table, shown, max_columns, max_rows)
         else:
-            load_csv(con, path, table, shown, max_columns)
+            load_csv(con, path, table, shown, max_columns, max_rows)
+    except duckdb.InterruptException:
+        raise
     except duckdb.Error as error:
         logger.warning("could not load %s into %s: %s", suffix, table, type(error).__name__)
         reason = "not a valid Parquet file" if suffix == ".parquet" else "could not parse the CSV"
@@ -142,12 +180,32 @@ def check_width(columns: list[str], shown: str, max_columns: int) -> None:
         )
 
 
+def check_rows(rows: int, shown: str, max_rows: int) -> None:
+    """Refuse tables with more rows than the server can profile and check in time."""
+    if rows > max_rows:
+        raise InvalidInputError(
+            "The file has too many rows.", {"file": shown, "rows": rows, "max_rows": max_rows}
+        )
+
+
 def load_parquet(
-    con: duckdb.DuckDBPyConnection, path: Path, table: str, shown: str, max_columns: int
+    con: duckdb.DuckDBPyConnection,
+    path: Path,
+    table: str,
+    shown: str,
+    max_columns: int,
+    max_rows: int,
 ) -> None:
-    """Check the Parquet schema's width, then copy the file into a table."""
+    """Check the Parquet schema's width and its row count, then copy the file into a table.
+
+    The row count comes from the file's footer, so nothing is decompressed first.
+    """
     schema = con.execute("DESCRIBE SELECT * FROM read_parquet(?)", [str(path)]).fetchall()
     check_width([str(r[0]) for r in schema], shown, max_columns)
+    rows = con.execute(
+        "SELECT COALESCE(SUM(num_rows), 0) FROM parquet_file_metadata(?)", [str(path)]
+    ).fetchone()
+    check_rows(int(rows[0]) if rows else 0, shown, max_rows)
     con.execute(
         f"CREATE OR REPLACE TABLE {ident(table)} AS SELECT * FROM read_parquet(?)", [str(path)]
     )
@@ -201,7 +259,12 @@ def infer_csv_type(con: duckdb.DuckDBPyConnection, staging: str, column: str) ->
 
 
 def load_csv(
-    con: duckdb.DuckDBPyConnection, path: Path, table: str, shown: str, max_columns: int
+    con: duckdb.DuckDBPyConnection,
+    path: Path,
+    table: str,
+    shown: str,
+    max_columns: int,
+    max_rows: int,
 ) -> None:
     """Read a CSV as text, check its width, then cast each column to its inferred type."""
     staging = f"__staging_{table}"
@@ -213,6 +276,8 @@ def load_csv(
     try:
         columns = column_names(con, staging)
         check_width(columns, shown, max_columns)
+        rows = con.execute(f"SELECT COUNT(*) FROM {ident(staging)}").fetchone()
+        check_rows(int(rows[0]) if rows else 0, shown, max_rows)
         casts = ", ".join(
             f"CAST({ident(c)} AS {infer_csv_type(con, staging, c)}) AS {ident(c)}" for c in columns
         )

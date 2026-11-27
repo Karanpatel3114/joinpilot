@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 
 import duckdb
@@ -12,6 +13,7 @@ from joinpilot.profiling.loader import (
     list_tables,
     load_file,
     table_name_from_filename,
+    time_limit,
 )
 
 
@@ -129,3 +131,35 @@ def test_connections_use_the_configured_limits(tmp_path: Path) -> None:
         ).fetchone()  # type: ignore[misc]
     assert threads == 1
     assert "MiB" in limit or "MB" in limit
+
+
+def test_tables_past_the_row_limit_are_refused_before_loading(
+    con: duckdb.DuckDBPyConnection, tmp_path: Path
+) -> None:
+    csv = tmp_path / "long.csv"
+    csv.write_text("id\n" + "\n".join(str(i) for i in range(11)) + "\n")
+    parquet = tmp_path / "bomb.parquet"
+    con.execute(
+        f"COPY (SELECT 0 AS id FROM range(200000)) TO '{parquet}' "
+        "(FORMAT parquet, COMPRESSION zstd)"
+    )
+    assert parquet.stat().st_size < 10_000
+    for path, rows in ((csv, 11), (parquet, 200_000)):
+        with pytest.raises(InvalidInputError) as error:
+            load_file(con, path, "big", max_rows=10)
+        assert (error.value.message, error.value.details["rows"]) == (
+            "The file has too many rows.",
+            rows,
+        )
+    assert list_tables(con) == []
+
+
+def test_work_past_the_time_limit_is_stopped_with_a_clear_error(
+    con: duckdb.DuckDBPyConnection,
+) -> None:
+    started = time.monotonic()
+    with pytest.raises(InvalidInputError) as error, time_limit(con, 0.2):
+        con.execute("SELECT COUNT(*) FROM range(10000000000) a, range(10) b").fetchall()
+    assert time.monotonic() - started < 5
+    assert error.value.details == {"timeout_seconds": 0.2}
+    assert con.execute("SELECT 1").fetchone() == (1,)
