@@ -4,7 +4,7 @@ All notable changes to JoinPilot. Each milestone was built on its own branch and
 
 ## [1.1.0] - 2026-11-27
 
-A hardening release from a full audit of the finished project (milestone M13). The dev-split evaluation is unchanged: join F1, view validity, check pass rate, KPI accuracy and attack block rate all stay at 1.000, with 0 harmless queries blocked.
+A hardening release from a full audit of the finished project (milestone M13). The deterministic dev-split evaluation is unchanged after the fixes (commit `1a195b0`, [results](eval/results/2026-11-27-1a195b0-dev/metrics.md)): join F1, view validity, check pass rate and attack block rate all stay at 1.000, KPIs at 416 of 416, with 0 harmless queries blocked. Question answering was not rerun (it uses the free model quota); its numbers stay those of 1.0.1.
 
 ### Fixed
 - **Joins between keys of different types** (an integer column and a text column) are compared as text, the way profiling measured them. Before, the view either failed to build or matched `0005` to `5`.
