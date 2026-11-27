@@ -1,7 +1,7 @@
 # Evaluation: dev split
 
-- Date: 2026-11-26T03:03:46+00:00
-- Commit: `e376633`
+- Date: 2026-11-27T06:29:35+00:00
+- Commit: `7c4b16b`
 - Datasets: `erp_s1_sap`, `erp_s2_sap`, `erp_s3_sap`, `erp_s1_friendly`
 - Settings: recorded in metrics.json
 
@@ -58,9 +58,48 @@
 | erp_s3_sap | 5/5 | 11/11 | 18/18 | 10/10 | 60/60 |
 | erp_s1_friendly | 5/5 | 11/11 | 18/18 | 10/10 | 60/60 |
 
-## Question answering
+## Question answering (execution accuracy, recommended joins approved)
 
-- Skipped: not run; it needs --llm and a GEMINI_API_KEY
+Rows must equal gold's; answer columns are matched to gold columns by value, and extra columns are allowed.
+
+- Right: 120 of 160 (75.0%); blocked: {'LLM_UNAVAILABLE': 10, 'QUERY_FAILED': 2}; average attempts: 1.02
+- By tag: duplicates 93.8%, none 79.2%, normalization 40.0%, null_keys 75.0%, orphans 70.8%
+  - wrong in erp_s1_sap: q004 How many products belong to product group BEAR?
+  - wrong in erp_s1_sap: q005 How many products belong to product group CABL?
+  - wrong in erp_s1_sap: q006 How many sales orders were created in February 2025?
+  - wrong in erp_s1_sap: q009 What is the total net value of all sales orders created in 2025?
+  - wrong in erp_s1_sap: q014 What is the total open receivables amount for customer 0000150179?
+  - wrong in erp_s1_sap: q015 What is the total open receivables amount for customer 0000192391?
+  - wrong in erp_s1_sap: q016 What is the total open receivables amount for customer 0000925437?
+  - wrong in erp_s1_sap: q017 How many sales order items reference a product that does not exist in the product master?
+  - wrong in erp_s1_sap: q029 How many customers in the customer master have no open receivables?
+  - wrong in erp_s1_sap: q034 List the product IDs and total item net value of the 3 products with the highest item net value in 2026, highest first.
+  - wrong in erp_s2_sap: q005 How many products belong to product group SAFE?
+  - wrong in erp_s2_sap: q012 What is the total open receivables amount more than 90 days overdue as of June 30, 2026 (the due date is the baseline date plus the payment days)?
+  - wrong in erp_s2_sap: q019 What was the total item net value in 2026 for products in product group TOOL?
+  - wrong in erp_s2_sap: q022 How many sales orders did South Ashford Industrial LLC place in 2026?
+  - wrong in erp_s2_sap: q029 How many customers in the customer master have no open receivables?
+  - wrong in erp_s2_sap: q036 How many open receivable line items are not yet due as of June 30, 2026 (the due date is the baseline date plus the payment days)?
+  - wrong in erp_s3_sap: q004 How many products belong to product group FILT?
+  - wrong in erp_s3_sap: q005 How many products belong to product group VALV?
+  - wrong in erp_s3_sap: q010 What is the total net value of all sales orders created in 2026?
+  - wrong in erp_s3_sap: q012 What is the total open receivables amount more than 90 days overdue as of June 30, 2026 (the due date is the baseline date plus the payment days)?
+  - wrong in erp_s3_sap: q014 What is the total open receivables amount for customer 0000107501?
+  - wrong in erp_s3_sap: q015 What is the total open receivables amount for customer 0000466152?
+  - wrong in erp_s3_sap: q016 What is the total open receivables amount for customer 0000842877?
+  - wrong in erp_s3_sap: q022 How many sales orders did South Beldale Trading LLC place in 2026?
+  - wrong in erp_s3_sap: q027 How many sales orders does each sales organization have?
+  - wrong in erp_s3_sap: q029 How many customers in the customer master have no open receivables?
+  - wrong in erp_s1_friendly: q003 How many customers are based in India?
+  - wrong in erp_s1_friendly: q004 How many products belong to product group BEAR?
+  - wrong in erp_s1_friendly: q005 How many products belong to product group CABL?
+  - wrong in erp_s1_friendly: q006 How many sales orders were created in February 2025?
+  - wrong in erp_s1_friendly: q009 What is the total net value of all sales orders created in 2025?
+  - wrong in erp_s1_friendly: q010 What is the total net value of all sales orders created in 2026?
+  - wrong in erp_s1_friendly: q015 What is the total open receivables amount for customer 0000192391?
+  - wrong in erp_s1_friendly: q016 What is the total open receivables amount for customer 0000925437?
+  - wrong in erp_s1_friendly: q029 How many customers in the customer master have no open receivables?
+  - wrong in erp_s1_friendly: q030 What is the total ordered quantity of product 000000000042887125?
 
 ## SQL safety
 

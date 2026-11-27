@@ -25,7 +25,7 @@ def test_fake_and_gemini_providers_are_selected_by_config() -> None:
     assert isinstance(fake, FakeProvider)
     real = make_base_provider(Settings(_env_file=None, gemini_api_key=SecretStr("k")))
     assert isinstance(real, GeminiProvider)
-    assert real.model == "gemini-flash-lite-latest"
+    assert real.model == "gemini-3.5-flash-lite"
 
 
 def test_the_key_never_appears_in_settings_output() -> None:

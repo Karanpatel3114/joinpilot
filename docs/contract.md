@@ -44,7 +44,7 @@ Each browser makes a random workspace id once and sends it with every request as
 The id keeps visitors of the public demo apart like an unguessable link; it is not an account.
 
 ## Health
-`GET /health` returns `{"status": "ok", "version": "1.0.0"}`
+`GET /health` returns `{"status": "ok", "version": "1.0.1"}`
 
 ## Projects and tables
 `POST /projects` with `{"name": "Demo ERP"}` (1–100 characters, trimmed) returns 201 and `Project {id, name, created_at, table_count, read_only}`. `read_only` is true only for the shared demo project when another workspace reads it.

@@ -96,7 +96,7 @@ class LLMSettings(BaseModel):
     """Which model to call and how (D-005). The key itself is `GEMINI_API_KEY`."""
 
     provider: Literal["gemini", "fake"] = "gemini"
-    model: str = "gemini-flash-lite-latest"
+    model: str = "gemini-3.5-flash-lite"
     temperature: float = 0.0
     timeout_seconds: float = 30.0
     max_retries: int = 3

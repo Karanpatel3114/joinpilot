@@ -2,6 +2,20 @@
 
 All notable changes to JoinPilot. Each milestone was built on its own branch and merged as one pull request, one commit per task ([build plan](docs/PLAN.md)).
 
+## [1.0.1] - 2026-11-27
+
+### Added
+- **Question answering measured with Gemini** (dev split, gemini-3.5-flash-lite on the free tier): 120 of 160 answers exactly right (75.0%), with free-tier refusals counted as wrong.
+- **Model-based join systems measured** over 3 runs: F1 1.000 for both. Only JoinPilot with the model also catches the leading-zero and fan-out cases.
+- **An Ask screenshot** in the README showing a real answer, with its chart, rows and guarded SQL.
+
+### Changed
+- The default model is pinned to `gemini-3.5-flash-lite`, because Google retired the `gemini-flash-lite-latest` alias.
+- The home page drops the caption above the row of tools.
+
+### Fixed
+- An Ask panel test that could time out while the tab's code was loading.
+
 ## [1.0.0] - 2026-11-26
 
 The first complete release: from raw ERP tables and a plain-English requirement to a tested, human-approved data model, a KPI dashboard and guarded answers to questions, usable from a web console or from Claude through MCP.

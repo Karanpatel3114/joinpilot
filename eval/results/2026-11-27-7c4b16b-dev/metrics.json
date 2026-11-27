@@ -1,0 +1,1859 @@
+{
+  "split": "dev",
+  "date": "2026-11-27T06:29:35+00:00",
+  "commit": "7c4b16b",
+  "dirty": false,
+  "datasets": [
+    {
+      "dataset_id": "erp_s1_sap",
+      "fingerprint": "sha256:c73fd3e7464a8ded4f8f3bb647b9320a9311cfdd23f7313d71318fe218405a17",
+      "profile_seconds": 0.18
+    },
+    {
+      "dataset_id": "erp_s2_sap",
+      "fingerprint": "sha256:d470653a11024d8d68218f25d2f26d12ff739c00abbc58b749abd7d6713897a4",
+      "profile_seconds": 0.174
+    },
+    {
+      "dataset_id": "erp_s3_sap",
+      "fingerprint": "sha256:6fae23ee8100597f19ac3da2289568fdca9095ab6d9e284405686d2c5e9a92d8",
+      "profile_seconds": 0.181
+    },
+    {
+      "dataset_id": "erp_s1_friendly",
+      "fingerprint": "sha256:450f4c9ad562216c6461372bb18cd32c642e6ad6ead49394a828f6e9b6bb1019",
+      "profile_seconds": 0.176
+    }
+  ],
+  "settings": {
+    "profiling": {
+      "sample_values": 5,
+      "max_pair_columns": 12,
+      "overlap_sample_size": 10000,
+      "overlap_max_value_length": 40,
+      "overlap_min_ratio": 0.1,
+      "overlap_max_columns": 300,
+      "overlap_max_results": 5000,
+      "stats_batch_columns": 50,
+      "normalization_min_gain": 0.1
+    },
+    "joins": {
+      "candidate_min_inclusion": 0.5,
+      "unique_min": 0.999,
+      "weight_inclusion": 0.35,
+      "weight_name": 0.35,
+      "weight_coverage": 0.15,
+      "weight_key_strength": 0.15,
+      "key_strength_full_at": 50,
+      "name_fuzzy_weight": 0.5,
+      "prefix_min_share": 0.8,
+      "prefix_max_length": 4,
+      "one_to_one_min_overlap": 0.95,
+      "n_to_m_factor": 0.5,
+      "accept_threshold": 0.7,
+      "discriminator_max_distinct": 5,
+      "discriminator_fill": 0.9,
+      "preferred_filter_values": [
+        "E",
+        "EN",
+        "en"
+      ]
+    },
+    "checks": {
+      "max_orphan_rate": 0.05,
+      "max_null_rate": 0.05,
+      "reconciliation_tolerance": 1e-09
+    },
+    "kpi": {
+      "reference_date": "2026-06-30",
+      "aging_bucket_edges": [
+        30,
+        60,
+        90
+      ],
+      "top_n": 10,
+      "max_metric_rows": 200
+    },
+    "llm": {
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite",
+      "temperature": 0.0,
+      "timeout_seconds": 30.0,
+      "max_retries": 3,
+      "backoff_base_seconds": 2.0,
+      "backoff_max_seconds": 30.0,
+      "cache_responses": true,
+      "prices_per_million": {}
+    },
+    "agent": {
+      "prompt_example_values": 2,
+      "ranking_max_candidates": 25,
+      "rescue_min_score": 0.5,
+      "explanation_tolerance_points": 0.6,
+      "max_repairs": 2
+    }
+  },
+  "joins": {
+    "name_only": {
+      "aggregate": {
+        "precision": 0.3704,
+        "recall": 1.0,
+        "f1": 0.5405,
+        "undirected_f1": 0.6897,
+        "predicted": 54,
+        "gold": 20,
+        "true_positives": 20,
+        "normalization_recall": 0.0,
+        "wrong_normalizations": 4,
+        "fan_out_recall": 0.0,
+        "fan_out_precision": null,
+        "filter_accuracy": 0.0,
+        "decoy_rejection": 0.8
+      },
+      "per_dataset": {
+        "erp_s1_sap": {
+          "precision": 0.3571,
+          "recall": 1.0,
+          "f1": 0.5263,
+          "undirected_f1": 0.6667,
+          "predicted": 14,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 0.0,
+          "wrong_normalizations": 1,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 0.8
+        },
+        "erp_s2_sap": {
+          "precision": 0.3571,
+          "recall": 1.0,
+          "f1": 0.5263,
+          "undirected_f1": 0.6667,
+          "predicted": 14,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 0.0,
+          "wrong_normalizations": 1,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 0.8
+        },
+        "erp_s3_sap": {
+          "precision": 0.3571,
+          "recall": 1.0,
+          "f1": 0.5263,
+          "undirected_f1": 0.6667,
+          "predicted": 14,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 0.0,
+          "wrong_normalizations": 1,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 0.8
+        },
+        "erp_s1_friendly": {
+          "precision": 0.4167,
+          "recall": 1.0,
+          "f1": 0.5882,
+          "undirected_f1": 0.7692,
+          "predicted": 12,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 0.0,
+          "wrong_normalizations": 1,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 0.8
+        }
+      },
+      "false_positives": [
+        "erp_s1_sap: BSID.KUNNR -> VBAK.KUNNR",
+        "erp_s1_sap: BSID.BELNR -> VBAK.VBELN",
+        "erp_s1_sap: BSID.BELNR -> VBAP.VBELN",
+        "erp_s1_sap: BSID.WAERS -> VBAK.WAERK",
+        "erp_s1_sap: MARA.MATNR -> MAKT.MATNR",
+        "erp_s1_sap: VBAK.VBELN -> VBAP.VBELN",
+        "erp_s1_sap: VBAK.KUNNR -> BSID.KUNNR",
+        "erp_s1_sap: VBAK.WAERK -> BSID.WAERS",
+        "erp_s1_sap: VBAP.MATNR -> MAKT.MATNR",
+        "erp_s2_sap: BSID.KUNNR -> VBAK.KUNNR",
+        "erp_s2_sap: BSID.BELNR -> VBAK.VBELN",
+        "erp_s2_sap: BSID.BELNR -> VBAP.VBELN",
+        "erp_s2_sap: BSID.WAERS -> VBAK.WAERK",
+        "erp_s2_sap: MARA.MATNR -> MAKT.MATNR",
+        "erp_s2_sap: VBAK.VBELN -> VBAP.VBELN",
+        "erp_s2_sap: VBAK.KUNNR -> BSID.KUNNR",
+        "erp_s2_sap: VBAK.WAERK -> BSID.WAERS",
+        "erp_s2_sap: VBAP.MATNR -> MAKT.MATNR",
+        "erp_s3_sap: BSID.KUNNR -> VBAK.KUNNR",
+        "erp_s3_sap: BSID.BELNR -> VBAK.VBELN",
+        "erp_s3_sap: BSID.BELNR -> VBAP.VBELN",
+        "erp_s3_sap: BSID.WAERS -> VBAK.WAERK",
+        "erp_s3_sap: MARA.MATNR -> MAKT.MATNR",
+        "erp_s3_sap: VBAK.VBELN -> VBAP.VBELN",
+        "erp_s3_sap: VBAK.KUNNR -> BSID.KUNNR",
+        "erp_s3_sap: VBAK.WAERK -> BSID.WAERS",
+        "erp_s3_sap: VBAP.MATNR -> MAKT.MATNR",
+        "erp_s1_friendly: open_items.customer_id -> order_headers.customer_id",
+        "erp_s1_friendly: open_items.currency -> order_headers.currency",
+        "erp_s1_friendly: order_headers.order_id -> order_items.order_id",
+        "erp_s1_friendly: order_headers.customer_id -> open_items.customer_id",
+        "erp_s1_friendly: order_headers.currency -> open_items.currency",
+        "erp_s1_friendly: order_items.product_id -> product_texts.product_id",
+        "erp_s1_friendly: products.product_id -> product_texts.product_id"
+      ],
+      "false_negatives": []
+    },
+    "overlap_only": {
+      "aggregate": {
+        "precision": 0.2742,
+        "recall": 0.85,
+        "f1": 0.4146,
+        "undirected_f1": 0.5152,
+        "predicted": 62,
+        "gold": 20,
+        "true_positives": 17,
+        "normalization_recall": 1.0,
+        "wrong_normalizations": 0,
+        "fan_out_recall": 0.0,
+        "fan_out_precision": null,
+        "filter_accuracy": 0.0,
+        "decoy_rejection": 0.6
+      },
+      "per_dataset": {
+        "erp_s1_sap": {
+          "precision": 0.2667,
+          "recall": 0.8,
+          "f1": 0.4,
+          "undirected_f1": 0.5,
+          "predicted": 15,
+          "gold": 5,
+          "true_positives": 4,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 0.6
+        },
+        "erp_s2_sap": {
+          "precision": 0.2667,
+          "recall": 0.8,
+          "f1": 0.4,
+          "undirected_f1": 0.5,
+          "predicted": 15,
+          "gold": 5,
+          "true_positives": 4,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 0.6
+        },
+        "erp_s3_sap": {
+          "precision": 0.2941,
+          "recall": 1.0,
+          "f1": 0.4545,
+          "undirected_f1": 0.5556,
+          "predicted": 17,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 0.6
+        },
+        "erp_s1_friendly": {
+          "precision": 0.2667,
+          "recall": 0.8,
+          "f1": 0.4,
+          "undirected_f1": 0.5,
+          "predicted": 15,
+          "gold": 5,
+          "true_positives": 4,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 0.6
+        }
+      },
+      "false_positives": [
+        "erp_s1_sap: BSID.BUKRS -> VBAK.VKORG",
+        "erp_s1_sap: BSID.BUZEI -> KNA1.KTOKD",
+        "erp_s1_sap: BSID.BUZEI -> VBAP.KWMENG",
+        "erp_s1_sap: BSID.BUZEI -> VBAP.POSNR",
+        "erp_s1_sap: BSID.WAERS -> VBAK.WAERK",
+        "erp_s1_sap: KNA1.KTOKD -> BSID.BUZEI",
+        "erp_s1_sap: KNA1.KTOKD -> VBAP.KWMENG",
+        "erp_s1_sap: KNA1.KTOKD -> VBAP.POSNR",
+        "erp_s1_sap: MARA.MATNR -> MAKT.MATNR",
+        "erp_s1_sap: VBAK.VBELN -> VBAP.VBELN",
+        "erp_s1_sap: VBAK.WAERK -> BSID.WAERS",
+        "erp_s2_sap: BSID.BUKRS -> VBAK.VKORG",
+        "erp_s2_sap: BSID.BUZEI -> KNA1.KTOKD",
+        "erp_s2_sap: BSID.BUZEI -> VBAP.KWMENG",
+        "erp_s2_sap: BSID.BUZEI -> VBAP.POSNR",
+        "erp_s2_sap: BSID.WAERS -> VBAK.WAERK",
+        "erp_s2_sap: KNA1.KTOKD -> BSID.BUZEI",
+        "erp_s2_sap: KNA1.KTOKD -> VBAP.KWMENG",
+        "erp_s2_sap: KNA1.KTOKD -> VBAP.POSNR",
+        "erp_s2_sap: MARA.MATNR -> MAKT.MATNR",
+        "erp_s2_sap: VBAK.VBELN -> VBAP.VBELN",
+        "erp_s2_sap: VBAK.WAERK -> BSID.WAERS",
+        "erp_s3_sap: BSID.BUKRS -> VBAK.VKORG",
+        "erp_s3_sap: BSID.BUZEI -> KNA1.KTOKD",
+        "erp_s3_sap: BSID.BUZEI -> VBAP.KWMENG",
+        "erp_s3_sap: BSID.BUZEI -> VBAP.POSNR",
+        "erp_s3_sap: BSID.WAERS -> VBAK.WAERK",
+        "erp_s3_sap: KNA1.KTOKD -> BSID.BUZEI",
+        "erp_s3_sap: KNA1.KTOKD -> VBAP.KWMENG",
+        "erp_s3_sap: KNA1.KTOKD -> VBAP.POSNR",
+        "erp_s3_sap: MARA.MATNR -> MAKT.MATNR",
+        "erp_s3_sap: VBAK.VBELN -> VBAP.VBELN",
+        "erp_s3_sap: VBAK.WAERK -> BSID.WAERS",
+        "erp_s3_sap: VBAP.MATNR -> MAKT.MATNR",
+        "erp_s1_friendly: customers.account_group -> open_items.line_no",
+        "erp_s1_friendly: customers.account_group -> order_items.item_no",
+        "erp_s1_friendly: customers.account_group -> order_items.quantity",
+        "erp_s1_friendly: open_items.company_code -> order_headers.sales_org",
+        "erp_s1_friendly: open_items.currency -> order_headers.currency",
+        "erp_s1_friendly: open_items.line_no -> customers.account_group",
+        "erp_s1_friendly: open_items.line_no -> order_items.item_no",
+        "erp_s1_friendly: open_items.line_no -> order_items.quantity",
+        "erp_s1_friendly: order_headers.currency -> open_items.currency",
+        "erp_s1_friendly: order_headers.order_id -> order_items.order_id",
+        "erp_s1_friendly: products.product_id -> product_texts.product_id"
+      ],
+      "false_negatives": [
+        "erp_s1_sap: VBAP.MATNR -> MARA.MATNR",
+        "erp_s2_sap: VBAP.MATNR -> MARA.MATNR",
+        "erp_s1_friendly: order_items.product_id -> products.product_id"
+      ]
+    },
+    "inclusion_dependency": {
+      "aggregate": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "undirected_f1": 1.0,
+        "predicted": 20,
+        "gold": 20,
+        "true_positives": 20,
+        "normalization_recall": 1.0,
+        "wrong_normalizations": 0,
+        "fan_out_recall": 0.0,
+        "fan_out_precision": null,
+        "filter_accuracy": 0.0,
+        "decoy_rejection": 1.0
+      },
+      "per_dataset": {
+        "erp_s1_sap": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "undirected_f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 1.0
+        },
+        "erp_s2_sap": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "undirected_f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 1.0
+        },
+        "erp_s3_sap": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "undirected_f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 1.0
+        },
+        "erp_s1_friendly": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "undirected_f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 0.0,
+          "fan_out_precision": null,
+          "filter_accuracy": 0.0,
+          "decoy_rejection": 1.0
+        }
+      },
+      "false_positives": [],
+      "false_negatives": []
+    },
+    "joinpilot_deterministic": {
+      "aggregate": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "undirected_f1": 1.0,
+        "predicted": 20,
+        "gold": 20,
+        "true_positives": 20,
+        "normalization_recall": 1.0,
+        "wrong_normalizations": 0,
+        "fan_out_recall": 1.0,
+        "fan_out_precision": 1.0,
+        "filter_accuracy": 1.0,
+        "decoy_rejection": 1.0
+      },
+      "per_dataset": {
+        "erp_s1_sap": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "undirected_f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 1.0,
+          "fan_out_precision": 1.0,
+          "filter_accuracy": 1.0,
+          "decoy_rejection": 1.0
+        },
+        "erp_s2_sap": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "undirected_f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 1.0,
+          "fan_out_precision": 1.0,
+          "filter_accuracy": 1.0,
+          "decoy_rejection": 1.0
+        },
+        "erp_s3_sap": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "undirected_f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 1.0,
+          "fan_out_precision": 1.0,
+          "filter_accuracy": 1.0,
+          "decoy_rejection": 1.0
+        },
+        "erp_s1_friendly": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "undirected_f1": 1.0,
+          "predicted": 5,
+          "gold": 5,
+          "true_positives": 5,
+          "normalization_recall": 1.0,
+          "wrong_normalizations": 0,
+          "fan_out_recall": 1.0,
+          "fan_out_precision": 1.0,
+          "filter_accuracy": 1.0,
+          "decoy_rejection": 1.0
+        }
+      },
+      "false_positives": [],
+      "false_negatives": []
+    }
+  },
+  "views": {
+    "approve_all": {
+      "aggregate": {
+        "view_validity": 1.0,
+        "check_pass_first": 1.0,
+        "check_pass_final": 1.0,
+        "avg_repair_attempts": 0.0,
+        "views": 8,
+        "views_valid": 8,
+        "views_repaired": 0,
+        "checks_first": 60,
+        "checks_passed_first": 60,
+        "checks_final": 60,
+        "checks_passed_final": 60,
+        "repair_attempts": 0,
+        "approved": 20
+      },
+      "per_dataset": {
+        "erp_s1_sap": {
+          "views": 2,
+          "views_valid": 2,
+          "views_repaired": 0,
+          "checks_first": 15,
+          "checks_passed_first": 15,
+          "checks_final": 15,
+          "checks_passed_final": 15,
+          "repair_attempts": 0,
+          "approved": 5
+        },
+        "erp_s2_sap": {
+          "views": 2,
+          "views_valid": 2,
+          "views_repaired": 0,
+          "checks_first": 15,
+          "checks_passed_first": 15,
+          "checks_final": 15,
+          "checks_passed_final": 15,
+          "repair_attempts": 0,
+          "approved": 5
+        },
+        "erp_s3_sap": {
+          "views": 2,
+          "views_valid": 2,
+          "views_repaired": 0,
+          "checks_first": 15,
+          "checks_passed_first": 15,
+          "checks_final": 15,
+          "checks_passed_final": 15,
+          "repair_attempts": 0,
+          "approved": 5
+        },
+        "erp_s1_friendly": {
+          "views": 2,
+          "views_valid": 2,
+          "views_repaired": 0,
+          "checks_first": 15,
+          "checks_passed_first": 15,
+          "checks_final": 15,
+          "checks_passed_final": 15,
+          "repair_attempts": 0,
+          "approved": 5
+        }
+      }
+    },
+    "oracle": {
+      "aggregate": {
+        "view_validity": 1.0,
+        "check_pass_first": 1.0,
+        "check_pass_final": 1.0,
+        "avg_repair_attempts": 0.0,
+        "views": 8,
+        "views_valid": 8,
+        "views_repaired": 0,
+        "checks_first": 60,
+        "checks_passed_first": 60,
+        "checks_final": 60,
+        "checks_passed_final": 60,
+        "repair_attempts": 0,
+        "approved": 20
+      },
+      "per_dataset": {
+        "erp_s1_sap": {
+          "views": 2,
+          "views_valid": 2,
+          "views_repaired": 0,
+          "checks_first": 15,
+          "checks_passed_first": 15,
+          "checks_final": 15,
+          "checks_passed_final": 15,
+          "repair_attempts": 0,
+          "approved": 5
+        },
+        "erp_s2_sap": {
+          "views": 2,
+          "views_valid": 2,
+          "views_repaired": 0,
+          "checks_first": 15,
+          "checks_passed_first": 15,
+          "checks_final": 15,
+          "checks_passed_final": 15,
+          "repair_attempts": 0,
+          "approved": 5
+        },
+        "erp_s3_sap": {
+          "views": 2,
+          "views_valid": 2,
+          "views_repaired": 0,
+          "checks_first": 15,
+          "checks_passed_first": 15,
+          "checks_final": 15,
+          "checks_passed_final": 15,
+          "repair_attempts": 0,
+          "approved": 5
+        },
+        "erp_s1_friendly": {
+          "views": 2,
+          "views_valid": 2,
+          "views_repaired": 0,
+          "checks_first": 15,
+          "checks_passed_first": 15,
+          "checks_final": 15,
+          "checks_passed_final": 15,
+          "repair_attempts": 0,
+          "approved": 5
+        }
+      }
+    }
+  },
+  "kpis": {
+    "aggregate": {
+      "kpi_accuracy": 1.0,
+      "right": 416,
+      "total": 416
+    },
+    "per_dataset": {
+      "erp_s1_sap": {
+        "aging_buckets": {
+          "accuracy": 1.0,
+          "right": 5,
+          "total": 5,
+          "wrong": []
+        },
+        "revenue_2026_by_product_group": {
+          "accuracy": 1.0,
+          "right": 11,
+          "total": 11,
+          "wrong": []
+        },
+        "monthly_order_counts": {
+          "accuracy": 1.0,
+          "right": 18,
+          "total": 18,
+          "wrong": []
+        },
+        "top_customers_by_revenue": {
+          "accuracy": 1.0,
+          "right": 10,
+          "total": 10,
+          "wrong": []
+        },
+        "aging_top_customers": {
+          "accuracy": 1.0,
+          "right": 60,
+          "total": 60,
+          "wrong": []
+        }
+      },
+      "erp_s2_sap": {
+        "aging_buckets": {
+          "accuracy": 1.0,
+          "right": 5,
+          "total": 5,
+          "wrong": []
+        },
+        "revenue_2026_by_product_group": {
+          "accuracy": 1.0,
+          "right": 11,
+          "total": 11,
+          "wrong": []
+        },
+        "monthly_order_counts": {
+          "accuracy": 1.0,
+          "right": 18,
+          "total": 18,
+          "wrong": []
+        },
+        "top_customers_by_revenue": {
+          "accuracy": 1.0,
+          "right": 10,
+          "total": 10,
+          "wrong": []
+        },
+        "aging_top_customers": {
+          "accuracy": 1.0,
+          "right": 60,
+          "total": 60,
+          "wrong": []
+        }
+      },
+      "erp_s3_sap": {
+        "aging_buckets": {
+          "accuracy": 1.0,
+          "right": 5,
+          "total": 5,
+          "wrong": []
+        },
+        "revenue_2026_by_product_group": {
+          "accuracy": 1.0,
+          "right": 11,
+          "total": 11,
+          "wrong": []
+        },
+        "monthly_order_counts": {
+          "accuracy": 1.0,
+          "right": 18,
+          "total": 18,
+          "wrong": []
+        },
+        "top_customers_by_revenue": {
+          "accuracy": 1.0,
+          "right": 10,
+          "total": 10,
+          "wrong": []
+        },
+        "aging_top_customers": {
+          "accuracy": 1.0,
+          "right": 60,
+          "total": 60,
+          "wrong": []
+        }
+      },
+      "erp_s1_friendly": {
+        "aging_buckets": {
+          "accuracy": 1.0,
+          "right": 5,
+          "total": 5,
+          "wrong": []
+        },
+        "revenue_2026_by_product_group": {
+          "accuracy": 1.0,
+          "right": 11,
+          "total": 11,
+          "wrong": []
+        },
+        "monthly_order_counts": {
+          "accuracy": 1.0,
+          "right": 18,
+          "total": 18,
+          "wrong": []
+        },
+        "top_customers_by_revenue": {
+          "accuracy": 1.0,
+          "right": 10,
+          "total": 10,
+          "wrong": []
+        },
+        "aging_top_customers": {
+          "accuracy": 1.0,
+          "right": 60,
+          "total": 60,
+          "wrong": []
+        }
+      }
+    }
+  },
+  "redteam": {
+    "attacks": 71,
+    "block_rate": 1.0,
+    "missed": [],
+    "harmless": 11,
+    "false_block_rate": 0.0,
+    "wrongly_blocked": [],
+    "false_block_rate_questions": 0.1818,
+    "wrongly_blocked_questions": [
+      "h03",
+      "h11"
+    ]
+  },
+  "prompts": [
+    "fix_evidence.v1.md",
+    "fix_schema.v1.md",
+    "fix_sql.v1.md",
+    "json_only.v1.md",
+    "llm_only_joins.v1.md",
+    "parse_requirement.v1.md",
+    "qa_sql.v1.md",
+    "rank_joins.v1.md"
+  ],
+  "requirements": {
+    "erp_s1_sap": "Open receivables by customer and aging bucket, 2026 revenue by product group with product descriptions, monthly order counts, and the top customers by revenue.",
+    "erp_s2_sap": "Open receivables by customer and aging bucket, 2026 revenue by product group with product descriptions, monthly order counts, and the top customers by revenue.",
+    "erp_s3_sap": "Open receivables by customer and aging bucket, 2026 revenue by product group with product descriptions, monthly order counts, and the top customers by revenue.",
+    "erp_s1_friendly": "Open receivables by customer and aging bucket, 2026 revenue by product group with product descriptions, monthly order counts, and the top customers by revenue."
+  },
+  "llm_joins": {
+    "llm_only": {
+      "runs": [
+        {
+          "run": 1,
+          "aggregate": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "undirected_f1": 1.0,
+            "predicted": 20,
+            "gold": 20,
+            "true_positives": 20,
+            "normalization_recall": 0.0,
+            "wrong_normalizations": 4,
+            "fan_out_recall": 0.0,
+            "fan_out_precision": null,
+            "filter_accuracy": 0.0,
+            "decoy_rejection": 1.0
+          },
+          "per_dataset": {
+            "erp_s1_sap": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 0.0,
+                "wrong_normalizations": 1,
+                "fan_out_recall": 0.0,
+                "fan_out_precision": null,
+                "filter_accuracy": 0.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {}
+            },
+            "erp_s2_sap": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 0.0,
+                "wrong_normalizations": 1,
+                "fan_out_recall": 0.0,
+                "fan_out_precision": null,
+                "filter_accuracy": 0.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {}
+            },
+            "erp_s3_sap": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 0.0,
+                "wrong_normalizations": 1,
+                "fan_out_recall": 0.0,
+                "fan_out_precision": null,
+                "filter_accuracy": 0.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {}
+            },
+            "erp_s1_friendly": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 0.0,
+                "wrong_normalizations": 1,
+                "fan_out_recall": 0.0,
+                "fan_out_precision": null,
+                "filter_accuracy": 0.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {}
+            }
+          },
+          "usage": {
+            "calls": 4,
+            "failed_calls": 0,
+            "input_tokens": 1185,
+            "output_tokens": 516,
+            "latency_ms": 28092.9,
+            "cost_usd": 0.0
+          },
+          "false_positives": [],
+          "false_negatives": []
+        },
+        {
+          "run": 2,
+          "aggregate": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "undirected_f1": 1.0,
+            "predicted": 20,
+            "gold": 20,
+            "true_positives": 20,
+            "normalization_recall": 0.0,
+            "wrong_normalizations": 4,
+            "fan_out_recall": 0.0,
+            "fan_out_precision": null,
+            "filter_accuracy": 0.0,
+            "decoy_rejection": 1.0
+          },
+          "per_dataset": {
+            "erp_s1_sap": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 0.0,
+                "wrong_normalizations": 1,
+                "fan_out_recall": 0.0,
+                "fan_out_precision": null,
+                "filter_accuracy": 0.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {}
+            },
+            "erp_s2_sap": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 0.0,
+                "wrong_normalizations": 1,
+                "fan_out_recall": 0.0,
+                "fan_out_precision": null,
+                "filter_accuracy": 0.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {}
+            },
+            "erp_s3_sap": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 0.0,
+                "wrong_normalizations": 1,
+                "fan_out_recall": 0.0,
+                "fan_out_precision": null,
+                "filter_accuracy": 0.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {}
+            },
+            "erp_s1_friendly": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 0.0,
+                "wrong_normalizations": 1,
+                "fan_out_recall": 0.0,
+                "fan_out_precision": null,
+                "filter_accuracy": 0.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {}
+            }
+          },
+          "usage": {
+            "calls": 4,
+            "failed_calls": 0,
+            "input_tokens": 1185,
+            "output_tokens": 632,
+            "latency_ms": 26471.4,
+            "cost_usd": 0.0
+          },
+          "false_positives": [],
+          "false_negatives": []
+        },
+        {
+          "run": 3,
+          "aggregate": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "undirected_f1": 1.0,
+            "predicted": 20,
+            "gold": 20,
+            "true_positives": 20,
+            "normalization_recall": 0.0,
+            "wrong_normalizations": 4,
+            "fan_out_recall": 0.0,
+            "fan_out_precision": null,
+            "filter_accuracy": 0.0,
+            "decoy_rejection": 1.0
+          },
+          "per_dataset": {
+            "erp_s1_sap": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 0.0,
+                "wrong_normalizations": 1,
+                "fan_out_recall": 0.0,
+                "fan_out_precision": null,
+                "filter_accuracy": 0.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {}
+            },
+            "erp_s2_sap": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 0.0,
+                "wrong_normalizations": 1,
+                "fan_out_recall": 0.0,
+                "fan_out_precision": null,
+                "filter_accuracy": 0.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {}
+            },
+            "erp_s3_sap": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 0.0,
+                "wrong_normalizations": 1,
+                "fan_out_recall": 0.0,
+                "fan_out_precision": null,
+                "filter_accuracy": 0.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {}
+            },
+            "erp_s1_friendly": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 0.0,
+                "wrong_normalizations": 1,
+                "fan_out_recall": 0.0,
+                "fan_out_precision": null,
+                "filter_accuracy": 0.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {}
+            }
+          },
+          "usage": {
+            "calls": 4,
+            "failed_calls": 0,
+            "input_tokens": 1185,
+            "output_tokens": 690,
+            "latency_ms": 24113.1,
+            "cost_usd": 0.0
+          },
+          "false_positives": [],
+          "false_negatives": []
+        }
+      ],
+      "summary": {
+        "precision": {
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "recall": {
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "f1": {
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "normalization_recall": {
+          "mean": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "fan_out_recall": {
+          "mean": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "decoy_rejection": {
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
+      }
+    },
+    "joinpilot_full": {
+      "runs": [
+        {
+          "run": 1,
+          "aggregate": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "undirected_f1": 1.0,
+            "predicted": 20,
+            "gold": 20,
+            "true_positives": 20,
+            "normalization_recall": 1.0,
+            "wrong_normalizations": 0,
+            "fan_out_recall": 1.0,
+            "fan_out_precision": 1.0,
+            "filter_accuracy": 1.0,
+            "decoy_rejection": 1.0
+          },
+          "per_dataset": {
+            "erp_s1_sap": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 1.0,
+                "wrong_normalizations": 0,
+                "fan_out_recall": 1.0,
+                "fan_out_precision": 1.0,
+                "filter_accuracy": 1.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {
+                "parse_source": "llm",
+                "model_used": true,
+                "model_explained": 25,
+                "templated": 0,
+                "failed_checks": 0,
+                "omitted": 0,
+                "rescued": 0,
+                "warnings": 0
+              }
+            },
+            "erp_s2_sap": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 1.0,
+                "wrong_normalizations": 0,
+                "fan_out_recall": 1.0,
+                "fan_out_precision": 1.0,
+                "filter_accuracy": 1.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {
+                "parse_source": "llm",
+                "model_used": true,
+                "model_explained": 25,
+                "templated": 0,
+                "failed_checks": 0,
+                "omitted": 0,
+                "rescued": 0,
+                "warnings": 0
+              }
+            },
+            "erp_s3_sap": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 1.0,
+                "wrong_normalizations": 0,
+                "fan_out_recall": 1.0,
+                "fan_out_precision": 1.0,
+                "filter_accuracy": 1.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {
+                "parse_source": "llm",
+                "model_used": true,
+                "model_explained": 25,
+                "templated": 0,
+                "failed_checks": 0,
+                "omitted": 0,
+                "rescued": 0,
+                "warnings": 0
+              }
+            },
+            "erp_s1_friendly": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 1.0,
+                "wrong_normalizations": 0,
+                "fan_out_recall": 1.0,
+                "fan_out_precision": 1.0,
+                "filter_accuracy": 1.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {
+                "parse_source": "llm",
+                "model_used": true,
+                "model_explained": 25,
+                "templated": 0,
+                "failed_checks": 0,
+                "omitted": 0,
+                "rescued": 0,
+                "warnings": 0
+              }
+            }
+          },
+          "usage": {
+            "calls": 9,
+            "failed_calls": 0,
+            "input_tokens": 24573,
+            "output_tokens": 14983,
+            "latency_ms": 58849.1,
+            "cost_usd": 0.0
+          },
+          "false_positives": [],
+          "false_negatives": []
+        },
+        {
+          "run": 2,
+          "aggregate": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "undirected_f1": 1.0,
+            "predicted": 20,
+            "gold": 20,
+            "true_positives": 20,
+            "normalization_recall": 1.0,
+            "wrong_normalizations": 0,
+            "fan_out_recall": 1.0,
+            "fan_out_precision": 1.0,
+            "filter_accuracy": 1.0,
+            "decoy_rejection": 1.0
+          },
+          "per_dataset": {
+            "erp_s1_sap": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 1.0,
+                "wrong_normalizations": 0,
+                "fan_out_recall": 1.0,
+                "fan_out_precision": 1.0,
+                "filter_accuracy": 1.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {
+                "parse_source": "llm",
+                "model_used": true,
+                "model_explained": 25,
+                "templated": 0,
+                "failed_checks": 0,
+                "omitted": 0,
+                "rescued": 0,
+                "warnings": 0
+              }
+            },
+            "erp_s2_sap": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 1.0,
+                "wrong_normalizations": 0,
+                "fan_out_recall": 1.0,
+                "fan_out_precision": 1.0,
+                "filter_accuracy": 1.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {
+                "parse_source": "llm",
+                "model_used": true,
+                "model_explained": 25,
+                "templated": 0,
+                "failed_checks": 0,
+                "omitted": 0,
+                "rescued": 0,
+                "warnings": 0
+              }
+            },
+            "erp_s3_sap": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 1.0,
+                "wrong_normalizations": 0,
+                "fan_out_recall": 1.0,
+                "fan_out_precision": 1.0,
+                "filter_accuracy": 1.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {
+                "parse_source": "llm",
+                "model_used": true,
+                "model_explained": 25,
+                "templated": 0,
+                "failed_checks": 0,
+                "omitted": 0,
+                "rescued": 0,
+                "warnings": 0
+              }
+            },
+            "erp_s1_friendly": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 1.0,
+                "wrong_normalizations": 0,
+                "fan_out_recall": 1.0,
+                "fan_out_precision": 1.0,
+                "filter_accuracy": 1.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {
+                "parse_source": "llm",
+                "model_used": true,
+                "model_explained": 25,
+                "templated": 0,
+                "failed_checks": 0,
+                "omitted": 0,
+                "rescued": 0,
+                "warnings": 0
+              }
+            }
+          },
+          "usage": {
+            "calls": 9,
+            "failed_calls": 0,
+            "input_tokens": 24353,
+            "output_tokens": 14421,
+            "latency_ms": 32103.1,
+            "cost_usd": 0.0
+          },
+          "false_positives": [],
+          "false_negatives": []
+        },
+        {
+          "run": 3,
+          "aggregate": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "undirected_f1": 1.0,
+            "predicted": 20,
+            "gold": 20,
+            "true_positives": 20,
+            "normalization_recall": 1.0,
+            "wrong_normalizations": 0,
+            "fan_out_recall": 1.0,
+            "fan_out_precision": 1.0,
+            "filter_accuracy": 1.0,
+            "decoy_rejection": 1.0
+          },
+          "per_dataset": {
+            "erp_s1_sap": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 1.0,
+                "wrong_normalizations": 0,
+                "fan_out_recall": 1.0,
+                "fan_out_precision": 1.0,
+                "filter_accuracy": 1.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {
+                "parse_source": "llm",
+                "model_used": true,
+                "model_explained": 25,
+                "templated": 0,
+                "failed_checks": 0,
+                "omitted": 0,
+                "rescued": 0,
+                "warnings": 0
+              }
+            },
+            "erp_s2_sap": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 1.0,
+                "wrong_normalizations": 0,
+                "fan_out_recall": 1.0,
+                "fan_out_precision": 1.0,
+                "filter_accuracy": 1.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {
+                "parse_source": "llm",
+                "model_used": true,
+                "model_explained": 25,
+                "templated": 0,
+                "failed_checks": 0,
+                "omitted": 0,
+                "rescued": 0,
+                "warnings": 0
+              }
+            },
+            "erp_s3_sap": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 1.0,
+                "wrong_normalizations": 0,
+                "fan_out_recall": 1.0,
+                "fan_out_precision": 1.0,
+                "filter_accuracy": 1.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {
+                "parse_source": "llm",
+                "model_used": true,
+                "model_explained": 25,
+                "templated": 0,
+                "failed_checks": 0,
+                "omitted": 0,
+                "rescued": 0,
+                "warnings": 0
+              }
+            },
+            "erp_s1_friendly": {
+              "metrics": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "undirected_f1": 1.0,
+                "predicted": 5,
+                "gold": 5,
+                "true_positives": 5,
+                "normalization_recall": 1.0,
+                "wrong_normalizations": 0,
+                "fan_out_recall": 1.0,
+                "fan_out_precision": 1.0,
+                "filter_accuracy": 1.0,
+                "decoy_rejection": 1.0
+              },
+              "diagnostics": {
+                "parse_source": "llm",
+                "model_used": true,
+                "model_explained": 25,
+                "templated": 0,
+                "failed_checks": 0,
+                "omitted": 0,
+                "rescued": 0,
+                "warnings": 0
+              }
+            }
+          },
+          "usage": {
+            "calls": 9,
+            "failed_calls": 0,
+            "input_tokens": 24495,
+            "output_tokens": 15916,
+            "latency_ms": 33100.3,
+            "cost_usd": 0.0
+          },
+          "false_positives": [],
+          "false_negatives": []
+        }
+      ],
+      "summary": {
+        "precision": {
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "recall": {
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "f1": {
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "normalization_recall": {
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "fan_out_recall": {
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "decoy_rejection": {
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
+      }
+    }
+  },
+  "qa": {
+    "aggregate": {
+      "execution_accuracy": 0.75,
+      "right": 120,
+      "total": 160,
+      "blocked": {
+        "LLM_UNAVAILABLE": 10,
+        "QUERY_FAILED": 2
+      },
+      "avg_attempts": 1.02
+    },
+    "by_tag": {
+      "duplicates": 0.9375,
+      "none": 0.7917,
+      "normalization": 0.4,
+      "null_keys": 0.75,
+      "orphans": 0.7083
+    },
+    "by_template": {
+      "avg_items_per_order": 1.0,
+      "big_orders": 1.0,
+      "customer_open_amount": 0.3333,
+      "customer_orders_2026": 0.8333,
+      "customers_in_country": 0.9167,
+      "customers_without_open_items": 0.0,
+      "distinct_customers_month": 1.0,
+      "duplicate_customer_names": 1.0,
+      "eur_open_items": 1.0,
+      "largest_open_item": 1.0,
+      "not_due_count": 0.0,
+      "open_items_without_customer": 1.0,
+      "open_over_90": 0.5,
+      "open_total": 1.0,
+      "order_value_year": 0.5,
+      "orders_in_month": 0.8333,
+      "orders_per_sales_org": 0.75,
+      "orphan_items": 0.75,
+      "product_quantity": 0.75,
+      "products_in_group": 0.125,
+      "revenue_group_2026": 0.9167,
+      "top_country_customers": 1.0,
+      "top_group_2026": 1.0,
+      "top_overdue_customers": 1.0,
+      "top_products_2026": 0.75
+    },
+    "per_dataset": {
+      "erp_s1_sap": {
+        "accuracy": 0.725,
+        "right": 29,
+        "total": 40,
+        "wrong": [
+          {
+            "id": "q004",
+            "question": "How many products belong to product group BEAR?",
+            "sql": "SELECT COUNT(DISTINCT \"MARA__MATNR\") AS product_count FROM model.\"v_vbap\" WHERE \"MARA__MATKL\" = 'BEAR'"
+          },
+          {
+            "id": "q005",
+            "question": "How many products belong to product group CABL?",
+            "sql": "SELECT COUNT(DISTINCT \"MARA__MATNR\") AS product_count FROM model.\"v_vbap\" WHERE \"MARA__MATKL\" = 'CABL'"
+          },
+          {
+            "id": "q006",
+            "question": "How many sales orders were created in February 2025?",
+            "sql": "SELECT COUNT(DISTINCT \"VBAK__VBELN\") AS orders FROM model.\"v_vbap\" WHERE EXTRACT(YEAR FROM \"VBAK__ERDAT_date\") = 2025 AND EXTRACT(MONTH FROM \"VBAK__ERDAT_date\") = 20"
+          },
+          {
+            "id": "q009",
+            "question": "What is the total net value of all sales orders created in 2025?",
+            "sql": "SELECT ROUND(SUM(DISTINCT \"VBAK__NETWR\"), 2) AS total_net_value FROM model.\"v_vbap\" WHERE YEAR(\"VBAK__ERDAT_date\") = 2025"
+          },
+          {
+            "id": "q014",
+            "question": "What is the total open receivables amount for customer 0000150179?",
+            "sql": "SELECT ROUND(SUM(\"DMBTR\"), 2) AS total_open_receivables FROM model.\"v_bsid\" WHERE \"KUNNR\" = '0000150179'"
+          },
+          {
+            "id": "q015",
+            "question": "What is the total open receivables amount for customer 0000192391?",
+            "sql": "SELECT ROUND(SUM(\"DMBTR\"), 2) AS total_open_receivables FROM model.\"v_bsid\" WHERE \"KUNNR\" = '0000192391'"
+          },
+          {
+            "id": "q016",
+            "question": "What is the total open receivables amount for customer 0000925437?",
+            "sql": "SELECT ROUND(SUM(\"DMBTR\"), 2) AS total_open_receivables FROM model.\"v_bsid\" WHERE \"KUNNR\" = '0000925437'"
+          },
+          {
+            "id": "q017",
+            "question": "How many sales order items reference a product that does not exist in the product master?",
+            "sql": null
+          },
+          {
+            "id": "q029",
+            "question": "How many customers in the customer master have no open receivables?",
+            "sql": "SELECT COUNT(*) AS count FROM \"KNA1\" WHERE NOT \"KUNNR\" IN (SELECT DISTINCT \"KUNNR\" FROM model.\"v_bsid\" WHERE NOT \"KUNNR\" IS NULL)"
+          },
+          {
+            "id": "q034",
+            "question": "List the product IDs and total item net value of the 3 products with the highest item net value in 2026, highest first.",
+            "sql": null
+          }
+        ]
+      },
+      "erp_s2_sap": {
+        "accuracy": 0.85,
+        "right": 34,
+        "total": 40,
+        "wrong": [
+          {
+            "id": "q005",
+            "question": "How many products belong to product group SAFE?",
+            "sql": "SELECT COUNT(DISTINCT \"MARA__MATNR\") AS product_count FROM model.\"v_vbap\" WHERE \"MARA__MATKL\" = 'SAFE'"
+          },
+          {
+            "id": "q012",
+            "question": "What is the total open receivables amount more than 90 days overdue as of June 30, 2026 (the due date is the baseline date plus the payment days)?",
+            "sql": "SELECT ROUND(SUM(\"DMBTR\"), 2) AS total_amount FROM model.\"v_bsid\" WHERE (\"DATE_PART\"('day', CAST('2026-06-30' AS DATE) - \"due_date\")) > 90"
+          },
+          {
+            "id": "q019",
+            "question": "What was the total item net value in 2026 for products in product group TOOL?",
+            "sql": null
+          },
+          {
+            "id": "q022",
+            "question": "How many sales orders did South Ashford Industrial LLC place in 2026?",
+            "sql": null
+          },
+          {
+            "id": "q029",
+            "question": "How many customers in the customer master have no open receivables?",
+            "sql": "SELECT COUNT(*) AS count FROM \"KNA1\" WHERE NOT \"KUNNR\" IN (SELECT DISTINCT \"KUNNR\" FROM \"BSID\")"
+          },
+          {
+            "id": "q036",
+            "question": "How many open receivable line items are not yet due as of June 30, 2026 (the due date is the baseline date plus the payment days)?",
+            "sql": "SELECT COUNT(*) AS open_line_items FROM model.\"v_bsid\" WHERE (\"ZFBDT\" + INTERVAL '1' DAY * \"ZBD1T\") > CAST('2026-06-30' AS DATE)"
+          }
+        ]
+      },
+      "erp_s3_sap": {
+        "accuracy": 0.725,
+        "right": 29,
+        "total": 40,
+        "wrong": [
+          {
+            "id": "q004",
+            "question": "How many products belong to product group FILT?",
+            "sql": "SELECT COUNT(DISTINCT \"MARA__MATNR\") AS product_count FROM model.\"v_vbap\" WHERE \"MARA__MATKL\" = 'FILT'"
+          },
+          {
+            "id": "q005",
+            "question": "How many products belong to product group VALV?",
+            "sql": null
+          },
+          {
+            "id": "q010",
+            "question": "What is the total net value of all sales orders created in 2026?",
+            "sql": "SELECT ROUND(SUM(DISTINCT \"VBAK__NETWR\"), 2) AS total_net_value FROM model.\"v_vbap\" WHERE YEAR(\"VBAK__ERDAT_date\") = 2026"
+          },
+          {
+            "id": "q012",
+            "question": "What is the total open receivables amount more than 90 days overdue as of June 30, 2026 (the due date is the baseline date plus the payment days)?",
+            "sql": "SELECT ROUND(SUM(\"DMBTR\"), 2) AS total_receivables FROM model.\"v_bsid\" WHERE (CAST('2026-06-30' AS DATE) - (\"ZFBDT\" + INTERVAL '1' DAY * \"ZBD1T\")) > 90"
+          },
+          {
+            "id": "q014",
+            "question": "What is the total open receivables amount for customer 0000107501?",
+            "sql": "SELECT ROUND(SUM(\"DMBTR\"), 2) AS total_open_receivables FROM model.\"v_bsid\" WHERE \"KUNNR\" = '0000107501'"
+          },
+          {
+            "id": "q015",
+            "question": "What is the total open receivables amount for customer 0000466152?",
+            "sql": "SELECT ROUND(SUM(\"DMBTR\"), 2) AS total_open_receivables FROM model.\"v_bsid\" WHERE \"KUNNR\" = '0000466152'"
+          },
+          {
+            "id": "q016",
+            "question": "What is the total open receivables amount for customer 0000842877?",
+            "sql": "SELECT ROUND(SUM(\"DMBTR\"), 2) AS total_receivables FROM model.\"v_bsid\" WHERE \"KUNNR\" = '0000842877'"
+          },
+          {
+            "id": "q022",
+            "question": "How many sales orders did South Beldale Trading LLC place in 2026?",
+            "sql": null
+          },
+          {
+            "id": "q027",
+            "question": "How many sales orders does each sales organization have?",
+            "sql": null
+          },
+          {
+            "id": "q029",
+            "question": "How many customers in the customer master have no open receivables?",
+            "sql": "SELECT COUNT(*) AS customers_with_no_open_receivables FROM \"KNA1\" WHERE NOT \"KUNNR\" IN (SELECT DISTINCT \"KUNNR\" FROM model.\"v_bsid\" WHERE NOT \"KUNNR\" IS NULL)"
+          }
+        ]
+      },
+      "erp_s1_friendly": {
+        "accuracy": 0.7,
+        "right": 28,
+        "total": 40,
+        "wrong": [
+          {
+            "id": "q003",
+            "question": "How many customers are based in India?",
+            "sql": null
+          },
+          {
+            "id": "q004",
+            "question": "How many products belong to product group BEAR?",
+            "sql": "SELECT COUNT(DISTINCT \"products__product_id\") AS product_count FROM model.\"v_order_items\" WHERE \"products__product_group\" = 'BEAR'"
+          },
+          {
+            "id": "q005",
+            "question": "How many products belong to product group CABL?",
+            "sql": "SELECT COUNT(DISTINCT \"products__product_id\") AS product_count FROM model.\"v_order_items\" WHERE \"products__product_group\" = 'CABL'"
+          },
+          {
+            "id": "q006",
+            "question": "How many sales orders were created in February 2025?",
+            "sql": "SELECT COUNT(DISTINCT \"order_headers__order_id\") AS orders FROM model.\"v_order_items\" WHERE EXTRACT(YEAR FROM \"order_headers__order_date_date\") = 2025 AND EXTRACT(MONTH FROM \"order_headers__order_date_date\") = 202"
+          },
+          {
+            "id": "q009",
+            "question": "What is the total net value of all sales orders created in 2025?",
+            "sql": "SELECT ROUND(SUM(DISTINCT \"order_headers__net_value\"), 2) AS total_net_value FROM model.\"v_order_items\" WHERE YEAR(\"order_headers__order_date_date\") = 2025"
+          },
+          {
+            "id": "q010",
+            "question": "What is the total net value of all sales orders created in 2026?",
+            "sql": "SELECT ROUND(SUM(DISTINCT \"order_headers__net_value\"), 2) AS total_net_value FROM model.\"v_order_items\" WHERE YEAR(\"order_headers__order_date_date\") = 2026"
+          },
+          {
+            "id": "q015",
+            "question": "What is the total open receivables amount for customer 0000192391?",
+            "sql": "SELECT ROUND(SUM(\"amount\"), 2) AS total_open_receivables FROM model.\"v_open_items\" WHERE \"customer_id\" = '0000192391'"
+          },
+          {
+            "id": "q016",
+            "question": "What is the total open receivables amount for customer 0000925437?",
+            "sql": "SELECT ROUND(SUM(\"amount\"), 2) AS total_open_receivables FROM model.\"v_open_items\" WHERE \"customer_id\" = '0000925437'"
+          },
+          {
+            "id": "q029",
+            "question": "How many customers in the customer master have no open receivables?",
+            "sql": "SELECT COUNT(*) AS count FROM customers WHERE NOT customer_id IN (SELECT DISTINCT customer_id FROM open_items WHERE NOT customer_id IS NULL)"
+          },
+          {
+            "id": "q030",
+            "question": "What is the total ordered quantity of product 000000000042887125?",
+            "sql": null
+          }
+        ]
+      }
+    },
+    "usage": {
+      "calls": 163,
+      "failed_calls": 10,
+      "input_tokens": 730911,
+      "output_tokens": 15215,
+      "latency_ms": 130831.5,
+      "cost_usd": 0.0
+    }
+  }
+}
