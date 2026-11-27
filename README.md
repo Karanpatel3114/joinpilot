@@ -46,6 +46,10 @@ Analysts spend days studying cryptic ERP tables, guessing join keys, writing vie
 
 ![KPI dashboard generated from the approved model](docs/images/dashboard.png)
 
+**Ask.** Questions in plain English, answered by Gemini with read-only SQL that must pass the guard first. Each answer shows its chart, its rows, the exact SQL and what it read.
+
+![A question answered with a chart, rows and the guarded SQL](docs/images/ask.png)
+
 The screenshots are captured from the running app by a Playwright script: `cd web && SCREENSHOTS=1 npx playwright test screenshots`.
 
 ## Use it from Claude (MCP)
@@ -145,7 +149,7 @@ Run once, at the end, on data the heuristics were never tuned on: 12 synthetic E
 - **Views and checks:** 26 of 26 generated views were valid and 209 of 209 checks passed on the first try, both with every recommended join approved and with only the true joins approved.
 - **KPIs:** **1,248 of 1,248** gold values right across the 12 ERP datasets (TPC-H has no KPI templates).
 - **SQL safety:** 71 of 71 attacks blocked and 0 of 11 ordinary queries wrongly blocked; the stricter mode for model-written questions refuses 2 of the 11 (both pad keys by hand). These are the same fixed queries as on dev, so they test the guard, not generalisation.
-- **Not measured yet:** question answering and the LLM-ranked join systems need a Gemini key, so they, their latency and cost are still to come. TPC-H numbers here are not official TPC-H benchmark results.
+- **With the language model:** question answering and the model-ranked join systems were measured later, on the dev split only (below); the test split stays a single run. TPC-H numbers here are not official TPC-H benchmark results.
 
 ### Development results: dev split
 
@@ -169,14 +173,17 @@ How to read this honestly:
 
 **SQL safety** (same run): the guard blocked 100% of 71 red-team attacks (file and URL readers, other databases, recursive queries, values grown to gigabytes from tiny input, parser crashes, stacked statements, DDL and DML, system functions, Unicode lookalikes and more) and wrongly blocked 0% of 11 ordinary analytics queries ([attacks](eval/redteam/sql_attacks.jsonl)). The stricter mode used for model-written questions also refuses 2 of those 11, both of which pad customer keys by hand; the model views already do that.
 
-**Question answering:** measured with a language model only (`--llm`); the first run is pending a free Gemini key.
+**With the language model, dev split** (gemini-3.5-flash-lite on Google's free tier, 2026-11-27, commit `7c4b16b`, [results](eval/results/2026-11-27-7c4b16b-dev/metrics.md); the model join systems are in its `metrics.json`):
+
+- **Question answering:** **120 of 160** questions answered exactly right (75.0%), with 1.02 attempts per question on average. Every refusal counts as wrong: 10 questions got no answer because the free tier refused the calls after retries (rate limits, plus two temporary server errors), and 2 queries failed to run. By kind of question: duplicates 93.8%, plain lookups 79.2%, null keys 75.0%, orphans 70.8%, normalization 40.0%. The common mistakes are model errors: filtering by a customer number without its leading zeros, counting products from order items instead of the product master, and `SUM(DISTINCT ...)` on amounts.
+- **Join discovery with the model:** both model-based systems reached F1 1.000 in each of 3 runs. A model that sees only the schema (`llm_only`) found the right joins but caught 0 of 4 leading-zero key mismatches and none of the fan-out risks; JoinPilot with the model (`joinpilot_full`) matched the deterministic scorer on everything and wrote an explanation for every candidate. On this data the model adds explanations, not accuracy.
 
 ## Limitations
 
 - **Synthetic data.** The ERP data is generated, with planted issues, so that the right answers are known. Real ERP systems have hundreds of tables and messier names; JoinPilot caps a project at 30 tables and 200 columns per table.
 - **Narrow test coverage.** The test split is one 5-join ERP schema (new seeds, two sizes, two naming styles) plus TPC-H, so normalization and fan-out each rest on a few planted cases. Composite (two-column) joins are not proposed yet, which is the one join missed on TPC-H.
 - **KPI templates** are written for the receivables and sales schema; on other schemas the dashboard may have no metrics.
-- **Question answering** has not been measured yet: it needs a Gemini key, and the free tier's daily quota limits how many questions the demo can answer.
+- **Question answering** is measured on the dev split only, with one model: 75% exact answers, and weakest on questions that need key normalization. The free tier's rate limits and daily quota also cap how many questions the demo can answer.
 - **Workspaces are not accounts.** The public demo keeps visitors apart with a random id stored in the browser, like an unguessable link. Clearing browser storage loses the projects, and the free host wipes everything when it restarts.
 - **Free hosting** sleeps after 15 idle minutes, so the first visit can take about a minute.
 

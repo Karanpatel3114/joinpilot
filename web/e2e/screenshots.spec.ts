@@ -42,6 +42,15 @@ test('README screenshots', async ({ page }) => {
   await page.waitForTimeout(800)
   await shot(page, 'dashboard')
 
+  // Needs a Gemini key on the API; without one the answer says a key is needed.
+  await page.getByRole('tab', { name: 'Ask' }).click()
+  await page.getByLabel('Your question').fill('Which 5 customers have the most overdue receivables?')
+  await page.getByRole('button', { name: 'Ask', exact: true }).click()
+  await expect(page.getByRole('table', { name: 'Answer rows' })).toBeVisible({ timeout: 60_000 })
+  await page.getByText('SQL and evidence').click()
+  await page.waitForTimeout(800)
+  await shot(page, 'ask')
+
   await page.goto('/')
   await page.screenshot({ path: out('projects') })
 })
