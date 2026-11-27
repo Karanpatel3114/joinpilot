@@ -1,6 +1,6 @@
 import { Check, Copy, Download } from 'lucide-react'
 import { useState } from 'react'
-import { downloadUrl } from '../api/client'
+import { downloadFile } from '../api/client'
 import { useViews } from '../api/hooks'
 import type { SqlDialect } from '../types/api'
 import { ErrorNote } from './ErrorNote'
@@ -37,7 +37,16 @@ function CopyButton({ text }: { text: string }) {
 /** The generated views' SQL in the chosen warehouse dialect, with copy and download. */
 export function SqlViewer({ runId }: { runId: string }) {
   const [dialect, setDialect] = useState<SqlDialect>('duckdb')
+  const [downloading, setDownloading] = useState(false)
+  const [downloadError, setDownloadError] = useState<unknown>(null)
   const views = useViews(runId, dialect)
+  const download = () => {
+    setDownloading(true)
+    setDownloadError(null)
+    downloadFile(`/runs/${runId}/export?dialect=${dialect}`, `joinpilot-${runId.slice(0, 8)}-${dialect}.sql`)
+      .catch(setDownloadError)
+      .finally(() => setDownloading(false))
+  }
   return (
     <section aria-label="Generated SQL" className="space-y-3">
       <div className="flex flex-wrap items-center gap-3">
@@ -56,14 +65,11 @@ export function SqlViewer({ runId }: { runId: string }) {
             ))}
           </select>
         </label>
-        <a
-          href={downloadUrl(`/runs/${runId}/export?dialect=${dialect}`)}
-          className="btn-primary"
-        >
-          <Download className="h-4 w-4" /> Download SQL
-        </a>
+        <button type="button" onClick={download} disabled={downloading} className="btn-primary">
+          <Download className="h-4 w-4" /> {downloading ? 'Downloading…' : 'Download SQL'}
+        </button>
       </div>
-      <ErrorNote error={views.error} />
+      <ErrorNote error={views.error ?? downloadError} />
       {views.isFetching && views.isPlaceholderData && (
         <p className="text-sm text-slate-500 dark:text-slate-400">Translating to {dialect}…</p>
       )}

@@ -36,10 +36,22 @@ function baseHeaders(): Record<string, string> {
   return { [WORKSPACE_HEADER]: workspaceId() }
 }
 
-/** A link to an API download, carrying the workspace (links cannot set headers). */
-export function downloadUrl(path: string): string {
-  const separator = path.includes('?') ? '&' : '?'
-  return `${API_URL}${path}${separator}workspace=${encodeURIComponent(workspaceId())}`
+/**
+ * Fetch an API file with the workspace header and save it in the browser.
+ * A plain link cannot send headers, and putting the workspace id in a URL would leak
+ * it into logs, history and shared links.
+ */
+export async function downloadFile(path: string, filename: string): Promise<void> {
+  const response = await fetch(`${API_URL}${path}`, { headers: baseHeaders() })
+  if (!response.ok) await parse<never>(response)
+  const url = URL.createObjectURL(await response.blob())
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.append(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
 }
 
 /** GET a JSON resource. */

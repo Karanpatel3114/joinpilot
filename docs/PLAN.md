@@ -160,7 +160,7 @@ Done when: every finding from the post-release audit (correctness, public-demo a
 - [x] M13.6 `fix(sqlgen): keep derived columns from clashing with uploaded ones`
 - [x] M13.7 `feat(api): refuse tables past a row limit and time-limit heavy queries`
 - [x] M13.8 `feat(api): cap projects and stored bytes per workspace`
-- [ ] M13.9 `fix(web): download exports with the workspace header, not the URL`
+- [x] M13.9 `fix(web): download exports with the workspace header, not the URL`
 - [ ] M13.10 `fix(api): refuse malformed ids in the access guard`
 - [ ] M13.11 `fix(api): rate-limit IPv6 clients by /64 network`
 - [ ] M13.12 `fix(web): treat projects as read-only until access is known`

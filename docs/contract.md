@@ -1,6 +1,8 @@
 # JoinPilot API contract
 
-Version: 0.14. Change it only with the `contract-sync` skill, and bump the version.
+Version: 0.15. Change it only with the `contract-sync` skill, and bump the version.
+
+Changes in 0.15 (breaking, small): `?workspace=` on the SQL download is no longer read; send the `X-Workspace` header, as on every other request.
 
 Changes in 0.14 (additive): storage limits. Creating projects and loading tables share `LIMITS__STORAGE_PER_HOUR` per client (429); a workspace holds at most `MAX_PROJECTS_PER_WORKSPACE` projects (409); uploads past `MAX_ROWS_PER_TABLE` rows are refused (422), loads are refused while the server's disk is nearly full (413), and warehouse work past `DUCKDB_TIME_LIMIT_SECONDS` is stopped (422 for uploads and profiles, a failed run otherwise).
 
@@ -37,7 +39,7 @@ Error codes: `NOT_FOUND` (404), `INVALID_INPUT` (422, also for malformed request
 Limits (from config, per client IP): `LIMITS__REQUESTS_PER_MINUTE` for every endpoint except `/health`; starting runs and asking questions, which use the language model, also share `LIMITS__EXPENSIVE_PER_MINUTE` and `LIMITS__EXPENSIVE_PER_DAY`, plus `LIMITS__EXPENSIVE_GLOBAL_PER_DAY` across all clients. Creating projects and loading tables share `LIMITS__STORAGE_PER_HOUR`. A refused request gets 429 `RATE_LIMITED` with a `Retry-After` header and `details.retry_after_seconds`. JSON bodies over `LIMITS__MAX_BODY_KB` get 413 `PAYLOAD_TOO_LARGE`; uploads use `MAX_UPLOAD_MB`.
 
 ## Workspaces
-Each browser makes a random workspace id once and sends it with every request as `X-Workspace: <id>`: 16 to 64 letters, digits, `-` or `_`. Download links, which cannot set headers, may send `?workspace=<id>` instead. A request without one uses the `local` workspace (scripts, the MCP server, tests); a malformed id gives 422 `INVALID_INPUT`.
+Each browser makes a random workspace id once and sends it with every request as `X-Workspace: <id>`: 16 to 64 letters, digits, `-` or `_`. The id is only ever read from the header, never from the URL (the console downloads files with `fetch`). A request without one uses the `local` workspace (scripts, the MCP server, tests); a malformed id gives 422 `INVALID_INPUT`.
 
 - `POST /projects` creates the project in the caller's workspace, and `GET /projects` lists that workspace's projects plus the shared demo project.
 - Every endpoint with a `project_id` or `run_id` answers 404 `NOT_FOUND` for a project (or a run of a project) in another workspace.

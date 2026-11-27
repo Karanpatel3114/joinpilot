@@ -65,11 +65,10 @@ def test_another_workspaces_project_and_runs_are_not_found(client: TestClient) -
         "message": "Run not found.",
         "details": {"run_id": run},
     }
-    link = client.get(f"/runs/{run}/export?workspace={ALICE['X-Workspace']}")
-    assert link.status_code == 200, "download links carry the workspace in the query"
+    assert client.get(f"/runs/{run}/export", headers=ALICE).status_code == 200
     query = f"?workspace={ALICE['X-Workspace']}"
-    assert client.get(f"/projects/{project}/profile{query}").status_code == 404
-    assert client.get(f"/projects{query}").json() == [], "only the download reads the query"
+    assert client.get(f"/runs/{run}/export{query}").status_code == 404, "never from the URL"
+    assert client.get(f"/projects{query}").json() == []
 
 
 def test_a_malformed_workspace_id_is_refused(client: TestClient) -> None:

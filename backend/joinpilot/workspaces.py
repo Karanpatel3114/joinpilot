@@ -16,7 +16,6 @@ import re
 from joinpilot.errors import InvalidInputError
 
 HEADER = "X-Workspace"
-QUERY = "workspace"
 LOCAL = "local"
 DEMO = "demo"
 # Where the demo project is built; it moves to DEMO only once its run has completed
