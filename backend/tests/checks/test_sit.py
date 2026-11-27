@@ -6,7 +6,7 @@ import duckdb
 import pytest
 
 from joinpilot.agent.ranking import to_proposal
-from joinpilot.checks.sit import CheckResult, run_checks
+from joinpilot.checks.sit import MAX_CHECK_ID, CheckResult, bounded_id, run_checks
 from joinpilot.config import (
     AgentSettings,
     CheckSettings,
@@ -135,3 +135,27 @@ def test_aging_works_when_the_baseline_date_is_stored_as_text() -> None:
     assert view.status == "created"
     results = run_checks(con, [spec], profile, CheckSettings())
     assert all(r.passed for r in results if r.kind == "bucket_coverage")
+
+
+def test_open_items_without_a_due_date_fail_bucket_coverage() -> None:
+    con = duckdb.connect()
+    con.execute(
+        "CREATE TABLE BSID AS SELECT range::VARCHAR AS BELNR, "
+        "CASE WHEN range < 3 THEN '20261399' ELSE '20260501' END AS ZFBDT, "
+        "30 AS ZBD1T, CAST(10 AS DECIMAL(15,2)) AS DMBTR FROM range(10)"
+    )
+    profile = profile_project(con, {"b": "BSID"}, ProfilingSettings())
+    spec = build_view("BSID", [], {t.name: t.columns for t in profile.tables}, "aging", KPI)
+    create_views(con, [spec])
+    results = run_checks(con, [spec], profile, CheckSettings())
+    [coverage] = [r for r in results if r.kind == "bucket_coverage"]
+    assert (coverage.passed, coverage.observed) == (False, 3)
+    assert "3 of them have no due date" in coverage.message
+
+
+def test_long_check_ids_fit_their_column_and_stay_unique() -> None:
+    long = "v_" + "x" * 300
+    first, second = bounded_id(f"{long}:a"), bounded_id(f"{long}:b")
+    assert len(first) == len(second) == MAX_CHECK_ID
+    assert first != second and first.startswith("v_xxx")
+    assert bounded_id("v_bsid:fan_out") == "v_bsid:fan_out"

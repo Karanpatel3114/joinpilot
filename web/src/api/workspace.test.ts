@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { downloadUrl } from './client'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { downloadFile } from './client'
 import { workspaceId } from './workspace'
 
 describe('workspace id', () => {
@@ -10,9 +10,17 @@ describe('workspace id', () => {
     expect(localStorage.getItem('joinpilot-workspace')).toBe(id)
   })
 
-  it('rides along on download links', () => {
-    expect(downloadUrl('/runs/r1/export?dialect=duckdb')).toMatch(
-      new RegExp(`/runs/r1/export\\?dialect=duckdb&workspace=${workspaceId()}$`),
-    )
+  afterEach(() => vi.restoreAllMocks())
+
+  it('is sent as a header on downloads, never in the URL', async () => {
+    const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('SELECT 1;'))
+    URL.createObjectURL = vi.fn(() => 'blob:sql')
+    URL.revokeObjectURL = vi.fn()
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    await downloadFile('/runs/r1/export?dialect=duckdb', 'model.sql')
+    const [url, init] = fetch.mock.calls[0]
+    expect(String(url)).toMatch(/\/runs\/r1\/export\?dialect=duckdb$/)
+    expect(init?.headers).toEqual({ 'X-Workspace': workspaceId() })
+    expect(click).toHaveBeenCalledOnce()
   })
 })

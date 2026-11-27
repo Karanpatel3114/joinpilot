@@ -193,10 +193,23 @@ def literal(value: str) -> str:
     return exp.Literal.string(value).sql(dialect="duckdb")
 
 
-def join_condition(join: ApprovedJoin, from_alias: str, to_alias: str) -> str:
+def types_differ(join: ApprovedJoin, columns: dict[str, list[ColumnProfile]]) -> bool:
+    """True when the two key columns have different types, so they must compare as text."""
+
+    def type_of(table: str, name: str) -> str | None:
+        return next((c.type for c in columns.get(table, []) if c.name == name), None)
+
+    return type_of(join.from_table, join.from_column) != type_of(join.to_table, join.to_column)
+
+
+def join_condition(
+    join: ApprovedJoin, from_alias: str, to_alias: str, as_text: bool = False
+) -> str:
     """The ON clause, applying the recorded normalization (and the filter, for attributes)."""
-    left = normalized_sql(f"{from_alias}.{ident(join.from_column)}", join.normalization, "from")
-    right = normalized_sql(f"{to_alias}.{ident(join.to_column)}", join.normalization, "to")
+    left = normalized_sql(
+        f"{from_alias}.{ident(join.from_column)}", join.normalization, "from", as_text
+    )
+    right = normalized_sql(f"{to_alias}.{ident(join.to_column)}", join.normalization, "to", as_text)
     condition = f"{left} = {right}"
     if join.filter_column and join.filter_value is not None:
         alias = from_alias if join.filter_on == "from" else to_alias
@@ -231,29 +244,38 @@ def render_view(
     tables = [(fact, "t0", "")]
     for i, join in enumerate(chosen, start=1):
         alias = f"t{i}"
+        as_text = types_differ(join, columns)
         if join.is_attribute:
-            table, condition = join.from_table, join_condition(join, alias, aliases[join.to_table])
+            table = join.from_table
+            condition = join_condition(join, alias, aliases[join.to_table], as_text)
         else:
-            table, condition = join.to_table, join_condition(join, aliases[join.from_table], alias)
+            table = join.to_table
+            condition = join_condition(join, aliases[join.from_table], alias, as_text)
         aliases[table] = alias
         sources.append(f"LEFT JOIN {ident(table)} AS {alias} ON {condition}")
         select += [
             f"{alias}.{ident(c.name)} AS {ident(f'{table}__{c.name}')}" for c in columns[table]
         ]
         tables.append((table, alias, f"{table}__"))
+    # A derived column never replaces an uploaded column of the same name: DuckDB would
+    # rename one of the two, and checks and metrics would read the wrong one.
+    taken = {c.name.lower() for c in columns[fact]}
+    taken |= {f"{prefix}{c.name}".lower() for t, _, prefix in tables[1:] for c in columns[t]}
     derived = []
     for table, alias, prefix in tables:
         for column in columns[table]:
-            if is_text_date(column):
-                name = f"{prefix}{column.name}_date"
+            name = f"{prefix}{column.name}_date"
+            if is_text_date(column) and name.lower() not in taken:
                 parsed = f"try_strptime({alias}.{ident(column.name)}, '%Y%m%d')"
                 select.append(f"CAST({parsed} AS DATE) AS {ident(name)}")
                 derived.append(name)
-    if wants_aging(requirement):
+                taken.add(name.lower())
+    aging_names = ["due_date", "days_overdue", "aging_bucket"]
+    if wants_aging(requirement) and not taken & set(aging_names):
         reference = settings.reference_date or date.today()
         aging = aging_columns("t0", columns[fact], reference, settings.aging_bucket_edges)
         select += aging
-        derived += ["due_date", "days_overdue", "aging_bucket"] if aging else []
+        derived += aging_names if aging else []
     sql = (
         f"CREATE OR REPLACE VIEW {SANDBOX_SCHEMA}.{ident(spec.name)} AS SELECT {', '.join(select)} "
         f"FROM {' '.join(sources)}"
@@ -290,6 +312,8 @@ def create_views(
         try:
             spec.sql = guard_sql(spec.sql, catalog, "create_view")
             con.execute(spec.sql)
+        except duckdb.InterruptException:
+            raise  # the warehouse time limit stops the whole run, not just this view
         except (UnsafeSQLError, duckdb.Error) as error:
             outcome = "failed"
             message = error.message if isinstance(error, UnsafeSQLError) else type(error).__name__

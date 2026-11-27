@@ -124,7 +124,7 @@ Done when: Claude Desktop or Claude Code can list projects, profile tables, prop
 - [x] M10.1 `feat(mcp): add MCP server with JoinPilot tools`
 - [x] M10.2 `test(mcp): add tool contract tests`
 - [x] M10.3 `docs(mcp): add setup guide and demo GIF`
-- [ ] M10.3b Demo GIF of Claude Desktop using the tools (owner records it; the guide and tests are done)
+- [ ] M10.3b Demo GIF of Claude Desktop using the tools (optional, deferred: the owner records it; the guide and tests are done, and commit M10.3 shipped the guide only)
 
 ## M11: Ship it (branch `m11-deploy`)
 Done when: JoinPilot runs at a public URL with CI building Docker images and running an evaluation smoke test. **Add the live link to the resumes.**
@@ -148,3 +148,39 @@ Done when: the public demo is safe, the final evaluation is in the README, and v
 - [x] M12.3 `feat(eval): run the final test split and publish results`
 - [x] M12.4 `docs: add architecture diagram, limitations and live demo link`
 - [x] M12.5 `chore: release v1.0.0 with changelog`
+
+## v1.0.1: Gemini on (branch `gemini-on`, PR #15)
+Done when: the free model is switched on, measured on the dev split and reported.
+
+- [x] `fix(llm): pin the default model to gemini-3.5-flash-lite`
+- [x] `docs(eval): add question answering and model join results with Gemini`
+- [x] `chore: release v1.0.1 with Gemini results`
+
+## M13: Audit fixes (branch `m13-audit-fixes`)
+Done when: every finding from the post-release audit (correctness, public-demo abuse, console, docs and infra) is fixed or explicitly recorded as a limitation.
+
+- [x] M13.1 `fix(sqlgen): compare join keys of different types as text`
+- [x] M13.2 `fix(agent): report views that could not be created as failed checks`
+- [x] M13.3 `fix(checks): count open items without a due date in bucket coverage`
+- [x] M13.4 `fix(checks): keep long check ids within their database column`
+- [x] M13.5 `fix(jobs): give every resume its own job id`
+- [x] M13.6 `fix(sqlgen): keep derived columns from clashing with uploaded ones`
+- [x] M13.7 `feat(api): refuse tables past a row limit and time-limit heavy queries`
+- [x] M13.8 `feat(api): cap projects and stored bytes per workspace`
+- [x] M13.9 `fix(web): download exports with the workspace header, not the URL`
+- [x] M13.10 `fix(api): refuse malformed ids in the access guard`
+- [x] M13.11 `fix(api): rate-limit IPv6 clients by /64 network`
+- [x] M13.12 `fix(web): treat projects as read-only until access is known`
+- [x] M13.13 `fix(web): stop polling on errors and honour Retry-After`
+- [x] M13.14 `feat(web): explain cold starts and network errors`
+- [x] M13.15 `build(web): add a Content-Security-Policy`
+- [x] M13.16 `fix(web): fix small console issues found in the audit`
+- [x] M13.17 `docs: correct stack, plan, spec and CI notes`
+- [x] M13.18 `build: pin CI actions and base images and harden ignores`
+- [x] M13.19 `chore: release v1.1.0 with changelog`
+- [x] M13.20 `fix(api): cap projects only in browser workspaces`
+- [x] M13.21 `fix(api): keep the contract's error codes and headers for HTTP errors`
+- [x] M13.22 `fix(web): retry only while the API is unreachable`
+- [x] M13.23 `fix(agent): stop runs at the time limit and repair only built views`
+- [x] M13.24 `fix(profiling): count Parquet rows from their row groups`
+- [x] M13.25 `feat(eval): record the dev evaluation after the audit fixes`

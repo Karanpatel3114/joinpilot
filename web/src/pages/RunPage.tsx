@@ -12,6 +12,7 @@ import { RunStatusBadge } from '../components/RunStatusBadge'
 import { RunTimeline } from '../components/RunTimeline'
 import { SqlViewer } from '../components/SqlViewer'
 import type { RunStatus } from '../types/api'
+import { LoadingNote } from '../components/LoadingNote'
 
 /** Statuses before the ranking step has stored any proposals. */
 const BEFORE_PROPOSALS: RunStatus[] = ['queued', 'profiling', 'ranking']
@@ -43,7 +44,7 @@ export function RunPage() {
   const readOnly = projects.data?.find((p) => p.id === run.data?.project_id)?.read_only ?? !projects.data
   if (!run.data) {
     if (run.error) return <ErrorNote error={run.error} />
-    return <p className="text-sm text-slate-500 dark:text-slate-400">Loading run…</p>
+    return <LoadingNote label="Loading run…" />
   }
   const list = proposals.data ?? []
   const noCandidates = proposals.isSuccess && list.length === 0 && SETTLED.includes(run.data.status)

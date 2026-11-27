@@ -24,7 +24,7 @@ def test_queues_follow_the_jobs_mode(tmp_path: Path) -> None:
         make("arq")
 
 
-def test_arq_queue_enqueues_one_job_per_run_step(
+def test_arq_queue_gives_every_submit_its_own_job_id(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     sent: list[tuple[Any, ...]] = []
@@ -43,8 +43,13 @@ def test_arq_queue_enqueues_one_job_per_run_step(
     settings = Settings(
         _env_file=None, data_dir=tmp_path, jobs_mode="arq", redis_url="redis://x:6379"
     )
-    queue.ArqJobQueue(settings).submit("start_run", "r1")
-    assert sent == [("start_run", "r1", "start_run:r1"), ("closed",)]
+    arq = queue.ArqJobQueue(settings)
+    arq.submit("resume_run", "r1")
+    arq.submit("resume_run", "r1")
+    first, second = sent[0], sent[2]
+    assert first[:2] == second[:2] == ("resume_run", "r1")
+    assert first[2].startswith("resume_run:r1:") and first[2] != second[2]
+    assert sent[1] == sent[3] == ("closed",)
 
 
 def wait_for(client: TestClient, run_id: str, status: str, seconds: float = 60) -> dict[str, Any]:

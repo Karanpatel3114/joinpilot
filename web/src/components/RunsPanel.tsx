@@ -3,6 +3,7 @@ import { type FormEvent, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useRuns, useStartRun } from '../api/hooks'
 import { ErrorNote } from './ErrorNote'
+import { LoadingNote } from './LoadingNote'
 import { RunStatusBadge } from './RunStatusBadge'
 
 const EXAMPLES = [
@@ -57,6 +58,13 @@ export function RunsPanel({ projectId, readOnly = false }: { projectId: string; 
           </div>
           <ErrorNote error={start.error} />
         </form>
+      )}
+      <ErrorNote error={runs.error} />
+      {runs.isLoading && <LoadingNote label="Loading runs…" />}
+      {runs.data?.length === 0 && (
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          {readOnly ? 'No runs yet.' : 'No runs yet. Describe what the model should answer and start one.'}
+        </p>
       )}
       <ul aria-label="Runs" className="space-y-2">
         {runs.data?.map((run) => (

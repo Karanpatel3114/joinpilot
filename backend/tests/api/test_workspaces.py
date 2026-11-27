@@ -1,13 +1,19 @@
 """Private workspaces: projects and runs are only served to the workspace that owns them."""
 
+import asyncio
 import io
 import uuid
+from typing import Any
 
+import pytest
+from fastapi import Request
 from fastapi.testclient import TestClient
 
+from joinpilot.api.deps import guard_project_access
 from joinpilot.config import Settings
 from joinpilot.db.models import RunRow
 from joinpilot.db.session import session_scope
+from joinpilot.errors import InvalidInputError
 from joinpilot.services.projects import ProjectService
 from joinpilot.workspaces import DEMO
 
@@ -65,11 +71,10 @@ def test_another_workspaces_project_and_runs_are_not_found(client: TestClient) -
         "message": "Run not found.",
         "details": {"run_id": run},
     }
-    link = client.get(f"/runs/{run}/export?workspace={ALICE['X-Workspace']}")
-    assert link.status_code == 200, "download links carry the workspace in the query"
+    assert client.get(f"/runs/{run}/export", headers=ALICE).status_code == 200
     query = f"?workspace={ALICE['X-Workspace']}"
-    assert client.get(f"/projects/{project}/profile{query}").status_code == 404
-    assert client.get(f"/projects{query}").json() == [], "only the download reads the query"
+    assert client.get(f"/runs/{run}/export{query}").status_code == 404, "never from the URL"
+    assert client.get(f"/projects{query}").json() == []
 
 
 def test_a_malformed_workspace_id_is_refused(client: TestClient) -> None:
@@ -101,3 +106,21 @@ def test_the_demo_project_is_shared_and_read_only(client: TestClient) -> None:
     assert client.get(f"/runs/{demo_run}", headers=BOB).status_code == 200
     asked = client.post(f"/projects/{demo.id}/ask", headers=ALICE, json={"question": "How many?"})
     assert "read-only" not in asked.json().get("error", {}).get("message", ""), "asking only reads"
+
+
+def test_the_guard_refuses_malformed_ids_itself() -> None:
+    scope: dict[str, Any] = {
+        "type": "http",
+        "method": "GET",
+        "path": "/runs/x",
+        "headers": [],
+        "path_params": {"run_id": "../../etc"},
+    }
+    with pytest.raises(InvalidInputError) as error:
+        asyncio.run(guard_project_access(Request(scope)))
+    assert error.value.details == {"fields": ["path.run_id"]}
+
+
+def test_malformed_ids_get_the_usual_validation_error(client: TestClient) -> None:
+    body = client.get("/runs/not-a-uuid").json()["error"]
+    assert (body["code"], body["details"]["fields"]) == ("INVALID_INPUT", ["path.run_id"])

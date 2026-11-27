@@ -24,6 +24,7 @@ export function GlossarySearch({ projectId }: { projectId: string }) {
           id="glossary-query"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
+          maxLength={200}
           placeholder="Find columns by business words, e.g. customer name"
           className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900"
         />

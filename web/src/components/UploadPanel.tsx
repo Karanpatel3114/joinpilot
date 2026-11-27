@@ -11,7 +11,9 @@ export function UploadPanel({ projectId }: { projectId: string }) {
 
   function onFiles(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? [])
-    if (files.length) upload.mutate(files)
+    if (!files.length) return
+    sample.reset() // the success note shows the latest load only
+    upload.mutate(files)
     event.target.value = ''
   }
 
@@ -44,7 +46,10 @@ export function UploadPanel({ projectId }: { projectId: string }) {
         </button>
         <button
           type="button"
-          onClick={() => sample.mutate('erp_s1_sap')}
+          onClick={() => {
+            upload.reset()
+            sample.mutate('erp_s1_sap')
+          }}
           disabled={busy}
           className="btn-primary"
         >
@@ -52,9 +57,9 @@ export function UploadPanel({ projectId }: { projectId: string }) {
         </button>
       </div>
       {busy && <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">Loading tables…</p>}
-      {upload.data && (
-        <p className="mt-3 text-sm text-brand-500 dark:text-brand-300">
-          Loaded {upload.data.map((t) => t.name).join(', ')}.
+      {(upload.data ?? sample.data) && (
+        <p role="status" className="mt-3 text-sm text-brand-500 dark:text-brand-300">
+          Loaded {(upload.data ?? sample.data ?? []).map((t) => t.name).join(', ')}.
         </p>
       )}
       <div className="mt-3 space-y-2">

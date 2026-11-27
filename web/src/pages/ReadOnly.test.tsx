@@ -23,4 +23,28 @@ describe('the shared sample project', () => {
     expect(screen.queryByRole('button', { name: /load erp sample/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /start run/i })).not.toBeInTheDocument()
   })
+
+  it('shows no upload buttons while the project list is still loading', async () => {
+    let release = () => {}
+    const pending = new Promise<void>((resolve) => (release = resolve))
+    server.use(
+      http.get(`${API}/projects`, async () => {
+        await pending
+        return HttpResponse.json([sample])
+      }),
+    )
+    renderAt(`/projects/${sample.id}`)
+    expect(await screen.findByText('Loading project…')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /load erp sample/i })).not.toBeInTheDocument()
+    release()
+    expect(await screen.findByText(/A shared sample/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /load erp sample/i })).not.toBeInTheDocument()
+  })
+
+  it('explains a project this browser cannot see', async () => {
+    server.use(http.get(`${API}/projects`, () => HttpResponse.json([])))
+    renderAt(`/projects/${sample.id}`)
+    expect(await screen.findByText(/This project was not found/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /load erp sample/i })).not.toBeInTheDocument()
+  })
 })

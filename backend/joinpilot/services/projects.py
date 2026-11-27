@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import logging
 import re
+import shutil
 import uuid
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -28,6 +30,7 @@ from joinpilot.profiling.loader import (
     load_arrow,
     load_file,
     table_name_from_filename,
+    time_limit,
 )
 from joinpilot.profiling.models import ProjectProfile
 from joinpilot.profiling.service import profile_project
@@ -40,7 +43,9 @@ from joinpilot.services.store import (
 )
 from joinpilot.synth.dataset import build_dataset
 from joinpilot.synth.naming import Naming
-from joinpilot.workspaces import DEMO, LOCAL, visible_workspaces
+from joinpilot.workspaces import DEMO, DEMO_STAGING, LOCAL, visible_workspaces
+
+logger = logging.getLogger(__name__)
 
 PROFILE_FILE = "profile.json"
 SAMPLE_PATTERN = re.compile(r"^erp_(?P<size>[a-z])(?P<seed>\d{1,4})_(?P<naming>sap|friendly)$")
@@ -76,6 +81,15 @@ class ProjectService:
         if not 1 <= len(name) <= MAX_NAME_CHARS:
             raise InvalidInputError(
                 f"A project name needs 1 to {MAX_NAME_CHARS} characters.", {"field": "name"}
+            )
+        # Only browser workspaces are capped: `local` (MCP server, scripts) keeps its data
+        # and has no way to delete projects, and the demo builds its own.
+        limit = self.settings.max_projects_per_workspace
+        capped = workspace not in (LOCAL, DEMO, DEMO_STAGING)
+        if capped and len(self.store.list_projects([workspace])) >= limit:
+            raise ConflictError(
+                f"This workspace already has {limit} projects, the most it can hold.",
+                {"max_projects": limit},
             )
         return self.store.create(name, workspace)
 
@@ -134,6 +148,7 @@ class ProjectService:
                         table,
                         display_name=filename,
                         max_columns=self.settings.max_columns_per_table,
+                        max_rows=self.settings.max_rows_per_table,
                     )
                 return self._register(record, [loaded])
         finally:
@@ -209,18 +224,33 @@ class ProjectService:
         with project_lock(project_id), self._connect(project_id, read_only=True) as con:
             yield con
 
-    def _connect(self, project_id: str, read_only: bool = False) -> duckdb.DuckDBPyConnection:
-        """Open the project's warehouse with the configured memory and thread limits."""
-        return connect(
+    @contextmanager
+    def _connect(
+        self, project_id: str, read_only: bool = False
+    ) -> Iterator[duckdb.DuckDBPyConnection]:
+        """Open the project's warehouse with the configured memory, thread and time limits."""
+        con = connect(
             self.store.project_dir(project_id),
             read_only=read_only,
             sealed=read_only,
             memory_limit=self.settings.duckdb_memory_limit,
             threads=self.settings.duckdb_threads,
         )
+        try:
+            with time_limit(con, self.settings.duckdb_time_limit_seconds):
+                yield con
+        finally:
+            con.close()
 
     def _check_capacity(self, record: ProjectRecord, new_tables: list[str]) -> None:
-        """Refuse loads that would push the project past the table limit."""
+        """Refuse loads that would push the project past the table limit or fill the disk."""
+        self.store.root.mkdir(parents=True, exist_ok=True)
+        free = shutil.disk_usage(self.store.root).free
+        if free < self.settings.min_free_disk_mb * 1024 * 1024:
+            logger.warning("refused a load: %d MB of disk free", free // (1024 * 1024))
+            raise PayloadTooLargeError(
+                "The server has no room for more data right now; please try again later."
+            )
         names = {t.name.casefold() for t in record.tables} | {n.casefold() for n in new_tables}
         if len(names) > self.settings.max_tables_per_project:
             raise InvalidInputError(

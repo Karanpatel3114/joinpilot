@@ -7,6 +7,7 @@ keys find no match or are empty, and does every row land in an aging bucket.
 
 from __future__ import annotations
 
+import hashlib
 from typing import Any, Literal
 
 import duckdb
@@ -17,12 +18,25 @@ from joinpilot.profiling.models import ProjectProfile
 from joinpilot.profiling.normalize import normalized_sql
 from joinpilot.profiling.sql import ident
 from joinpilot.sqlgen.guard import SANDBOX_SCHEMA, Catalog, catalog_from_connection, guard_sql
-from joinpilot.sqlgen.views import ApprovedJoin, ViewSpec, bucket_labels, literal
+from joinpilot.sqlgen.views import ApprovedJoin, ViewSpec, bucket_labels, literal, types_differ
 
 CheckKind = Literal[
     "row_count", "fan_out", "orphan_keys", "null_keys", "bucket_coverage", "reconciliation"
 ]
 MEASURE_TYPES = ("DECIMAL", "DOUBLE", "FLOAT", "REAL", "HUGEINT")
+MAX_CHECK_ID = 200  # the length of check_results.check_id
+
+
+def bounded_id(raw: str) -> str:
+    """A check id that fits its database column: long ids keep a prefix and a hash.
+
+    Ids name tables and columns, which can be long; Postgres refuses values past the
+    column length, which would fail the run after its views were built.
+    """
+    if len(raw) <= MAX_CHECK_ID:
+        return raw
+    digest = hashlib.sha256(raw.encode()).hexdigest()[:12]
+    return f"{raw[: MAX_CHECK_ID - len(digest) - 1]}~{digest}"
 
 
 class CheckResult(BaseModel):
@@ -98,7 +112,7 @@ class ViewChecker:
         message: str,
     ) -> CheckResult:
         """Build one result with a stable id."""
-        check_id = f"{spec.name}:{kind}" + (f":{detail}" if detail else "")
+        check_id = bounded_id(f"{spec.name}:{kind}" + (f":{detail}" if detail else ""))
         return CheckResult(
             check_id=check_id,
             view=spec.name,
@@ -145,8 +159,9 @@ class ViewChecker:
         """Orphan and null shares of one join's key, within configured limits."""
         source, target = ident(join.from_table), ident(join.to_table)
         key = f"s.{ident(join.from_column)}"
-        left = normalized_sql(key, join.normalization, "from")
-        right = normalized_sql(f"t.{ident(join.to_column)}", join.normalization, "to")
+        as_text = types_differ(join, self.columns)
+        left = normalized_sql(key, join.normalization, "from", as_text)
+        right = normalized_sql(f"t.{ident(join.to_column)}", join.normalization, "to", as_text)
         total = int(self.value(f"SELECT COUNT(*) FROM {source} s"))
         nulls = int(self.value(f"SELECT COUNT(*) FROM {source} s WHERE {key} IS NULL"))
         orphans = int(
@@ -181,20 +196,26 @@ class ViewChecker:
         ]
 
     def bucket_coverage(self, spec: ViewSpec, view: str) -> list[CheckResult]:
-        """Every row with a due date lands in exactly one known aging bucket."""
+        """Every open item lands in exactly one known aging bucket.
+
+        Items without a due date (an unreadable baseline date or empty payment days) get
+        no bucket, so they count as missing: they would drop out of the aging totals.
+        """
         if "aging_bucket" not in spec.derived:
             return []
         labels = ", ".join(literal(label) for label in bucket_labels(self.aging_edges))
         missing = int(
             self.value(
-                f"SELECT COUNT(*) FROM {view} WHERE due_date IS NOT NULL "
-                f"AND (aging_bucket IS NULL OR aging_bucket NOT IN ({labels}))"
+                f"SELECT COUNT(*) FROM {view} "
+                f"WHERE aging_bucket IS NULL OR aging_bucket NOT IN ({labels})"
             )
         )
+        no_due_date = int(self.value(f"SELECT COUNT(*) FROM {view} WHERE due_date IS NULL"))
         message = (
-            "Every open item with a due date is in an aging bucket."
+            "Every open item is in an aging bucket."
             if not missing
-            else f"{missing} open items with a due date have no valid aging bucket."
+            else f"{missing} open items have no valid aging bucket "
+            f"({no_due_date} of them have no due date)."
         )
         return [self.result(spec, "bucket_coverage", "", missing == 0, missing, 0, message)]
 
@@ -220,6 +241,20 @@ class ViewChecker:
                 self.result(spec, "reconciliation", column.name, passed, in_view, in_fact, message)
             )
         return results
+
+
+def not_created(view: str, reason: str | None) -> CheckResult:
+    """A failing check for a view that could not be built, so the run never looks green."""
+    return CheckResult(
+        check_id=bounded_id(f"{view}:row_count"),
+        view=view,
+        kind="row_count",
+        passed=False,
+        observed=None,
+        expected="view created",
+        message=f"The view could not be created ({reason or 'unknown error'}), so nothing "
+        "in it was checked.",
+    )
 
 
 def run_checks(

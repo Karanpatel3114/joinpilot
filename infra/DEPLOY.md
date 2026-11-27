@@ -19,7 +19,7 @@ What to expect from free hosting:
 
 1. Sign in at [vercel.com](https://vercel.com) with **Continue with GitHub**.
 2. **Add New → Project**, import `joinpilot`, and set **Root Directory** to `web`. Keep **Include files outside the root directory** switched on (the default): the build type-checks tests that read `shared/fixtures/`. Vercel reads [`web/vercel.json`](../web/vercel.json) for the build.
-3. Under **Environment Variables**, add `VITE_API_URL` = your Render address, such as `https://joinpilot-api.onrender.com` (no trailing slash).
+3. Under **Environment Variables**, add `VITE_API_URL` = your Render address, such as `https://joinpilot-api.onrender.com` (no trailing slash). If it is not that exact address, change `connect-src` in the Content-Security-Policy in [`web/vercel.json`](../web/vercel.json) to match, or the browser will block every API call.
 4. Click **Deploy**. Note the address Vercel gives you, such as `https://joinpilot.vercel.app`.
 5. If that address differs from what you entered for `CORS_ORIGINS` on Render, update it under the Render service's **Environment** tab. Render restarts the API with the new value.
 

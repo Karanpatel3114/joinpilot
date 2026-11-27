@@ -1,6 +1,10 @@
 # JoinPilot API contract
 
-Version: 0.13. Change it only with the `contract-sync` skill, and bump the version.
+Version: 0.15. Change it only with the `contract-sync` skill, and bump the version.
+
+Changes in 0.15 (breaking, small): `?workspace=` on the SQL download is no longer read; send the `X-Workspace` header, as on every other request.
+
+Changes in 0.14 (additive): storage limits. Creating projects and loading tables share `LIMITS__STORAGE_PER_HOUR` per client (429); a workspace holds at most `MAX_PROJECTS_PER_WORKSPACE` projects (409); uploads past `MAX_ROWS_PER_TABLE` rows are refused (422), loads are refused while the server's disk is nearly full (413), and warehouse work past `DUCKDB_TIME_LIMIT_SECONDS` is stopped (422 for uploads and profiles; a run fails, or, in its dashboard step, completes without the dashboard).
 
 Changes in 0.13 (additive): private workspaces without login (D-037). Requests may send an `X-Workspace` header; projects belong to the workspace that created them, and another workspace's projects and runs are not found. `Project` gains `read_only`, true for the shared demo project.
 
@@ -32,10 +36,10 @@ All responses are JSON. Errors use `{"error": {"code": "STRING_CODE", "message":
 
 Error codes: `NOT_FOUND` (404), `INVALID_INPUT` (422, also for malformed requests, with `details.fields`), `CONFLICT` (409), `PAYLOAD_TOO_LARGE` (413), `RATE_LIMITED` (429), `INTERNAL_ERROR` (500).
 
-Limits (from config, per client IP): `LIMITS__REQUESTS_PER_MINUTE` for every endpoint except `/health`; starting runs and asking questions, which use the language model, also share `LIMITS__EXPENSIVE_PER_MINUTE` and `LIMITS__EXPENSIVE_PER_DAY`, plus `LIMITS__EXPENSIVE_GLOBAL_PER_DAY` across all clients. A refused request gets 429 `RATE_LIMITED` with a `Retry-After` header and `details.retry_after_seconds`. JSON bodies over `LIMITS__MAX_BODY_KB` get 413 `PAYLOAD_TOO_LARGE`; uploads use `MAX_UPLOAD_MB`.
+Limits (from config, per client IP): `LIMITS__REQUESTS_PER_MINUTE` for every endpoint except `/health`; starting runs and asking questions, which use the language model, also share `LIMITS__EXPENSIVE_PER_MINUTE` and `LIMITS__EXPENSIVE_PER_DAY`, plus `LIMITS__EXPENSIVE_GLOBAL_PER_DAY` across all clients. Creating projects and loading tables share `LIMITS__STORAGE_PER_HOUR`. A refused request gets 429 `RATE_LIMITED` with a `Retry-After` header and `details.retry_after_seconds`. JSON bodies over `LIMITS__MAX_BODY_KB` get 413 `PAYLOAD_TOO_LARGE`; uploads use `MAX_UPLOAD_MB`.
 
 ## Workspaces
-Each browser makes a random workspace id once and sends it with every request as `X-Workspace: <id>`: 16 to 64 letters, digits, `-` or `_`. Download links, which cannot set headers, may send `?workspace=<id>` instead. A request without one uses the `local` workspace (scripts, the MCP server, tests); a malformed id gives 422 `INVALID_INPUT`.
+Each browser makes a random workspace id once and sends it with every request as `X-Workspace: <id>`: 16 to 64 letters, digits, `-` or `_`. The id is only ever read from the header, never from the URL (the console downloads files with `fetch`). A request without one uses the `local` workspace (scripts, the MCP server, tests); a malformed id gives 422 `INVALID_INPUT`.
 
 - `POST /projects` creates the project in the caller's workspace, and `GET /projects` lists that workspace's projects plus the shared demo project.
 - Every endpoint with a `project_id` or `run_id` answers 404 `NOT_FOUND` for a project (or a run of a project) in another workspace.
@@ -44,7 +48,7 @@ Each browser makes a random workspace id once and sends it with every request as
 The id keeps visitors of the public demo apart like an unguessable link; it is not an account.
 
 ## Health
-`GET /health` returns `{"status": "ok", "version": "1.0.1"}`
+`GET /health` returns `{"status": "ok", "version": "1.1.0"}`
 
 ## Projects and tables
 `POST /projects` with `{"name": "Demo ERP"}` (1–100 characters, trimmed) returns 201 and `Project {id, name, created_at, table_count, read_only}`. `read_only` is true only for the shared demo project when another workspace reads it.

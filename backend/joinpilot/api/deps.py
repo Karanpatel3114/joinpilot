@@ -8,13 +8,13 @@ from fastapi import Request
 from fastapi.concurrency import run_in_threadpool
 
 from joinpilot.config import Settings
-from joinpilot.errors import NotFoundError
+from joinpilot.errors import InvalidInputError, NotFoundError
 from joinpilot.glossary.service import GlossaryService
 from joinpilot.jobs.queue import JobQueue
 from joinpilot.services.projects import ProjectService
 from joinpilot.services.questions import QuestionService
 from joinpilot.services.runs import RunService
-from joinpilot.workspaces import HEADER, QUERY, parse_workspace
+from joinpilot.workspaces import HEADER, parse_workspace
 
 
 def get_settings_from_app(request: Request) -> Settings:
@@ -44,20 +44,13 @@ def get_question_service(request: Request) -> QuestionService:
     return QuestionService(get_settings_from_app(request), get_run_service(request))
 
 
-# Routes opened as plain links, which cannot send headers: only the SQL download.
-QUERY_ROUTES = frozenset({"export_model"})
-
-
 def get_workspace(request: Request) -> str:
-    """The caller's workspace, from the X-Workspace header.
+    """The caller's workspace, from the X-Workspace header only.
 
-    The SQL download link may carry it as `?workspace=` instead; no other route reads
-    the query, so a shared download link cannot be used to change projects.
+    The id is the workspace's only credential, so it never travels in a URL, where it
+    would land in access logs, browser history and shared links.
     """
-    value = request.headers.get(HEADER)
-    if not value and getattr(request.scope.get("route"), "name", "") in QUERY_ROUTES:
-        value = request.query_params.get(QUERY)
-    return parse_workspace(value)
+    return parse_workspace(request.headers.get(HEADER))
 
 
 # POST endpoints that only read: asking a question changes nothing in the project.
@@ -76,8 +69,10 @@ async def guard_project_access(request: Request) -> None:
         return
     try:
         UUID(str(params[key]))
-    except ValueError:
-        return  # not an id at all: the endpoint answers with its own 422
+    except ValueError as error:
+        # Fail closed, in the same shape as the API's own validation errors: a future
+        # route that took the id as a plain string must not skip this check.
+        raise InvalidInputError("The request is not valid.", {"fields": [f"path.{key}"]}) from error
     workspace = get_workspace(request)
     route = request.scope.get("route")
     write = request.method != "GET" and getattr(route, "name", "") not in READ_ONLY_POSTS

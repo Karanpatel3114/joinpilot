@@ -14,8 +14,8 @@ web/dist/
 
 # Secrets and local config
 .env
-.env.local
-web/.env.local
+.env.*
+!.env.example
 .claude/settings.local.json
 CLAUDE.local.md
 

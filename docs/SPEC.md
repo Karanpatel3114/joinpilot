@@ -22,7 +22,7 @@ Turning a business requirement and raw ERP tables into a trustworthy data model 
 ## Features by phase
 - **MVP (M0–M6):** data generator, profiling, join candidates, agent ranking with evidence, human approval, view generation, SIT checks, evaluation.
 - **v1 (M7–M11):** web console, KPI dashboard, question answering, MCP server, Docker, CI/CD, deployment, tracing.
-- **Polish (M12):** authentication, demo mode, final evaluation, README and demo video.
+- **Polish (M12):** authentication, demo mode, final evaluation, README and demo video. As built: private workspaces per browser instead of login accounts (D-037); the demo video is optional and not made yet.
 - **Stretch (only after v1):** dbt project export, test runs in Snowflake or BigQuery dialects, incremental re-profiling.
 
 ## Architecture
@@ -81,9 +81,9 @@ Details are in docs/eval-plan.md:
 
 ## Demo
 - A live URL with a preloaded sample project and no login needed.
-- A 2-minute video.
+- A 2-minute video (optional; not made yet).
 - A README with screenshots and the evaluation table.
-- A GIF of the MCP server in use.
+- A GIF of the MCP server in use (optional; not made yet, see PLAN M10.3b).
 
 ## Non-goals
 - Not a replacement for BI tools.

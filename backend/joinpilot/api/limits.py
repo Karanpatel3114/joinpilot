@@ -10,6 +10,7 @@ single API process this app runs as (D-035).
 
 from __future__ import annotations
 
+import ipaddress
 import json
 import re
 import threading
@@ -22,7 +23,8 @@ from joinpilot.config import Settings
 
 EXPENSIVE = re.compile(r"^/projects/[^/]+/(runs|ask)$")
 UPLOAD = re.compile(r"^/projects/[^/]+/tables$")
-MINUTE, DAY = 60.0, 86_400.0
+STORAGE = re.compile(r"^/projects(/[^/]+/tables)?$")
+MINUTE, HOUR, DAY = 60.0, 3_600.0, 86_400.0
 # Most windows kept; finished ones are pruned first, then the oldest are dropped
 MAX_WINDOWS = 50_000
 # Seconds between full prunes, so a full table never costs a scan on every request
@@ -85,12 +87,29 @@ def client_address(scope: Scope, hops: int) -> str:
     those proxies appended to X-Forwarded-For, counted from the right; entries further
     left are written by the client and could be faked. Without proxies it is the peer.
     """
-    peer = (scope.get("client") or ("unknown", 0))[0]
+    peer = str((scope.get("client") or ("unknown", 0))[0])
     if hops <= 0:
-        return str(peer)
+        return client_key(peer)
     header = dict(scope["headers"]).get(b"x-forwarded-for", b"").decode("latin-1")
     hops_seen = [part.strip() for part in header.split(",") if part.strip()]
-    return hops_seen[-hops] if len(hops_seen) >= hops else str(peer)
+    return client_key(hops_seen[-hops] if len(hops_seen) >= hops else peer)
+
+
+def client_key(address: str) -> str:
+    """The budget an address counts against: IPv4 as is, IPv6 by its /64 network.
+
+    One IPv6 subscriber usually gets a whole /64, so counting single addresses would
+    give one visitor billions of separate budgets.
+    """
+    try:
+        ip = ipaddress.ip_address(address)
+    except ValueError:
+        return address
+    if isinstance(ip, ipaddress.IPv6Address):
+        if ip.ipv4_mapped is not None:
+            return str(ip.ipv4_mapped)
+        return str(ipaddress.IPv6Network((ip, 64), strict=False))
+    return str(ip)
 
 
 class LimitMiddleware:
@@ -115,6 +134,8 @@ class LimitMiddleware:
                 (f"model:{client}", limits.expensive_per_minute, MINUTE),
                 (f"model:{client}", limits.expensive_per_day, DAY),
             ]
+        if scope["method"] == "POST" and STORAGE.match(path):
+            rules.append((f"storage:{client}", limits.storage_per_hour, HOUR))
         if (refused := self.counter.hit_all(rules, time.monotonic())) is not None:
             (key, _, period), wait = refused
             await refuse(send, 429, "RATE_LIMITED", too_many(key, period), wait)
@@ -142,6 +163,8 @@ def too_many(key: str, period: float) -> str:
     """A plain explanation of which budget ran out."""
     if key == "model:everyone":
         return "Today's budget of model-backed requests is used up; please try again tomorrow."
+    if key.startswith("storage:"):
+        return "Too many projects and uploads this hour; please wait and try again."
     if key.startswith("model:"):
         span = "minute" if period == MINUTE else "day"
         return f"Too many runs and questions this {span}; please wait and try again."

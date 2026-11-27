@@ -1,13 +1,15 @@
 from collections.abc import Iterator
 from datetime import date
-from typing import Any
+from typing import Any, cast
 
 import duckdb
 import pytest
 
 from joinpilot.agent.ranking import to_proposal
+from joinpilot.checks.sit import run_checks
 from joinpilot.config import (
     AgentSettings,
+    CheckSettings,
     JoinSettings,
     KPISettings,
     ProfilingSettings,
@@ -20,6 +22,7 @@ from joinpilot.profiling.service import profile_project
 from joinpilot.sqlgen.views import (
     ApprovedJoin,
     bucket_labels,
+    build_view,
     create_views,
     fact_tables,
     literal,
@@ -30,6 +33,7 @@ from joinpilot.synth.dataset import build_dataset
 from joinpilot.synth.naming import Naming
 
 KPI = KPISettings(reference_date=date(2026, 6, 30))
+CHECKS = CheckSettings()
 AGING = "Open receivables by aging bucket and 2026 revenue by product group"
 
 
@@ -163,3 +167,63 @@ def test_a_view_the_guard_refuses_is_reported_not_raised(warehouse: Any) -> None
     specs[0].sql = specs[0].sql.replace("SELECT ", "SELECT read_csv('x') AS bad, ", 1)
     views = create_views(con, specs)
     assert views[0].status == "failed" and views[0].message
+
+
+def test_keys_of_different_types_join_as_text_like_profiling_compared_them() -> None:
+    con = duckdb.connect()
+    con.execute(
+        "CREATE TABLE items AS SELECT i AS item_id, 1000 + i % 50 AS matnr, "
+        "CAST(i AS DECIMAL(12, 2)) AS amount FROM range(200) r(i)"
+    )
+    con.execute(
+        "CREATE TABLE mara AS SELECT CAST(1000 + i AS VARCHAR) AS matnr, 'grp' || i % 3 AS grp "
+        "FROM range(50) r(i) UNION ALL SELECT 'MAT-X', 'grp0'"
+    )
+    profile = profile_project(con, {"items": "items", "mara": "mara"}, ProfilingSettings())
+    joins = approved(profile)
+    assert joins, "the integer-to-text key should still be proposed"
+    views = create_views(con, plan_views(joins, profile, "revenue by group", KPI))
+    assert [v.status for v in views] == ["created"]
+    assert 'CAST(t0."matnr" AS TEXT)' in views[0].sql
+    assert scalar(con, 'SELECT COUNT(mara__grp) FROM model."v_items"') == 200
+    results = run_checks(con, plan_views(joins, profile, "revenue by group", KPI), profile, CHECKS)
+    assert all(r.passed for r in results if r.kind in ("row_count", "orphan_keys"))
+    con.close()
+
+
+def test_derived_columns_never_shadow_uploaded_columns_of_the_same_name() -> None:
+    con = duckdb.connect()
+    con.execute(
+        "CREATE TABLE BSID AS SELECT range::VARCHAR AS BELNR, '20260501' AS ZFBDT, "
+        "'kept' AS ZFBDT_date, 30 AS ZBD1T, 'mine' AS aging_bucket, "
+        "CAST(10 AS DECIMAL(15,2)) AS DMBTR FROM range(5)"
+    )
+    profile = profile_project(con, {"b": "BSID"}, ProfilingSettings())
+    spec = build_view("BSID", [], {t.name: t.columns for t in profile.tables}, "aging", KPI)
+    assert spec.derived == []
+    [view] = create_views(con, [spec])
+    assert view.status == "created"
+    columns = [r[0] for r in con.execute('DESCRIBE model."v_bsid"').fetchall()]
+    assert columns == ["BELNR", "ZFBDT", "ZFBDT_date", "ZBD1T", "aging_bucket", "DMBTR"]
+    con.close()
+
+
+def test_the_warehouse_time_limit_stops_view_creation_instead_of_failing_one_view(
+    warehouse: Any,
+) -> None:
+    con, profile, _ = warehouse
+
+    class Interrupted:
+        """The connection as the time limit leaves it: heavy statements get interrupted."""
+
+        def execute(self, sql: str, *args: Any) -> Any:
+            if sql.startswith("CREATE OR REPLACE VIEW"):
+                raise duckdb.InterruptException("INTERRUPT Error: Interrupted!")
+            return con.execute(sql, *args)
+
+        def __getattr__(self, name: str) -> Any:
+            return getattr(con, name)
+
+    specs = plan_views(approved(profile), profile, AGING, KPI)
+    with pytest.raises(duckdb.InterruptException):
+        create_views(cast(Any, Interrupted()), specs)

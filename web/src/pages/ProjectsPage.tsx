@@ -11,6 +11,7 @@ import { Hero } from '../components/home/Hero'
 import { JoinsVisual } from '../components/home/JoinsVisual'
 import { StackStrip } from '../components/home/StackStrip'
 import { Statement } from '../components/home/Statement'
+import { LoadingNote } from '../components/LoadingNote'
 
 /** Home: what JoinPilot does, the measured results, then the user's projects. */
 export function ProjectsPage() {
@@ -85,7 +86,7 @@ export function ProjectsPage() {
           <CreateProjectForm />
         </div>
         <ErrorNote error={projects.error} />
-        {projects.isLoading && <p className="text-sm text-slate-500 dark:text-slate-400">Loading projects…</p>}
+        {projects.isLoading && <LoadingNote label="Loading projects…" />}
         {projects.data?.length === 0 && (
           <p className="text-sm text-slate-500 dark:text-slate-400">No projects yet. Create one to get started.</p>
         )}

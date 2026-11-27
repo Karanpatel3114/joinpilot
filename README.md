@@ -103,11 +103,11 @@ flowchart LR
 | Layer | Choice |
 |---|---|
 | Backend | Python 3.12, uv, FastAPI, Pydantic v2 |
-| Agent | LangGraph with a Postgres checkpointer and human-in-the-loop interrupts |
+| Agent | LangGraph with human-in-the-loop interrupts and saved checkpoints (Postgres, or SQLite in the free demo) |
 | LLM | Google Gemini behind a provider interface; an offline fake provider for tests |
 | Analytics | DuckDB (one sandboxed database per project), sqlglot SQL guard |
-| App data | Postgres + pgvector, SQLAlchemy 2, Alembic |
-| Jobs | arq + Redis |
+| App data | Postgres + pgvector in Docker, SQLite in the free demo; SQLAlchemy 2, Alembic |
+| Jobs | arq + Redis, or a thread in the API process (the free demo) |
 | Web | React 19, Vite 8, TypeScript 7, Tailwind CSS 4, TanStack Query, React Flow, Recharts |
 | Quality | pytest, Hypothesis, ruff, mypy (strict), oxlint, Vitest, Testing Library, Playwright |
 | Ops | Docker, GitHub Actions, MCP (official Python SDK) |
@@ -175,7 +175,7 @@ How to read this honestly:
 
 **With the language model, dev split** (gemini-3.5-flash-lite on Google's free tier, 2026-11-27, commit `7c4b16b`, [results](eval/results/2026-11-27-7c4b16b-dev/metrics.md); the model join systems are in its `metrics.json`):
 
-- **Question answering:** **120 of 160** questions answered exactly right (75.0%), with 1.02 attempts per question on average. Every refusal counts as wrong: 10 questions got no answer because the free tier refused the calls after retries (rate limits, plus two temporary server errors), and 2 queries failed to run. By kind of question: duplicates 93.8%, plain lookups 79.2%, null keys 75.0%, orphans 70.8%, normalization 40.0%. The common mistakes are model errors: filtering by a customer number without its leading zeros, counting products from order items instead of the product master, and `SUM(DISTINCT ...)` on amounts.
+- **Question answering:** **120 of 160** questions answered exactly right (75.0%), with 1.02 attempts per question on average. Every refusal counts as wrong: 10 questions got no answer because the free tier refused the calls after retries (`LLM_UNAVAILABLE` in the results), and 2 queries failed to run. By kind of question: duplicates 93.8%, plain lookups 79.2%, null keys 75.0%, orphans 70.8%, normalization 40.0%. The common mistakes, from the SQL recorded per question in `metrics.json`, are model errors: filtering by a customer number without its leading zeros, counting products from order items instead of the product master, and `SUM(DISTINCT ...)` on amounts.
 - **Join discovery with the model:** both model-based systems reached F1 1.000 in each of 3 runs. A model that sees only the schema (`llm_only`) found the right joins but caught 0 of 4 leading-zero key mismatches and none of the fan-out risks; JoinPilot with the model (`joinpilot_full`) matched the deterministic scorer on everything and wrote an explanation for every candidate. On this data the model adds explanations, not accuracy.
 
 ## Limitations
