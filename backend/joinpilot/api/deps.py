@@ -8,7 +8,7 @@ from fastapi import Request
 from fastapi.concurrency import run_in_threadpool
 
 from joinpilot.config import Settings
-from joinpilot.errors import NotFoundError
+from joinpilot.errors import InvalidInputError, NotFoundError
 from joinpilot.glossary.service import GlossaryService
 from joinpilot.jobs.queue import JobQueue
 from joinpilot.services.projects import ProjectService
@@ -69,8 +69,10 @@ async def guard_project_access(request: Request) -> None:
         return
     try:
         UUID(str(params[key]))
-    except ValueError:
-        return  # not an id at all: the endpoint answers with its own 422
+    except ValueError as error:
+        # Fail closed, in the same shape as the API's own validation errors: a future
+        # route that took the id as a plain string must not skip this check.
+        raise InvalidInputError("The request is not valid.", {"fields": [f"path.{key}"]}) from error
     workspace = get_workspace(request)
     route = request.scope.get("route")
     write = request.method != "GET" and getattr(route, "name", "") not in READ_ONLY_POSTS
