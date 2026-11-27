@@ -198,14 +198,19 @@ def load_parquet(
 ) -> None:
     """Check the Parquet schema's width and its row count, then copy the file into a table.
 
-    The row count comes from the file's footer, so nothing is decompressed first.
+    The row count comes from the file's metadata, so nothing is decompressed first. The
+    footer's total and the sum of its row groups (what a scan actually reads) are both
+    checked, so a file whose footer understates its rows is still refused.
     """
     schema = con.execute("DESCRIBE SELECT * FROM read_parquet(?)", [str(path)]).fetchall()
     check_width([str(r[0]) for r in schema], shown, max_columns)
-    rows = con.execute(
-        "SELECT COALESCE(SUM(num_rows), 0) FROM parquet_file_metadata(?)", [str(path)]
+    counts = con.execute(
+        "SELECT (SELECT COALESCE(SUM(num_rows), 0) FROM parquet_file_metadata($1)), "
+        "(SELECT COALESCE(SUM(n), 0) FROM (SELECT DISTINCT row_group_id, "
+        "row_group_num_rows AS n FROM parquet_metadata($1)))",
+        [str(path)],
     ).fetchone()
-    check_rows(int(rows[0]) if rows else 0, shown, max_rows)
+    check_rows(max(int(c) for c in counts) if counts else 0, shown, max_rows)
     con.execute(
         f"CREATE OR REPLACE TABLE {ident(table)} AS SELECT * FROM read_parquet(?)", [str(path)]
     )

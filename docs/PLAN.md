@@ -182,5 +182,5 @@ Done when: every finding from the post-release audit (correctness, public-demo a
 - [x] M13.21 `fix(api): keep the contract's error codes and headers for HTTP errors`
 - [x] M13.22 `fix(web): retry only while the API is unreachable`
 - [x] M13.23 `fix(agent): stop runs at the time limit and repair only built views`
-- [ ] M13.24 `fix(profiling): count Parquet rows from their row groups`
+- [x] M13.24 `fix(profiling): count Parquet rows from their row groups`
 - [ ] M13.25 `feat(eval): record the dev evaluation after the audit fixes`
