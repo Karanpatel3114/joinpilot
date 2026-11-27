@@ -155,7 +155,7 @@ Done when: every finding from the post-release audit (correctness, public-demo a
 - [x] M13.1 `fix(sqlgen): compare join keys of different types as text`
 - [x] M13.2 `fix(agent): report views that could not be created as failed checks`
 - [x] M13.3 `fix(checks): count open items without a due date in bucket coverage`
-- [ ] M13.4 `fix(db): store long check ids without truncation`
+- [x] M13.4 `fix(checks): keep long check ids within their database column`
 - [ ] M13.5 `fix(jobs): give every resume its own job id`
 - [ ] M13.6 `fix(sqlgen): keep derived columns from clashing with uploaded ones`
 - [ ] M13.7 `feat(api): refuse tables past a row limit and time-limit heavy queries`

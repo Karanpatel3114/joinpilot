@@ -6,7 +6,7 @@ import duckdb
 import pytest
 
 from joinpilot.agent.ranking import to_proposal
-from joinpilot.checks.sit import CheckResult, run_checks
+from joinpilot.checks.sit import MAX_CHECK_ID, CheckResult, bounded_id, run_checks
 from joinpilot.config import (
     AgentSettings,
     CheckSettings,
@@ -151,3 +151,11 @@ def test_open_items_without_a_due_date_fail_bucket_coverage() -> None:
     [coverage] = [r for r in results if r.kind == "bucket_coverage"]
     assert (coverage.passed, coverage.observed) == (False, 3)
     assert "3 of them have no due date" in coverage.message
+
+
+def test_long_check_ids_fit_their_column_and_stay_unique() -> None:
+    long = "v_" + "x" * 300
+    first, second = bounded_id(f"{long}:a"), bounded_id(f"{long}:b")
+    assert len(first) == len(second) == MAX_CHECK_ID
+    assert first != second and first.startswith("v_xxx")
+    assert bounded_id("v_bsid:fan_out") == "v_bsid:fan_out"

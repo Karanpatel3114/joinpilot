@@ -7,6 +7,7 @@ keys find no match or are empty, and does every row land in an aging bucket.
 
 from __future__ import annotations
 
+import hashlib
 from typing import Any, Literal
 
 import duckdb
@@ -23,6 +24,19 @@ CheckKind = Literal[
     "row_count", "fan_out", "orphan_keys", "null_keys", "bucket_coverage", "reconciliation"
 ]
 MEASURE_TYPES = ("DECIMAL", "DOUBLE", "FLOAT", "REAL", "HUGEINT")
+MAX_CHECK_ID = 200  # the length of check_results.check_id
+
+
+def bounded_id(raw: str) -> str:
+    """A check id that fits its database column: long ids keep a prefix and a hash.
+
+    Ids name tables and columns, which can be long; Postgres refuses values past the
+    column length, which would fail the run after its views were built.
+    """
+    if len(raw) <= MAX_CHECK_ID:
+        return raw
+    digest = hashlib.sha256(raw.encode()).hexdigest()[:12]
+    return f"{raw[: MAX_CHECK_ID - len(digest) - 1]}~{digest}"
 
 
 class CheckResult(BaseModel):
@@ -98,7 +112,7 @@ class ViewChecker:
         message: str,
     ) -> CheckResult:
         """Build one result with a stable id."""
-        check_id = f"{spec.name}:{kind}" + (f":{detail}" if detail else "")
+        check_id = bounded_id(f"{spec.name}:{kind}" + (f":{detail}" if detail else ""))
         return CheckResult(
             check_id=check_id,
             view=spec.name,
@@ -232,7 +246,7 @@ class ViewChecker:
 def not_created(view: str, reason: str | None) -> CheckResult:
     """A failing check for a view that could not be built, so the run never looks green."""
     return CheckResult(
-        check_id=f"{view}:row_count",
+        check_id=bounded_id(f"{view}:row_count"),
         view=view,
         kind="row_count",
         passed=False,
