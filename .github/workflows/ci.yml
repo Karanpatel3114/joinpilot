@@ -33,7 +33,7 @@ jobs:
         run: uv run mypy backend/joinpilot eval
       - name: Tests
         run: uv run pytest -q
-      - name: Evaluation smoke test (dev split; fails if a README number drops)
+      - name: Evaluation smoke test (dev split; fails if a deterministic score drops below its floor)
         run: uv run python -m eval.run_all --split dev && uv run python -m eval.smoke
 
   integration:
