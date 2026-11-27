@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from typing import Literal, Protocol
 
@@ -75,7 +76,13 @@ class ThreadJobQueue:
 
 
 class ArqJobQueue:
-    """Puts jobs on Redis for the arq worker; a job id per run step prevents duplicates."""
+    """Puts jobs on Redis for the arq worker, each under its own job id.
+
+    arq drops a job whose id it has seen in the last hour, so a fixed id per run step
+    silently lost a second resume (after an approval that was undone and sent again)
+    and left the run stuck. Duplicate jobs are harmless: `RunService.advance` does
+    nothing when there is nothing to do.
+    """
 
     def __init__(self, settings: Settings) -> None:
         if not settings.redis_url:
@@ -88,9 +95,8 @@ class ArqJobQueue:
         async def enqueue() -> None:
             pool = await create_pool(RedisSettings.from_dsn(self.redis_url))
             try:
-                job = await pool.enqueue_job(name, run_id, _job_id=f"{name}:{run_id}")
-                if job is None:
-                    logger.info("job %s for run %s is already queued", name, run_id)
+                job_id = f"{name}:{run_id}:{uuid.uuid4().hex[:12]}"
+                await pool.enqueue_job(name, run_id, _job_id=job_id)
             finally:
                 await pool.aclose()
 
