@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import logging
 import re
+import shutil
 import uuid
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -43,6 +45,8 @@ from joinpilot.synth.dataset import build_dataset
 from joinpilot.synth.naming import Naming
 from joinpilot.workspaces import DEMO, LOCAL, visible_workspaces
 
+logger = logging.getLogger(__name__)
+
 PROFILE_FILE = "profile.json"
 SAMPLE_PATTERN = re.compile(r"^erp_(?P<size>[a-z])(?P<seed>\d{1,4})_(?P<naming>sap|friendly)$")
 CHUNK_BYTES = 1024 * 1024
@@ -77,6 +81,12 @@ class ProjectService:
         if not 1 <= len(name) <= MAX_NAME_CHARS:
             raise InvalidInputError(
                 f"A project name needs 1 to {MAX_NAME_CHARS} characters.", {"field": "name"}
+            )
+        limit = self.settings.max_projects_per_workspace
+        if len(self.store.list_projects([workspace])) >= limit:
+            raise ConflictError(
+                f"This workspace already has {limit} projects, the most it can hold.",
+                {"max_projects": limit},
             )
         return self.store.create(name, workspace)
 
@@ -230,7 +240,14 @@ class ProjectService:
             con.close()
 
     def _check_capacity(self, record: ProjectRecord, new_tables: list[str]) -> None:
-        """Refuse loads that would push the project past the table limit."""
+        """Refuse loads that would push the project past the table limit or fill the disk."""
+        self.store.root.mkdir(parents=True, exist_ok=True)
+        free = shutil.disk_usage(self.store.root).free
+        if free < self.settings.min_free_disk_mb * 1024 * 1024:
+            logger.warning("refused a load: %d MB of disk free", free // (1024 * 1024))
+            raise PayloadTooLargeError(
+                "The server has no room for more data right now; please try again later."
+            )
         names = {t.name.casefold() for t in record.tables} | {n.casefold() for n in new_tables}
         if len(names) > self.settings.max_tables_per_project:
             raise InvalidInputError(

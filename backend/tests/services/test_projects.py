@@ -1,11 +1,12 @@
 import io
+import shutil
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import pytest
 
 from joinpilot.config import Settings
-from joinpilot.errors import InvalidInputError
+from joinpilot.errors import ConflictError, InvalidInputError, PayloadTooLargeError
 from joinpilot.services.projects import ProjectService
 
 
@@ -54,3 +55,26 @@ def test_table_limit_is_checked_before_loading(tmp_path: Path) -> None:
     with pytest.raises(InvalidInputError, match="Too many tables"):
         service.add_upload(project.id, "b.csv", io.BytesIO(b"k\n1\n"))
     assert [t.name for t in service.get(project.id).tables] == ["a"]
+
+
+def test_each_workspace_holds_a_limited_number_of_projects(tmp_path: Path) -> None:
+    service = ProjectService(
+        Settings(_env_file=None, data_dir=tmp_path, max_projects_per_workspace=2)
+    )
+    service.create("One", "w" * 16)
+    service.create("Two", "w" * 16)
+    with pytest.raises(ConflictError, match="already has 2 projects"):
+        service.create("Three", "w" * 16)
+    assert service.create("Elsewhere", "v" * 16).name == "Elsewhere"
+
+
+def test_loads_are_refused_when_the_disk_is_nearly_full(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = ProjectService(Settings(_env_file=None, data_dir=tmp_path, min_free_disk_mb=500))
+    project = service.create("Full")
+    usage = shutil.disk_usage(tmp_path)._replace(free=100 * 1024 * 1024)
+    monkeypatch.setattr(shutil, "disk_usage", lambda _: usage)
+    with pytest.raises(PayloadTooLargeError, match="no room"):
+        service.add_upload(project.id, "a.csv", io.BytesIO(b"k\n1\n"))
+    assert service.get(project.id).tables == []

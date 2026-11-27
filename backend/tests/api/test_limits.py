@@ -100,3 +100,14 @@ def test_bodies_without_a_length_are_refused_with_413(tmp_path: Path) -> None:
     small = iter([b'{"name": ', b'"Chunked"}'])
     made = api.post("/projects", content=small, headers={"content-type": "application/json"})
     assert made.status_code == 201 and made.json()["name"] == "Chunked"
+
+
+def test_projects_and_uploads_share_an_hourly_storage_budget(tmp_path: Path) -> None:
+    api = client(tmp_path, storage_per_hour=2)
+    assert api.post("/projects", json={"name": "a"}).status_code == 201
+    upload = api.post(f"/projects/{PROJECT}/tables", files={"files": ("a.csv", b"k\n1\n")})
+    assert upload.status_code == 404, "the budget counts the call, not its result"
+    refused = api.post("/projects", json={"name": "b"})
+    assert refused.status_code == 429
+    assert "projects and uploads this hour" in refused.json()["error"]["message"]
+    assert api.get("/projects").status_code == 200, "reads are not part of it"

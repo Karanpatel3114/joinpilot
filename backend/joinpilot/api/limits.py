@@ -22,7 +22,8 @@ from joinpilot.config import Settings
 
 EXPENSIVE = re.compile(r"^/projects/[^/]+/(runs|ask)$")
 UPLOAD = re.compile(r"^/projects/[^/]+/tables$")
-MINUTE, DAY = 60.0, 86_400.0
+STORAGE = re.compile(r"^/projects(/[^/]+/tables)?$")
+MINUTE, HOUR, DAY = 60.0, 3_600.0, 86_400.0
 # Most windows kept; finished ones are pruned first, then the oldest are dropped
 MAX_WINDOWS = 50_000
 # Seconds between full prunes, so a full table never costs a scan on every request
@@ -115,6 +116,8 @@ class LimitMiddleware:
                 (f"model:{client}", limits.expensive_per_minute, MINUTE),
                 (f"model:{client}", limits.expensive_per_day, DAY),
             ]
+        if scope["method"] == "POST" and STORAGE.match(path):
+            rules.append((f"storage:{client}", limits.storage_per_hour, HOUR))
         if (refused := self.counter.hit_all(rules, time.monotonic())) is not None:
             (key, _, period), wait = refused
             await refuse(send, 429, "RATE_LIMITED", too_many(key, period), wait)
@@ -142,6 +145,8 @@ def too_many(key: str, period: float) -> str:
     """A plain explanation of which budget ran out."""
     if key == "model:everyone":
         return "Today's budget of model-backed requests is used up; please try again tomorrow."
+    if key.startswith("storage:"):
+        return "Too many projects and uploads this hour; please wait and try again."
     if key.startswith("model:"):
         span = "minute" if period == MINUTE else "day"
         return f"Too many runs and questions this {span}; please wait and try again."
