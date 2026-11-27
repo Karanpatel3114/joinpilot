@@ -1,9 +1,10 @@
 import { AlertTriangle } from 'lucide-react'
+import { errorMessage } from '../api/errorMessage'
 
 /** A visible, plain-language error message. */
 export function ErrorNote({ error }: { error: unknown }) {
   if (!error) return null
-  const message = error instanceof Error ? error.message : 'Something went wrong.'
+  const message = errorMessage(error)
   return (
     <p
       role="alert"

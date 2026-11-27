@@ -33,10 +33,14 @@ export function nextPoll(error: unknown, interval: number): number | false {
   return Math.max(interval, 10_000)
 }
 
-/** Retry a failed request once, unless the API answered with a client error (4xx). */
+/**
+ * Retry a failed read while the API may be waking up: a free server's cold start takes
+ * about a minute, which six retries with the default doubling delay (1 s to 30 s) cover.
+ * A client error (4xx) is an answer, so it is never retried.
+ */
 export function shouldRetry(failures: number, error: unknown): boolean {
   if (error instanceof ApiRequestError && error.status < 500) return false
-  return failures < 1
+  return failures < 6
 }
 
 export const keys = {

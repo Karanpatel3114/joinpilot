@@ -6,6 +6,7 @@ import { PageHeader } from '../components/PageHeader'
 import { ProfileExplorer } from '../components/ProfileExplorer'
 import { RunsPanel } from '../components/RunsPanel'
 import { UploadPanel } from '../components/UploadPanel'
+import { LoadingNote } from '../components/LoadingNote'
 
 const TABS = ['Profile', 'Runs', 'Dashboard', 'Ask'] as const
 
@@ -51,7 +52,7 @@ export function ProjectPage() {
             server clears its data when it restarts. Create a new project from the home page.
           </p>
         ) : (
-          <p className="text-sm text-slate-500 dark:text-slate-400">Loading project…</p>
+          <LoadingNote label="Loading project…" />
         )}
       </section>
     )

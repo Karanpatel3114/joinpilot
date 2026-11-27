@@ -25,9 +25,10 @@ describe('polling after errors', () => {
     expect(nextPoll(apiError(502), 1000)).toBe(10_000)
   })
 
-  it('retries once, but never a client error', () => {
+  it('retries through a cold start, but never a client error', () => {
     expect(shouldRetry(0, new TypeError('Failed to fetch'))).toBe(true)
-    expect(shouldRetry(1, apiError(503))).toBe(false)
+    expect(shouldRetry(5, apiError(503))).toBe(true)
+    expect(shouldRetry(6, apiError(503))).toBe(false)
     expect(shouldRetry(0, apiError(404))).toBe(false)
     expect(shouldRetry(0, apiError(429))).toBe(false)
   })
