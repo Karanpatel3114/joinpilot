@@ -147,4 +147,4 @@ Done when: the public demo is safe, the final evaluation is in the README, and v
 - [x] M12.2 `feat(web): add demo mode with a preloaded sample project`
 - [x] M12.3 `feat(eval): run the final test split and publish results`
 - [x] M12.4 `docs: add architecture diagram, limitations and live demo link`
-- [ ] M12.5 `chore: release v1.0.0 with changelog`
+- [x] M12.5 `chore: release v1.0.0 with changelog`
