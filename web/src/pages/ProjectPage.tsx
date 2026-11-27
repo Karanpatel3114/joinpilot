@@ -1,6 +1,7 @@
 import { type KeyboardEvent, Suspense, lazy, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router'
 import { useProjects } from '../api/hooks'
+import { ErrorNote } from '../components/ErrorNote'
 import { PageHeader } from '../components/PageHeader'
 import { ProfileExplorer } from '../components/ProfileExplorer'
 import { RunsPanel } from '../components/RunsPanel'
@@ -20,10 +21,12 @@ type Tab = (typeof TABS)[number]
 /** One project: add tables, explore their profile, and run the agent. */
 export function ProjectPage() {
   const { projectId = '' } = useParams()
-  const project = useProjects().data?.find((p) => p.id === projectId)
+  const projects = useProjects()
+  const project = projects.data?.find((p) => p.id === projectId)
   const [params] = useSearchParams()
   const [tab, setTab] = useState<Tab>(() => TABS.find((t) => t === params.get('tab')) ?? 'Profile')
-  const readOnly = project?.read_only ?? false
+  // Until the project list arrives, assume read-only so upload buttons never flash on the sample.
+  const readOnly = project?.read_only ?? !projects.data
   const hasTables = (project?.table_count ?? 0) > 0
 
   /** Arrow keys, Home and End move between tabs, as in the ARIA tabs pattern. */
@@ -36,15 +39,30 @@ export function ProjectPage() {
     setTab(name)
     document.getElementById(`tab-${name}`)?.focus()
   }
+  if (!project) {
+    return (
+      <section className="space-y-8">
+        <PageHeader back={{ to: '/#projects', label: 'All projects' }} eyebrow="Project" title="Project" />
+        {projects.error ? (
+          <ErrorNote error={projects.error} />
+        ) : projects.data ? (
+          <p role="alert" className="max-w-2xl text-[15px] text-slate-600 dark:text-slate-300">
+            This project was not found. Projects belong to the browser that created them, and the free demo
+            server clears its data when it restarts. Create a new project from the home page.
+          </p>
+        ) : (
+          <p className="text-sm text-slate-500 dark:text-slate-400">Loading project…</p>
+        )}
+      </section>
+    )
+  }
   return (
     <section className="space-y-8">
-      <PageHeader back={{ to: '/#projects', label: 'All projects' }} eyebrow="Project" title={project?.name ?? 'Project'}>
-        {project && (
-          <p className="font-mono text-[12px] text-slate-600 dark:text-slate-400">
-            {project.table_count} {project.table_count === 1 ? 'table' : 'tables'} · created{' '}
-            {new Date(project.created_at).toLocaleDateString()}
-          </p>
-        )}
+      <PageHeader back={{ to: '/#projects', label: 'All projects' }} eyebrow="Project" title={project.name}>
+        <p className="font-mono text-[12px] text-slate-600 dark:text-slate-400">
+          {project.table_count} {project.table_count === 1 ? 'table' : 'tables'} · created{' '}
+          {new Date(project.created_at).toLocaleDateString()}
+        </p>
         {readOnly && (
           <p className="mt-3 max-w-2xl text-[15px] text-slate-600 dark:text-slate-300">
             A shared sample, built when the demo started: its joins were approved automatically. Look around

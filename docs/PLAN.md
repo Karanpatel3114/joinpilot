@@ -163,7 +163,7 @@ Done when: every finding from the post-release audit (correctness, public-demo a
 - [x] M13.9 `fix(web): download exports with the workspace header, not the URL`
 - [x] M13.10 `fix(api): refuse malformed ids in the access guard`
 - [x] M13.11 `fix(api): rate-limit IPv6 clients by /64 network`
-- [ ] M13.12 `fix(web): treat projects as read-only until access is known`
+- [x] M13.12 `fix(web): treat projects as read-only until access is known`
 - [ ] M13.13 `fix(web): stop polling on errors and honour Retry-After`
 - [ ] M13.14 `feat(web): explain cold starts and network errors`
 - [ ] M13.15 `build(web): add a Content-Security-Policy`
