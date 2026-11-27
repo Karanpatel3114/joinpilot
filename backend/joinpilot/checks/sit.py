@@ -223,6 +223,20 @@ class ViewChecker:
         return results
 
 
+def not_created(view: str, reason: str | None) -> CheckResult:
+    """A failing check for a view that could not be built, so the run never looks green."""
+    return CheckResult(
+        check_id=f"{view}:row_count",
+        view=view,
+        kind="row_count",
+        passed=False,
+        observed=None,
+        expected="view created",
+        message=f"The view could not be created ({reason or 'unknown error'}), so nothing "
+        "in it was checked.",
+    )
+
+
 def run_checks(
     con: duckdb.DuckDBPyConnection,
     specs: list[ViewSpec],

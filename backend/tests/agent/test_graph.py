@@ -7,7 +7,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.types import Command
 
 from joinpilot.agent.checkpoints import open_checkpointer, psycopg_url
-from joinpilot.agent.graph import AgentContext, build_graph
+from joinpilot.agent.graph import AgentContext, AgentNodes, build_graph
 from joinpilot.agent.ranking import template_explanation
 from joinpilot.agent.state import add_unique, merge_dicts
 from joinpilot.config import Settings
@@ -135,3 +135,14 @@ def test_runs_pause_and_resume_on_postgres(ctx: AgentContext, tmp_path: Path) ->
             build_graph(ctx, saver), thread, [{"edge_id": first, "action": "approve"}]
         )
     assert final["status"] == "completed"
+
+
+def test_a_view_that_could_not_be_created_fails_its_checks(ctx: AgentContext) -> None:
+    nodes = AgentNodes(ctx)
+    state: Any = {"views": [{"name": "v_bsid", "status": "failed", "message": "BinderException"}]}
+    update = nodes.check_views(state)
+    [check] = update["checks"]
+    assert (check["view"], check["kind"], check["passed"]) == ("v_bsid", "row_count", False)
+    assert "BinderException" in check["message"]
+    assert update["check_rounds"][0]["failed"] == 1
+    assert nodes.after_checks({**state, **update, "repair_attempts": 2}) == "build_dashboard"

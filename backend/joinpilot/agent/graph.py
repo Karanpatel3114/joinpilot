@@ -27,7 +27,7 @@ from joinpilot.agent.ranking import rank_joins
 from joinpilot.agent.repair import STRUCTURAL, repair_spec
 from joinpilot.agent.requirement import ParsedRequirement, parse_requirement
 from joinpilot.agent.state import RunState
-from joinpilot.checks.sit import run_checks
+from joinpilot.checks.sit import not_created, run_checks
 from joinpilot.config import Settings
 from joinpilot.joins.models import JoinCandidate
 from joinpilot.joins.scoring import score_candidates
@@ -165,8 +165,9 @@ class AgentNodes:
         }
 
     def check_views(self, state: RunState) -> dict[str, Any]:
-        """Run the SIT checks on every view that was created."""
-        created = {v["name"] for v in state.get("views", []) if v["status"] != "failed"}
+        """Run the SIT checks on every view that was created; a view that was not fails."""
+        views = state.get("views", [])
+        created = {v["name"] for v in views if v["status"] != "failed"}
         specs = [spec_from_dict(s) for s in state.get("view_specs", []) if s["name"] in created]
         with self.open_warehouse() as con:
             results = run_checks(
@@ -176,6 +177,9 @@ class AgentNodes:
                 self.ctx.settings.checks,
                 self.ctx.settings.kpi.aging_bucket_edges,
             )
+        results += [
+            not_created(v["name"], v.get("message")) for v in views if v["status"] == "failed"
+        ]
         failed = [r for r in results if not r.passed]
         warnings = [f"{len(failed)} of {len(results)} checks failed."] if failed else []
         round_number = len(state.get("check_rounds", [])) + 1
