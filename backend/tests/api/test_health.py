@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from joinpilot import __version__
 from joinpilot.api.main import create_app
@@ -29,6 +30,23 @@ def test_unknown_routes_and_methods_use_the_contract_error_shape() -> None:
     assert missing.status_code == 404 and missing.json()["error"]["code"] == "NOT_FOUND"
     wrong = client.delete("/health")
     assert wrong.status_code == 405 and wrong.json()["error"]["code"] == "INVALID_INPUT"
+    assert wrong.headers["allow"] == "GET"
+
+
+def test_framework_client_errors_keep_a_client_code() -> None:
+    app = create_app(Settings(_env_file=None))
+
+    @app.get("/malformed")
+    async def malformed() -> None:
+        raise StarletteHTTPException(400, "Missing boundary in multipart.")
+
+    response = TestClient(app).get("/malformed")
+    assert response.status_code == 400
+    assert response.json()["error"] == {
+        "code": "INVALID_INPUT",
+        "message": "Missing boundary in multipart.",
+        "details": {},
+    }
 
 
 def test_unexpected_errors_return_the_contract_error_shape() -> None:

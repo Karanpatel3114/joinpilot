@@ -35,14 +35,19 @@ async def _validation_error(_: Request, exc: Exception) -> JSONResponse:
     return error_response(422, "INVALID_INPUT", "The request is not valid.", {"fields": fields})
 
 
+HTTP_CODES = {404: "NOT_FOUND", 409: "CONFLICT", 413: "PAYLOAD_TOO_LARGE", 429: "RATE_LIMITED"}
+
+
 async def _http_error(_: Request, exc: Exception) -> JSONResponse:
-    """Unknown routes and wrong methods, in the contract's error shape too."""
+    """Framework errors (unknown routes, wrong methods, malformed bodies) in the contract's
+    shape: client errors keep a client code and their headers, such as `Allow` on 405."""
     assert isinstance(exc, StarletteHTTPException)
-    if exc.status_code == 404:
-        return error_response(404, "NOT_FOUND", "There is nothing at this address.", {})
-    if exc.status_code == 405:
-        return error_response(405, "INVALID_INPUT", "This method is not allowed here.", {})
-    return error_response(exc.status_code, "INTERNAL_ERROR", str(exc.detail), {})
+    status = exc.status_code
+    code = "INTERNAL_ERROR" if status >= 500 else HTTP_CODES.get(status, "INVALID_INPUT")
+    message = "There is nothing at this address." if status == 404 else str(exc.detail)
+    response = error_response(status, code, message, {})
+    response.headers.update(exc.headers or {})
+    return response
 
 
 async def _unexpected_error(_: Request, exc: Exception) -> JSONResponse:
