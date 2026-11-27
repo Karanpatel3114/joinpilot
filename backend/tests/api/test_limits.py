@@ -1,6 +1,7 @@
 """Rate and size limits, before any endpoint runs."""
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -111,3 +112,15 @@ def test_projects_and_uploads_share_an_hourly_storage_budget(tmp_path: Path) -> 
     assert refused.status_code == 429
     assert "projects and uploads this hour" in refused.json()["error"]["message"]
     assert api.get("/projects").status_code == 200, "reads are not part of it"
+
+
+def test_ipv6_clients_share_a_budget_per_64_network() -> None:
+    def scope(peer: str) -> Any:
+        return {"client": (peer, 1), "headers": []}
+
+    one = client_address(scope("2001:db8:1:2:aaaa::1"), 0)
+    assert one == client_address(scope("2001:db8:1:2:ffff::9"), 0) == "2001:db8:1:2::/64"
+    assert client_address(scope("2001:db8:1:3::1"), 0) != one
+    assert client_address(scope("::ffff:203.0.113.7"), 0) == "203.0.113.7"
+    assert client_address(scope("203.0.113.7"), 0) == "203.0.113.7"
+    assert client_address(scope("testclient"), 0) == "testclient"

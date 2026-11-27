@@ -10,6 +10,7 @@ single API process this app runs as (D-035).
 
 from __future__ import annotations
 
+import ipaddress
 import json
 import re
 import threading
@@ -86,12 +87,29 @@ def client_address(scope: Scope, hops: int) -> str:
     those proxies appended to X-Forwarded-For, counted from the right; entries further
     left are written by the client and could be faked. Without proxies it is the peer.
     """
-    peer = (scope.get("client") or ("unknown", 0))[0]
+    peer = str((scope.get("client") or ("unknown", 0))[0])
     if hops <= 0:
-        return str(peer)
+        return client_key(peer)
     header = dict(scope["headers"]).get(b"x-forwarded-for", b"").decode("latin-1")
     hops_seen = [part.strip() for part in header.split(",") if part.strip()]
-    return hops_seen[-hops] if len(hops_seen) >= hops else str(peer)
+    return client_key(hops_seen[-hops] if len(hops_seen) >= hops else peer)
+
+
+def client_key(address: str) -> str:
+    """The budget an address counts against: IPv4 as is, IPv6 by its /64 network.
+
+    One IPv6 subscriber usually gets a whole /64, so counting single addresses would
+    give one visitor billions of separate budgets.
+    """
+    try:
+        ip = ipaddress.ip_address(address)
+    except ValueError:
+        return address
+    if isinstance(ip, ipaddress.IPv6Address):
+        if ip.ipv4_mapped is not None:
+            return str(ip.ipv4_mapped)
+        return str(ipaddress.IPv6Network((ip, 64), strict=False))
+    return str(ip)
 
 
 class LimitMiddleware:
