@@ -14,10 +14,30 @@ import type {
   TableSummary,
   View,
 } from '../types/api'
-import { getJson, postFiles, postJson } from './client'
+import { ApiRequestError, getJson, postFiles, postJson } from './client'
 
 /** Statuses after which a run no longer changes without a person acting. */
 export const SETTLED: RunStatus[] = ['awaiting_approval', 'completed', 'failed']
+
+/**
+ * The next poll after the last refresh: on schedule when it worked; never after an
+ * answer that will not change by waiting (404, 409, 422); after the server's
+ * Retry-After on 429; and gently while the API is down or waking up.
+ */
+export function nextPoll(error: unknown, interval: number): number | false {
+  if (!error) return interval
+  if (error instanceof ApiRequestError) {
+    if (error.status === 429) return Math.max(Number(error.details.retry_after_seconds) || 30, 1) * 1000
+    if (error.status < 500) return false
+  }
+  return Math.max(interval, 10_000)
+}
+
+/** Retry a failed request once, unless the API answered with a client error (4xx). */
+export function shouldRetry(failures: number, error: unknown): boolean {
+  if (error instanceof ApiRequestError && error.status < 500) return false
+  return failures < 1
+}
 
 export const keys = {
   projects: ['projects'] as const,
@@ -92,7 +112,7 @@ export function useRuns(projectId: string) {
     queryKey: keys.runs(projectId),
     queryFn: () => getJson<Run[]>(`/projects/${projectId}/runs`),
     refetchInterval: (query) =>
-      query.state.data?.some((r) => !SETTLED.includes(r.status)) ? 3000 : false,
+      query.state.data?.some((r) => !SETTLED.includes(r.status)) ? nextPoll(query.state.error, 3000) : false,
   })
 }
 
@@ -106,7 +126,7 @@ export function useStartRun(projectId: string) {
 }
 
 /** A run, polled every second until it settles. A run that never loaded (an unknown id or
- * an API that is down) is not polled; a failed poll of a loaded run is retried. */
+ * an API that is down) is not polled; after a failed poll, see `nextPoll`. */
 export function useRun(runId: string) {
   return useQuery({
     queryKey: keys.run(runId),
@@ -114,7 +134,7 @@ export function useRun(runId: string) {
     refetchInterval: (query) => {
       const { data, status } = query.state
       if (!data) return status === 'error' ? false : 1000
-      return SETTLED.includes(data.status) ? false : 1000
+      return SETTLED.includes(data.status) ? false : nextPoll(query.state.error, 1000)
     },
   })
 }
