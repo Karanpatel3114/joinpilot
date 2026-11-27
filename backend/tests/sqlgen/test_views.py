@@ -1,6 +1,6 @@
 from collections.abc import Iterator
 from datetime import date
-from typing import Any
+from typing import Any, cast
 
 import duckdb
 import pytest
@@ -206,3 +206,24 @@ def test_derived_columns_never_shadow_uploaded_columns_of_the_same_name() -> Non
     columns = [r[0] for r in con.execute('DESCRIBE model."v_bsid"').fetchall()]
     assert columns == ["BELNR", "ZFBDT", "ZFBDT_date", "ZBD1T", "aging_bucket", "DMBTR"]
     con.close()
+
+
+def test_the_warehouse_time_limit_stops_view_creation_instead_of_failing_one_view(
+    warehouse: Any,
+) -> None:
+    con, profile, _ = warehouse
+
+    class Interrupted:
+        """The connection as the time limit leaves it: heavy statements get interrupted."""
+
+        def execute(self, sql: str, *args: Any) -> Any:
+            if sql.startswith("CREATE OR REPLACE VIEW"):
+                raise duckdb.InterruptException("INTERRUPT Error: Interrupted!")
+            return con.execute(sql, *args)
+
+        def __getattr__(self, name: str) -> Any:
+            return getattr(con, name)
+
+    specs = plan_views(approved(profile), profile, AGING, KPI)
+    with pytest.raises(duckdb.InterruptException):
+        create_views(cast(Any, Interrupted()), specs)

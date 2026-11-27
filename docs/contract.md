@@ -4,7 +4,7 @@ Version: 0.15. Change it only with the `contract-sync` skill, and bump the versi
 
 Changes in 0.15 (breaking, small): `?workspace=` on the SQL download is no longer read; send the `X-Workspace` header, as on every other request.
 
-Changes in 0.14 (additive): storage limits. Creating projects and loading tables share `LIMITS__STORAGE_PER_HOUR` per client (429); a workspace holds at most `MAX_PROJECTS_PER_WORKSPACE` projects (409); uploads past `MAX_ROWS_PER_TABLE` rows are refused (422), loads are refused while the server's disk is nearly full (413), and warehouse work past `DUCKDB_TIME_LIMIT_SECONDS` is stopped (422 for uploads and profiles, a failed run otherwise).
+Changes in 0.14 (additive): storage limits. Creating projects and loading tables share `LIMITS__STORAGE_PER_HOUR` per client (429); a workspace holds at most `MAX_PROJECTS_PER_WORKSPACE` projects (409); uploads past `MAX_ROWS_PER_TABLE` rows are refused (422), loads are refused while the server's disk is nearly full (413), and warehouse work past `DUCKDB_TIME_LIMIT_SECONDS` is stopped (422 for uploads and profiles; a run fails, or, in its dashboard step, completes without the dashboard).
 
 Changes in 0.13 (additive): private workspaces without login (D-037). Requests may send an `X-Workspace` header; projects belong to the workspace that created them, and another workspace's projects and runs are not found. `Project` gains `read_only`, true for the shared demo project.
 

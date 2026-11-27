@@ -196,12 +196,17 @@ class AgentNodes:
         }
 
     def repair_views(self, state: RunState) -> dict[str, Any]:
-        """Fix views whose checks show duplicated or lost rows, then let them be checked again."""
+        """Fix views whose checks show duplicated or lost rows, then let them be checked again.
+
+        A view that was never built has a failing check too, but no rows to judge, so
+        dropping its joins would be a guess: it is left as it is.
+        """
+        not_built = {v["name"] for v in state.get("views", []) if v["status"] == "failed"}
         failing = {
             c["view"]
             for c in state.get("checks", [])
             if not c["passed"] and c["kind"] in STRUCTURAL
-        }
+        } - not_built
         profile = self.profile_data()
         columns = {t.name: t.columns for t in profile.tables}
         specs, changed, notes = [], [], []

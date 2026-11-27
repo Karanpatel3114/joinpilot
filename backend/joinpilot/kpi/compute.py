@@ -51,6 +51,8 @@ def compute_metrics(
             cursor = con.execute(guard_sql(metric.sql, catalog))
             names = [d[0] for d in cursor.description or []]
             rows = cursor.fetchmany(max_rows)
+        except duckdb.InterruptException:
+            raise  # the warehouse time limit stops the dashboard, not just this metric
         except (JoinPilotError, duckdb.Error) as error:
             logger.warning("metric %s failed: %s", metric.metric_id, type(error).__name__)
             computed.append(

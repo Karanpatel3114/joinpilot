@@ -312,6 +312,8 @@ def create_views(
         try:
             spec.sql = guard_sql(spec.sql, catalog, "create_view")
             con.execute(spec.sql)
+        except duckdb.InterruptException:
+            raise  # the warehouse time limit stops the whole run, not just this view
         except (UnsafeSQLError, duckdb.Error) as error:
             outcome = "failed"
             message = error.message if isinstance(error, UnsafeSQLError) else type(error).__name__

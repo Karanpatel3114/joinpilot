@@ -146,3 +146,15 @@ def test_a_view_that_could_not_be_created_fails_its_checks(ctx: AgentContext) ->
     assert "BinderException" in check["message"]
     assert update["check_rounds"][0]["failed"] == 1
     assert nodes.after_checks({**state, **update, "repair_attempts": 2}) == "build_dashboard"
+
+
+def test_a_view_that_was_never_built_is_not_repaired_by_guesswork(ctx: AgentContext) -> None:
+    nodes = AgentNodes(ctx)
+    state: Any = {
+        "views": [{"name": "v_bsid", "status": "failed", "message": "UnsafeSQLError"}],
+        "view_specs": [],
+    }
+    state["checks"] = nodes.check_views(state)["checks"]
+    update = nodes.repair_views(state)
+    assert update["repair_attempts"] == ctx.settings.agent.max_repairs
+    assert update["warnings"] == ["No automatic repair was possible for the failing checks."]
