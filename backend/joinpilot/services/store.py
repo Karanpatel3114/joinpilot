@@ -133,6 +133,14 @@ class ProjectStore:
         with session_scope(self.db_url) as session:
             return [to_record(row) for row in session.scalars(query)]
 
+    def move(self, project_id: str, workspace: str) -> None:
+        """Put a project in another workspace."""
+        with session_scope(self.db_url) as session:
+            row = session.get(ProjectRow, parse_id(project_id))
+            if row is None:
+                raise NotFoundError("Project not found.", {"project_id": project_id})
+            row.workspace_id = workspace
+
     def save(self, record: ProjectRecord) -> None:
         """Write the project's name and table list in one transaction."""
         with session_scope(self.db_url) as session:

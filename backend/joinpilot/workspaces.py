@@ -19,6 +19,8 @@ HEADER = "X-Workspace"
 QUERY = "workspace"
 LOCAL = "local"
 DEMO = "demo"
+# Where the demo project is built; it moves to DEMO only once its run has completed
+DEMO_STAGING = "demo-staging"
 # At least 16 characters, so the reserved names above can never be sent
 _PATTERN = re.compile(r"[A-Za-z0-9_-]{16,64}")
 

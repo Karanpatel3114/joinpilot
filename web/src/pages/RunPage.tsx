@@ -38,7 +38,9 @@ export function RunPage() {
   const proposals = useProposals(runId, ready)
   const profile = useProfile(run.data?.project_id ?? '', Boolean(run.data))
   const [selected, setSelected] = useState<string | null>(null)
-  const readOnly = useProjects().data?.find((p) => p.id === run.data?.project_id)?.read_only ?? false
+  const projects = useProjects()
+  // Until the project list arrives, assume read-only so approve buttons never flash on the sample.
+  const readOnly = projects.data?.find((p) => p.id === run.data?.project_id)?.read_only ?? !projects.data
   if (!run.data) {
     if (run.error) return <ErrorNote error={run.error} />
     return <p className="text-sm text-slate-500 dark:text-slate-400">Loading run…</p>

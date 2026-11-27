@@ -4,13 +4,17 @@ import time
 from datetime import date
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
+from joinpilot import demo as demo_module
 from joinpilot.api.main import create_app
 from joinpilot.config import KPISettings, LLMSettings, Settings
 from joinpilot.demo import DEMO_NAME, ensure_demo_project
 from joinpilot.jobs.queue import make_job_queue
+from joinpilot.services.projects import ProjectService
 from joinpilot.services.runs import RunService
+from joinpilot.workspaces import DEMO
 
 
 def demo_settings(tmp_path: Path, demo_mode: bool = False) -> Settings:
@@ -43,3 +47,10 @@ def test_demo_mode_builds_it_at_startup_for_every_workspace(tmp_path: Path) -> N
         assert [(p["name"], p["read_only"]) for p in listed] == [(DEMO_NAME, True)]
         visitor = {"X-Workspace": "visitor-0123456789ab"}
         assert api.get("/projects", headers=visitor).json()[0]["name"] == DEMO_NAME
+
+
+def test_an_unfinished_demo_stays_hidden(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(demo_module, "wait_for", lambda *args: "failed")
+    settings = demo_settings(tmp_path)
+    assert ensure_demo_project(settings, make_job_queue(settings)) is None
+    assert ProjectService(settings).list_projects(DEMO) == [], "visitors never see it half built"

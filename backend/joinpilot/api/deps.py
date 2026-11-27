@@ -8,6 +8,7 @@ from fastapi import Request
 from fastapi.concurrency import run_in_threadpool
 
 from joinpilot.config import Settings
+from joinpilot.errors import NotFoundError
 from joinpilot.glossary.service import GlossaryService
 from joinpilot.jobs.queue import JobQueue
 from joinpilot.services.projects import ProjectService
@@ -43,9 +44,20 @@ def get_question_service(request: Request) -> QuestionService:
     return QuestionService(get_settings_from_app(request), get_run_service(request))
 
 
+# Routes opened as plain links, which cannot send headers: only the SQL download.
+QUERY_ROUTES = frozenset({"export_model"})
+
+
 def get_workspace(request: Request) -> str:
-    """The caller's workspace, from the X-Workspace header (or `workspace` query, for links)."""
-    return parse_workspace(request.headers.get(HEADER) or request.query_params.get(QUERY))
+    """The caller's workspace, from the X-Workspace header.
+
+    The SQL download link may carry it as `?workspace=` instead; no other route reads
+    the query, so a shared download link cannot be used to change projects.
+    """
+    value = request.headers.get(HEADER)
+    if not value and getattr(request.scope.get("route"), "name", "") in QUERY_ROUTES:
+        value = request.query_params.get(QUERY)
+    return parse_workspace(value)
 
 
 # POST endpoints that only read: asking a question changes nothing in the project.
@@ -72,7 +84,12 @@ async def guard_project_access(request: Request) -> None:
     projects = get_project_service(request)
     if "project_id" in params:
         project_id = str(params["project_id"])
-    else:
-        run = await run_in_threadpool(get_run_service(request).get, str(params["run_id"]))
-        project_id = run.project_id
-    await run_in_threadpool(projects.check_access, project_id, workspace, write)
+        await run_in_threadpool(projects.check_access, project_id, workspace, write)
+        return
+    run_id = str(params["run_id"])
+    run = await run_in_threadpool(get_run_service(request).get, run_id)
+    try:
+        await run_in_threadpool(projects.check_access, run.project_id, workspace, write)
+    except NotFoundError as error:
+        # Another workspace's run looks exactly like one that does not exist.
+        raise NotFoundError("Run not found.", {"run_id": run_id}) from error

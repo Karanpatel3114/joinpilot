@@ -41,20 +41,35 @@ def test_another_workspaces_project_and_runs_are_not_found(client: TestClient) -
     assert client.get(f"/runs/{run}", headers=ALICE).status_code == 200
     for method, path in [
         ("GET", f"/projects/{project}/profile"),
+        ("GET", f"/projects/{project}/glossary?q=customer"),
+        ("GET", f"/projects/{project}/dashboard"),
         ("GET", f"/projects/{project}/runs"),
         ("POST", f"/projects/{project}/runs"),
+        ("POST", f"/projects/{project}/tables"),
         ("POST", f"/projects/{project}/ask"),
         ("GET", f"/runs/{run}"),
+        ("GET", f"/runs/{run}/proposals"),
+        ("GET", f"/runs/{run}/views"),
         ("GET", f"/runs/{run}/checks"),
         ("GET", f"/runs/{run}/export"),
+        ("POST", f"/runs/{run}/approvals"),
     ]:
         response = client.request(
             method, path, headers=BOB, json={"requirement": "Revenue", "question": "How many?"}
         )
         assert response.status_code == 404, (method, path)
         assert response.json()["error"]["code"] == "NOT_FOUND"
+    foreign_run = client.get(f"/runs/{run}", headers=BOB).json()["error"]
+    assert foreign_run == {
+        "code": "NOT_FOUND",
+        "message": "Run not found.",
+        "details": {"run_id": run},
+    }
     link = client.get(f"/runs/{run}/export?workspace={ALICE['X-Workspace']}")
     assert link.status_code == 200, "download links carry the workspace in the query"
+    query = f"?workspace={ALICE['X-Workspace']}"
+    assert client.get(f"/projects/{project}/profile{query}").status_code == 404
+    assert client.get(f"/projects{query}").json() == [], "only the download reads the query"
 
 
 def test_a_malformed_workspace_id_is_refused(client: TestClient) -> None:
@@ -76,5 +91,13 @@ def test_the_demo_project_is_shared_and_read_only(client: TestClient) -> None:
     assert upload.status_code == 409 and "read-only" in upload.json()["error"]["message"]
     run = client.post(f"/projects/{demo.id}/runs", headers=ALICE, json={"requirement": "Revenue"})
     assert run.status_code == 409
+    demo_run = add_run(settings_of(client), demo.id)
+    approve = client.post(
+        f"/runs/{demo_run}/approvals",
+        headers=ALICE,
+        json={"decisions": [{"edge_id": "e1", "action": "approve"}]},
+    )
+    assert approve.status_code == 409, "nobody can approve the demo's runs"
+    assert client.get(f"/runs/{demo_run}", headers=BOB).status_code == 200
     asked = client.post(f"/projects/{demo.id}/ask", headers=ALICE, json={"question": "How many?"})
     assert "read-only" not in asked.json().get("error", {}).get("message", ""), "asking only reads"

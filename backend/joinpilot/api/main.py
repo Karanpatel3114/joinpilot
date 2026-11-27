@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import threading
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, suppress
 from typing import Any
@@ -28,10 +29,10 @@ from joinpilot.services.runs import RunService
 logger = logging.getLogger(__name__)
 
 
-async def build_demo(settings: Settings, jobs: Any) -> None:
+async def build_demo(settings: Settings, jobs: Any, stop: threading.Event) -> None:
     """Build the demo project; a failure is logged and leaves the API running."""
     try:
-        await asyncio.to_thread(ensure_demo_project, settings, jobs)
+        await asyncio.to_thread(ensure_demo_project, settings, jobs, stop)
     except Exception:
         logger.exception("could not build the demo project")
 
@@ -51,12 +52,19 @@ def make_lifespan(settings: Settings) -> Any:
         worker = make_worker(settings) if settings.jobs_mode == "arq" else None
         task = asyncio.create_task(worker.async_run()) if worker else None
         # Built in the background, so health checks pass while the sample loads.
-        demo = asyncio.create_task(build_demo(settings, jobs)) if settings.demo_mode else None
+        stop_demo = threading.Event()
+        demo = (
+            asyncio.create_task(build_demo(settings, jobs, stop_demo))
+            if settings.demo_mode
+            else None
+        )
         try:
             yield
         finally:
             if demo:
-                demo.cancel()
+                stop_demo.set()  # the build thread stops waiting within half a second
+                with suppress(asyncio.CancelledError):
+                    await demo
             if worker and task:
                 await worker.close()
                 task.cancel()

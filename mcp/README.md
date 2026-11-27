@@ -53,3 +53,4 @@ The tests in [`backend/tests/mcp_server/test_tools.py`](../backend/tests/mcp_ser
 - Questions follow the same rules as the API. The SQL must pass the guard (the newest model's views and the raw tables only, nothing that can grow values). It runs on a read-only connection without file or network access, with a row limit, an answer-size limit and a timeout.
 - Domain errors come back as tool errors with a plain message, for example `NOT_FOUND: Project not found.`
 - DuckDB allows one writer per warehouse file at a time, so don't change the same project from the web console and an assistant at the same moment.
+- The MCP server runs on your own machine and works in the `local` workspace (D-037). It skips the browser workspace checks and can change the demo project, so don't expose it beyond a trusted, local process.
