@@ -5,6 +5,8 @@
 
 **Turn raw ERP tables and a plain-English requirement into a tested, human-approved data model.**
 
+**Live demo: [joinpilot.vercel.app](https://joinpilot.vercel.app)**. Open the read-only sample project, or create your own and load the synthetic ERP data. No login; the free API may take about a minute to wake up on the first visit.
+
 JoinPilot profiles your tables, proposes how they should be joined *with the numbers that prove it*, waits for a person to approve, then generates guarded SQL views, runs automated system-integration checks, builds a KPI dashboard and answers business questions in plain English. Other AI tools can drive it through an MCP server.
 
 > Status: v1 complete. See the [build plan](docs/PLAN.md) for how it was built, one task per commit.
@@ -122,7 +124,7 @@ docker compose -f infra/docker-compose.yml --profile app up -d --build --wait   
 
 ## Deploy for free
 
-The API runs on Render's free plan and the console on Vercel's, with no payment method on either account. The step-by-step guide is [infra/DEPLOY.md](infra/DEPLOY.md).
+The live demo runs this way: the console on Vercel ([joinpilot.vercel.app](https://joinpilot.vercel.app)) and the API on Render's free plan ([health check](https://joinpilot-api.onrender.com/health)), with no payment method on either account. The step-by-step guide is [infra/DEPLOY.md](infra/DEPLOY.md).
 
 ## Evaluation
 
