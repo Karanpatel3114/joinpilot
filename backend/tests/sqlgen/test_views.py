@@ -22,6 +22,7 @@ from joinpilot.profiling.service import profile_project
 from joinpilot.sqlgen.views import (
     ApprovedJoin,
     bucket_labels,
+    build_view,
     create_views,
     fact_tables,
     literal,
@@ -187,4 +188,21 @@ def test_keys_of_different_types_join_as_text_like_profiling_compared_them() -> 
     assert scalar(con, 'SELECT COUNT(mara__grp) FROM model."v_items"') == 200
     results = run_checks(con, plan_views(joins, profile, "revenue by group", KPI), profile, CHECKS)
     assert all(r.passed for r in results if r.kind in ("row_count", "orphan_keys"))
+    con.close()
+
+
+def test_derived_columns_never_shadow_uploaded_columns_of_the_same_name() -> None:
+    con = duckdb.connect()
+    con.execute(
+        "CREATE TABLE BSID AS SELECT range::VARCHAR AS BELNR, '20260501' AS ZFBDT, "
+        "'kept' AS ZFBDT_date, 30 AS ZBD1T, 'mine' AS aging_bucket, "
+        "CAST(10 AS DECIMAL(15,2)) AS DMBTR FROM range(5)"
+    )
+    profile = profile_project(con, {"b": "BSID"}, ProfilingSettings())
+    spec = build_view("BSID", [], {t.name: t.columns for t in profile.tables}, "aging", KPI)
+    assert spec.derived == []
+    [view] = create_views(con, [spec])
+    assert view.status == "created"
+    columns = [r[0] for r in con.execute('DESCRIBE model."v_bsid"').fetchall()]
+    assert columns == ["BELNR", "ZFBDT", "ZFBDT_date", "ZBD1T", "aging_bucket", "DMBTR"]
     con.close()
