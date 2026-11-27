@@ -33,3 +33,10 @@ describe('polling after errors', () => {
     expect(shouldRetry(0, apiError(429))).toBe(false)
   })
 })
+
+describe('error bodies', () => {
+  it('fall back when they lack the contract envelope', () => {
+    const error = new ApiRequestError(405, { detail: 'Method Not Allowed' } as never)
+    expect([error.message, error.code]).toEqual(['Request failed with status 405', 'UNKNOWN'])
+  })
+})

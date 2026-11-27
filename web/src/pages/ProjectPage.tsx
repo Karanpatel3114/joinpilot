@@ -82,7 +82,7 @@ export function ProjectPage() {
                 role="tab"
                 type="button"
                 aria-selected={tab === name}
-                aria-controls={`panel-${name}`}
+                aria-controls={tab === name ? `panel-${name}` : undefined}
                 tabIndex={tab === name ? 0 : -1}
                 onClick={() => setTab(name)}
                 className={`rounded-md px-4 py-1.5 font-mono text-[13px] transition-colors ${

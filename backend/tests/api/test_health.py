@@ -23,8 +23,12 @@ def test_cors_allows_only_configured_origins() -> None:
     assert "access-control-allow-origin" not in blocked.headers
 
 
-def test_unknown_route_returns_404() -> None:
-    assert make_client().get("/nope").status_code == 404
+def test_unknown_routes_and_methods_use_the_contract_error_shape() -> None:
+    client = make_client()
+    missing = client.get("/nope")
+    assert missing.status_code == 404 and missing.json()["error"]["code"] == "NOT_FOUND"
+    wrong = client.delete("/health")
+    assert wrong.status_code == 405 and wrong.json()["error"]["code"] == "INVALID_INPUT"
 
 
 def test_unexpected_errors_return_the_contract_error_shape() -> None:

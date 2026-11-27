@@ -67,7 +67,7 @@ export function AnswerView({ answer }: { answer: Answer }) {
                 <tr key={i}>
                   {answer.columns.map((c) => (
                     <td key={c} className={`px-3 py-1.5 ${typeof row[c] === 'number' ? 'text-right tabular-nums' : ''}`}>
-                      {cell(row[c] as string | number | null)}
+                      {cell(row[c])}
                     </td>
                   ))}
                 </tr>
@@ -89,7 +89,7 @@ export function AnswerView({ answer }: { answer: Answer }) {
               </Link>
             </dd>
             <dt>Reads</dt>
-            <dd className="font-mono">{evidence.views.length ? evidence.views.join(', ') : 'raw tables only'}</dd>
+            <dd className="font-mono">{evidence.views.length ? evidence.views.join(', ') : 'nothing (a constant answer)'}</dd>
             <dt>Rows</dt>
             <dd>
               {evidence.row_count}

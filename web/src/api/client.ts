@@ -11,10 +11,11 @@ export class ApiRequestError extends Error {
   readonly details: Record<string, unknown>
 
   constructor(status: number, body: ApiError | null) {
-    super(body?.error.message ?? `Request failed with status ${status}`)
+    // Bodies without the contract's envelope (a proxy page, FastAPI's own `detail`) fall back.
+    super(body?.error?.message ?? `Request failed with status ${status}`)
     this.status = status
-    this.code = body?.error.code ?? 'UNKNOWN'
-    this.details = body?.error.details ?? {}
+    this.code = body?.error?.code ?? 'UNKNOWN'
+    this.details = body?.error?.details ?? {}
   }
 }
 

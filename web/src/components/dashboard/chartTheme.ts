@@ -27,8 +27,9 @@ const full = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 })
 export const axisNumber = (value: number) => compact.format(value)
 
 /** Exact numbers with separators and at most two decimals. */
-export function cell(value: string | number | null | undefined): string {
+export function cell(value: string | number | boolean | null | undefined): string {
   if (value === null || value === undefined) return '(none)'
+  if (typeof value === 'boolean') return value ? 'true' : 'false'
   return typeof value === 'number' ? full.format(value) : value
 }
 
