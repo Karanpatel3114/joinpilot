@@ -43,7 +43,7 @@ from joinpilot.services.store import (
 )
 from joinpilot.synth.dataset import build_dataset
 from joinpilot.synth.naming import Naming
-from joinpilot.workspaces import DEMO, LOCAL, visible_workspaces
+from joinpilot.workspaces import DEMO, DEMO_STAGING, LOCAL, visible_workspaces
 
 logger = logging.getLogger(__name__)
 
@@ -82,8 +82,11 @@ class ProjectService:
             raise InvalidInputError(
                 f"A project name needs 1 to {MAX_NAME_CHARS} characters.", {"field": "name"}
             )
+        # Only browser workspaces are capped: `local` (MCP server, scripts) keeps its data
+        # and has no way to delete projects, and the demo builds its own.
         limit = self.settings.max_projects_per_workspace
-        if len(self.store.list_projects([workspace])) >= limit:
+        capped = workspace not in (LOCAL, DEMO, DEMO_STAGING)
+        if capped and len(self.store.list_projects([workspace])) >= limit:
             raise ConflictError(
                 f"This workspace already has {limit} projects, the most it can hold.",
                 {"max_projects": limit},

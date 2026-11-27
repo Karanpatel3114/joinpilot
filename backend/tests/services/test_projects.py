@@ -66,6 +66,8 @@ def test_each_workspace_holds_a_limited_number_of_projects(tmp_path: Path) -> No
     with pytest.raises(ConflictError, match="already has 2 projects"):
         service.create("Three", "w" * 16)
     assert service.create("Elsewhere", "v" * 16).name == "Elsewhere"
+    for i in range(3):
+        service.create(f"Script {i}")  # the local workspace (MCP, scripts) is not capped
 
 
 def test_loads_are_refused_when_the_disk_is_nearly_full(
