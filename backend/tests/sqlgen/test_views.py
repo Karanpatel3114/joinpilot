@@ -6,8 +6,10 @@ import duckdb
 import pytest
 
 from joinpilot.agent.ranking import to_proposal
+from joinpilot.checks.sit import run_checks
 from joinpilot.config import (
     AgentSettings,
+    CheckSettings,
     JoinSettings,
     KPISettings,
     ProfilingSettings,
@@ -30,6 +32,7 @@ from joinpilot.synth.dataset import build_dataset
 from joinpilot.synth.naming import Naming
 
 KPI = KPISettings(reference_date=date(2026, 6, 30))
+CHECKS = CheckSettings()
 AGING = "Open receivables by aging bucket and 2026 revenue by product group"
 
 
@@ -163,3 +166,25 @@ def test_a_view_the_guard_refuses_is_reported_not_raised(warehouse: Any) -> None
     specs[0].sql = specs[0].sql.replace("SELECT ", "SELECT read_csv('x') AS bad, ", 1)
     views = create_views(con, specs)
     assert views[0].status == "failed" and views[0].message
+
+
+def test_keys_of_different_types_join_as_text_like_profiling_compared_them() -> None:
+    con = duckdb.connect()
+    con.execute(
+        "CREATE TABLE items AS SELECT i AS item_id, 1000 + i % 50 AS matnr, "
+        "CAST(i AS DECIMAL(12, 2)) AS amount FROM range(200) r(i)"
+    )
+    con.execute(
+        "CREATE TABLE mara AS SELECT CAST(1000 + i AS VARCHAR) AS matnr, 'grp' || i % 3 AS grp "
+        "FROM range(50) r(i) UNION ALL SELECT 'MAT-X', 'grp0'"
+    )
+    profile = profile_project(con, {"items": "items", "mara": "mara"}, ProfilingSettings())
+    joins = approved(profile)
+    assert joins, "the integer-to-text key should still be proposed"
+    views = create_views(con, plan_views(joins, profile, "revenue by group", KPI))
+    assert [v.status for v in views] == ["created"]
+    assert 'CAST(t0."matnr" AS TEXT)' in views[0].sql
+    assert scalar(con, 'SELECT COUNT(mara__grp) FROM model."v_items"') == 200
+    results = run_checks(con, plan_views(joins, profile, "revenue by group", KPI), profile, CHECKS)
+    assert all(r.passed for r in results if r.kind in ("row_count", "orphan_keys"))
+    con.close()

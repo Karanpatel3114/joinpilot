@@ -148,3 +148,26 @@ Done when: the public demo is safe, the final evaluation is in the README, and v
 - [x] M12.3 `feat(eval): run the final test split and publish results`
 - [x] M12.4 `docs: add architecture diagram, limitations and live demo link`
 - [x] M12.5 `chore: release v1.0.0 with changelog`
+
+## M13: Audit fixes (branch `m13-audit-fixes`)
+Done when: every finding from the post-release audit (correctness, public-demo abuse, console, docs and infra) is fixed or explicitly recorded as a limitation.
+
+- [x] M13.1 `fix(sqlgen): compare join keys of different types as text`
+- [ ] M13.2 `fix(agent): report views that could not be created as failed checks`
+- [ ] M13.3 `fix(checks): count open items without a due date in bucket coverage`
+- [ ] M13.4 `fix(db): store long check ids without truncation`
+- [ ] M13.5 `fix(jobs): give every resume its own job id`
+- [ ] M13.6 `fix(sqlgen): keep derived columns from clashing with uploaded ones`
+- [ ] M13.7 `feat(api): refuse tables past a row limit and time-limit heavy queries`
+- [ ] M13.8 `feat(api): cap projects and stored bytes per workspace`
+- [ ] M13.9 `fix(web): download exports with the workspace header, not the URL`
+- [ ] M13.10 `fix(api): refuse malformed ids in the access guard`
+- [ ] M13.11 `fix(api): rate-limit IPv6 clients by /64 network`
+- [ ] M13.12 `fix(web): treat projects as read-only until access is known`
+- [ ] M13.13 `fix(web): stop polling on errors and honour Retry-After`
+- [ ] M13.14 `feat(web): explain cold starts and network errors`
+- [ ] M13.15 `build(web): add a Content-Security-Policy`
+- [ ] M13.16 `fix(web): fix small console issues found in the audit`
+- [ ] M13.17 `docs: correct stack, plan, spec and CI notes`
+- [ ] M13.18 `build: pin CI actions and base images and harden ignores`
+- [ ] M13.19 `chore: release v1.1.0 with changelog`

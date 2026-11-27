@@ -193,10 +193,23 @@ def literal(value: str) -> str:
     return exp.Literal.string(value).sql(dialect="duckdb")
 
 
-def join_condition(join: ApprovedJoin, from_alias: str, to_alias: str) -> str:
+def types_differ(join: ApprovedJoin, columns: dict[str, list[ColumnProfile]]) -> bool:
+    """True when the two key columns have different types, so they must compare as text."""
+
+    def type_of(table: str, name: str) -> str | None:
+        return next((c.type for c in columns.get(table, []) if c.name == name), None)
+
+    return type_of(join.from_table, join.from_column) != type_of(join.to_table, join.to_column)
+
+
+def join_condition(
+    join: ApprovedJoin, from_alias: str, to_alias: str, as_text: bool = False
+) -> str:
     """The ON clause, applying the recorded normalization (and the filter, for attributes)."""
-    left = normalized_sql(f"{from_alias}.{ident(join.from_column)}", join.normalization, "from")
-    right = normalized_sql(f"{to_alias}.{ident(join.to_column)}", join.normalization, "to")
+    left = normalized_sql(
+        f"{from_alias}.{ident(join.from_column)}", join.normalization, "from", as_text
+    )
+    right = normalized_sql(f"{to_alias}.{ident(join.to_column)}", join.normalization, "to", as_text)
     condition = f"{left} = {right}"
     if join.filter_column and join.filter_value is not None:
         alias = from_alias if join.filter_on == "from" else to_alias
@@ -231,10 +244,13 @@ def render_view(
     tables = [(fact, "t0", "")]
     for i, join in enumerate(chosen, start=1):
         alias = f"t{i}"
+        as_text = types_differ(join, columns)
         if join.is_attribute:
-            table, condition = join.from_table, join_condition(join, alias, aliases[join.to_table])
+            table = join.from_table
+            condition = join_condition(join, alias, aliases[join.to_table], as_text)
         else:
-            table, condition = join.to_table, join_condition(join, aliases[join.from_table], alias)
+            table = join.to_table
+            condition = join_condition(join, aliases[join.from_table], alias, as_text)
         aliases[table] = alias
         sources.append(f"LEFT JOIN {ident(table)} AS {alias} ON {condition}")
         select += [

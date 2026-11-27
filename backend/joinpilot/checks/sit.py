@@ -17,7 +17,7 @@ from joinpilot.profiling.models import ProjectProfile
 from joinpilot.profiling.normalize import normalized_sql
 from joinpilot.profiling.sql import ident
 from joinpilot.sqlgen.guard import SANDBOX_SCHEMA, Catalog, catalog_from_connection, guard_sql
-from joinpilot.sqlgen.views import ApprovedJoin, ViewSpec, bucket_labels, literal
+from joinpilot.sqlgen.views import ApprovedJoin, ViewSpec, bucket_labels, literal, types_differ
 
 CheckKind = Literal[
     "row_count", "fan_out", "orphan_keys", "null_keys", "bucket_coverage", "reconciliation"
@@ -145,8 +145,9 @@ class ViewChecker:
         """Orphan and null shares of one join's key, within configured limits."""
         source, target = ident(join.from_table), ident(join.to_table)
         key = f"s.{ident(join.from_column)}"
-        left = normalized_sql(key, join.normalization, "from")
-        right = normalized_sql(f"t.{ident(join.to_column)}", join.normalization, "to")
+        as_text = types_differ(join, self.columns)
+        left = normalized_sql(key, join.normalization, "from", as_text)
+        right = normalized_sql(f"t.{ident(join.to_column)}", join.normalization, "to", as_text)
         total = int(self.value(f"SELECT COUNT(*) FROM {source} s"))
         nulls = int(self.value(f"SELECT COUNT(*) FROM {source} s WHERE {key} IS NULL"))
         orphans = int(

@@ -44,14 +44,22 @@ def pads_to_target(source: ColumnProfile, target: ColumnProfile) -> bool:
     )
 
 
-def normalized_sql(column_sql: str, normalization: str, side: Literal["from", "to"]) -> str:
-    """SQL expression that applies a recorded normalization to one side of a join."""
+def normalized_sql(
+    column_sql: str, normalization: str, side: Literal["from", "to"], as_text: bool = False
+) -> str:
+    """SQL expression that applies a recorded normalization to one side of a join.
+
+    `as_text` compares the raw value as text, the way profiling measured the overlap.
+    Joins between columns of different types need it: otherwise DuckDB casts the text
+    side to a number, which fails on values like `MAT-X` and matches `0005` to `5`.
+    """
     text = f"CAST({column_sql} AS VARCHAR)"
+    raw = text if as_text else column_sql
     if normalization == NONE:
-        return column_sql
+        return raw
     if normalization.startswith(LPAD_PREFIX):
         width = int(normalization.removeprefix(LPAD_PREFIX))
-        return f"lpad({text}, {width}, '0')" if side == "from" else column_sql
+        return f"lpad({text}, {width}, '0')" if side == "from" else raw
     if normalization == STRIP_ZEROS:
         return f"ltrim({text}, '0')"
     if normalization == TRIM_UPPER:
