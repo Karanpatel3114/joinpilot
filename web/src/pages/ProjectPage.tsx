@@ -26,8 +26,9 @@ export function ProjectPage() {
   const project = projects.data?.find((p) => p.id === projectId)
   const [params] = useSearchParams()
   const [tab, setTab] = useState<Tab>(() => TABS.find((t) => t === params.get('tab')) ?? 'Profile')
-  // Until the project list arrives, assume read-only so upload buttons never flash on the sample.
-  const readOnly = project?.read_only ?? !projects.data
+  // Nothing below the loading state renders until the project is known, so uploads never
+  // flash on the read-only sample.
+  const readOnly = project?.read_only ?? true
   const hasTables = (project?.table_count ?? 0) > 0
 
   /** Arrow keys, Home and End move between tabs, as in the ARIA tabs pattern. */

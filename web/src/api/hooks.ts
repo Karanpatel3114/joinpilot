@@ -15,6 +15,7 @@ import type {
   View,
 } from '../types/api'
 import { ApiRequestError, getJson, postFiles, postJson } from './client'
+import { isUnreachable } from './errorMessage'
 
 /** Statuses after which a run no longer changes without a person acting. */
 export const SETTLED: RunStatus[] = ['awaiting_approval', 'completed', 'failed']
@@ -34,13 +35,12 @@ export function nextPoll(error: unknown, interval: number): number | false {
 }
 
 /**
- * Retry a failed read while the API may be waking up: a free server's cold start takes
- * about a minute, which six retries with the default doubling delay (1 s to 30 s) cover.
- * A client error (4xx) is an answer, so it is never retried.
+ * Retry a failed read only while the API is unreachable (down or waking up): a free
+ * server's cold start takes about a minute, which six retries with the default doubling
+ * delay (1 s to 30 s) cover. Any answer from the API itself, even a 500, is final.
  */
 export function shouldRetry(failures: number, error: unknown): boolean {
-  if (error instanceof ApiRequestError && error.status < 500) return false
-  return failures < 6
+  return isUnreachable(error) && failures < 6
 }
 
 export const keys = {

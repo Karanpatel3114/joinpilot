@@ -180,7 +180,7 @@ Done when: every finding from the post-release audit (correctness, public-demo a
 - [x] M13.19 `chore: release v1.1.0 with changelog`
 - [x] M13.20 `fix(api): cap projects only in browser workspaces`
 - [x] M13.21 `fix(api): keep the contract's error codes and headers for HTTP errors`
-- [ ] M13.22 `fix(web): retry only while the API is unreachable`
+- [x] M13.22 `fix(web): retry only while the API is unreachable`
 - [ ] M13.23 `fix(agent): stop runs at the time limit and repair only built views`
 - [ ] M13.24 `fix(profiling): count Parquet rows from their row groups`
 - [ ] M13.25 `feat(eval): record the dev evaluation after the audit fixes`

@@ -52,7 +52,8 @@ export async function downloadFile(path: string, filename: string): Promise<void
   document.body.append(link)
   link.click()
   link.remove()
-  URL.revokeObjectURL(url)
+  // Revoking right away can cancel the download in some browsers.
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
 /** GET a JSON resource. */

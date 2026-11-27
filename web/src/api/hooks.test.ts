@@ -27,8 +27,10 @@ describe('polling after errors', () => {
 
   it('retries through a cold start, but never a client error', () => {
     expect(shouldRetry(0, new TypeError('Failed to fetch'))).toBe(true)
-    expect(shouldRetry(5, apiError(503))).toBe(true)
-    expect(shouldRetry(6, apiError(503))).toBe(false)
+    expect(shouldRetry(5, new ApiRequestError(503, null))).toBe(true)
+    expect(shouldRetry(6, new ApiRequestError(503, null))).toBe(false)
+    expect(shouldRetry(0, apiError(500)), 'the API answered: retrying only repeats the work').toBe(false)
+    expect(shouldRetry(0, apiError(503)), 'its own 503 (model unavailable) is an answer').toBe(false)
     expect(shouldRetry(0, apiError(404))).toBe(false)
     expect(shouldRetry(0, apiError(429))).toBe(false)
   })
