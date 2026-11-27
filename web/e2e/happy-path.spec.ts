@@ -1,6 +1,11 @@
 import { expect, test } from '@playwright/test'
 
 test('from raw ERP tables to an approved, checked data model', async ({ page }) => {
+  // A Content-Security-Policy that blocks something the console needs shows up here.
+  const blocked: string[] = []
+  page.on('console', (message) => {
+    if (/Content Security Policy/i.test(message.text())) blocked.push(message.text())
+  })
   await page.goto('/')
   await page.getByLabel('New project name').fill(`E2E ${Date.now()}`)
   await page.getByRole('button', { name: /create project/i }).click()
@@ -22,6 +27,9 @@ test('from raw ERP tables to an approved, checked data model', async ({ page }) 
   const sql = page.getByRole('region', { name: 'Generated SQL' })
   await expect(sql.getByText('v_bsid', { exact: true })).toBeVisible({ timeout: 30_000 })
   await expect(page.getByRole('region', { name: 'Check results' }).getByText(/(\d+) of \1 passed/)).toBeVisible()
+  const download = page.waitForEvent('download')
+  await sql.getByRole('button', { name: /download sql/i }).click()
+  expect((await download).suggestedFilename()).toMatch(/^joinpilot-[0-9a-f]{8}-duckdb\.sql$/)
 
   await page.getByRole('link', { name: /open the kpi dashboard/i }).click()
   const dashboard = page.getByRole('region', { name: 'Dashboard' })
@@ -33,4 +41,5 @@ test('from raw ERP tables to an approved, checked data model', async ({ page }) 
   await page.getByLabel('Your question').fill('How many customers are based in Germany?')
   await page.getByRole('button', { name: 'Ask' }).click()
   await expect(page.getByRole('alert')).toContainText('Add GEMINI_API_KEY')
+  expect(blocked).toEqual([])
 })

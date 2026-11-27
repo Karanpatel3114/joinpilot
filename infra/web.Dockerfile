@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1.7
 # JoinPilot console: a static Vite build served by unprivileged nginx on port 8080.
 #   docker build -f infra/web.Dockerfile --build-arg VITE_API_URL=https://api.example.com -t joinpilot-web .
+# infra/nginx.conf's Content-Security-Policy allows API calls to localhost:8000 only;
+# change its connect-src when VITE_API_URL points elsewhere.
 
 FROM node:22-alpine AS build
 WORKDIR /repo/web
